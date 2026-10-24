@@ -1,7 +1,17 @@
 {
   "name": "biolaris-media",
   "version": "0.1.0",
-  "private": true,
+  "private": false,
+  "description": "App desktop open source per convertire e comprimere file multimediali in locale",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bispitalieri/biolaris.git"
+  },
+  "bugs": {
+    "url": "https://github.com/bispitalieri/biolaris/issues"
+  },
+  "homepage": "https://github.com/bispitalieri/biolaris#readme",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -17,8 +27,10 @@
     "@tauri-apps/plugin-autostart": "^2.7.0",
     "@tauri-apps/plugin-dialog": "^2.8.3",
     "@tauri-apps/plugin-fs": "^2.7.1",
+    "i18next": "^26.5.10",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
+    "react-i18next": "^17.1.7",
     "react-router-dom": "^7.18.4"
   },
   "devDependencies": {

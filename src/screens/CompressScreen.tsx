@@ -2,6 +2,7 @@ import {useCallback, useEffect, useRef, useState} from 'react';
 import {DropZone} from '../components/DropZone';
 import {CompressionQueue, type CompressionQueueItem} from '../components/CompressionQueue';
 import {enqueueCompression, getParallelism, type JobUpdate, subscribeToProgress} from '../lib/media';
+import {useTranslation} from 'react-i18next';
 
 function basename(path: string) {
   return path.split(/[\\/]/).pop() || path;
@@ -13,6 +14,7 @@ function outputForCompress(path: string) {
 }
 
 export function CompressScreen() {
+  const {t} = useTranslation();
   const [compressItems, setCompressItems] = useState<CompressionQueueItem[]>([]);
   const [parallelism, setParallelism] = useState(1);
   const [jobPaths, setJobPaths] = useState<Record<string, string>>({});
@@ -110,8 +112,8 @@ export function CompressScreen() {
   return (
     <>
       <header className="mb-8">
-        <h1 className="text-xl font-bold tracking-tight">Comprimi</h1>
-        <p className="text-sm text-zinc-500">Comprimi file per ridurne le dimensioni</p>
+        <h1 className="text-xl font-bold tracking-tight">{t('compressTitle')}</h1>
+        <p className="text-sm text-zinc-500">{t('compressDescription')}</p>
       </header>
       <DropZone onFiles={addFilesCompress}/>
       <CompressionQueue

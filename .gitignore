@@ -3,6 +3,8 @@ dist
 src-tauri/target
 src-tauri/binaries/*
 !src-tauri/binaries/.gitkeep
+.DS_Store
+.env.*.local
 .idea/
 
 ### Rust template
@@ -158,4 +160,3 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
-

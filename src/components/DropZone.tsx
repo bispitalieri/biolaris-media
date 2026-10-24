@@ -1,19 +1,21 @@
 import React, {useEffect, useState} from 'react';
 import {getCurrentWebview} from '@tauri-apps/api/webview';
 import {open} from '@tauri-apps/plugin-dialog'
+import {useTranslation} from 'react-i18next';
 
 type Props = { onFiles: (paths: string[]) => void };
 
 /** Uses Tauri's native file-drop event, which supplies real local filesystem paths. */
 export function DropZone({onFiles}: Readonly<Props>) {
   const [hovering, setHovering] = useState(false);
+  const {t} = useTranslation();
 
   const handleFileSelect = async () => {
     try {
       const selected = await open({
         multiple: true,
         filters: [{
-          name: 'Media & Documenti',
+          name: t('mediaAndDocuments'),
           extensions: [
             // === IMMAGINI & FOTO ===
             'jpg', 'jpeg', 'png', 'webp', 'webp2', 'heic', 'heif', 'avif', 'jxl', 'bpg', 'gif', 'bmp', 'tiff', 'tif', 'svg',
@@ -66,8 +68,8 @@ export function DropZone({onFiles}: Readonly<Props>) {
     <section
       className={`rounded-2xl border border-dashed p-10 text-center transition ${hovering ? 'border-violet-400 bg-violet-500/10' : 'border-zinc-700 bg-zinc-900/50'}`}>
       <div className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-xl bg-zinc-800 text-2xl cursor-pointer" onClick={handleFileSelect}>＋</div>
-      <h2 className="text-lg font-medium">Trascina qui i tuoi file</h2>
-      <p className="mt-1 text-sm text-zinc-400">Immagini, video, audio e PDF · elaborazione locale</p>
+      <h2 className="text-lg font-medium">{t('dropTitle')}</h2>
+      <p className="mt-1 text-sm text-zinc-400">{t('dropDescription')}</p>
     </section>
   );
 }

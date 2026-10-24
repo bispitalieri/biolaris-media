@@ -1,38 +1,52 @@
-# Biolaris
+# Biolaris Media
 
-Biolaris è una base desktop locale con Tauri v2, React/TypeScript e Rust. La coda attuale dimostra conversioni audio/video tramite sidecar FFmpeg e un numero massimo di task concorrenti pari ai core logici. Il frontend espone CRF e opzione metadati; l'elaborazione immagine e PDF è predisposta nell'elenco sidecar ma richiede ancora i rispettivi handler e controlli dedicati.
+Biolaris Media è un’applicazione desktop open source per convertire e comprimere file multimediali mantenendoli sul proprio computer. È realizzata con Tauri 2, React, TypeScript e Rust; FFmpeg e FFprobe vengono eseguiti come sidecar.
 
-## Struttura
+> Il progetto è in sviluppo. Al momento sono implementate le code di conversione e compressione audio/video. Le funzioni per immagini e PDF, il ridimensionamento e l’estrazione/unione PDF non sono ancora collegate. L’opzione di qualità audio non è ancora applicata ai parametri del codec.
 
-```text
-.
-├── index.html
-├── package.json
-├── vite.config.ts
-├── tailwind.config.js
-├── postcss.config.js
-├── tsconfig.json
-├── src/
-│   ├── App.tsx
-│   ├── main.tsx
-│   ├── styles.css
-│   ├── components/
-│   │   ├── DropZone.tsx
-│   │   └── ConversionQueue.tsx
-│   └── lib/media.ts
-└── src-tauri/
-    ├── Cargo.toml
-    ├── build.rs
-    ├── tauri.conf.json
-    ├── capabilities/default.json
-    ├── binaries/                 # sidecar per ciascun target, da fornire
-    └── src/{main.rs,lib.rs}
-```
+## Requisiti
 
-## Sidecar e compilazione
+- Node.js e npm
+- Rust e Cargo
+- Prerequisiti di sviluppo Tauri 2 per la piattaforma in uso (toolchain e librerie di sistema)
+- Sidecar FFmpeg e FFprobe compatibili con il target, collocati in `src-tauri/binaries/`
 
-`src-tauri/tauri.conf.json` dichiara `bundle.externalBin`. Per ogni target di rilascio occorre mettere i binari in `src-tauri/binaries/` con il suffisso triplet richiesto da Tauri, per esempio `ffmpeg-aarch64-apple-darwin`, `ffmpeg-x86_64-apple-darwin`, `ffmpeg-x86_64-pc-windows-msvc`, `ffmpeg-x86_64-unknown-linux-gnu` (aggiungere `.exe` su Windows). Aggiungere anche le versioni target-specifiche `ffprobe`, `vips`, `pdftoppm` e `pdfunite`. I sidecar devono essere redistribuibili secondo le licenze dei rispettivi progetti e dei codec inclusi.
+Consulta la [guida ufficiale Tauri per i prerequisiti](https://v2.tauri.app/start/prerequisites/) del tuo sistema.
 
-Per una prova locale, installare i prerequisiti Tauri v2 per il proprio sistema, poi installare dipendenze npm, collocare almeno `ffmpeg-<target-triple>` e `ffprobe-<target-triple>` nella cartella `src-tauri/binaries`, e lanciare `npm run tauri dev`. Una build pacchettizzata richiede i sidecar di tutti i target che si vuole distribuire. Tauri CLI documenta le piattaforme supportate e il target triple esatto della toolchain.
+## Avvio in sviluppo
 
-I formati audio/video selezionati devono essere compatibili con il file d'origine. Per il video, CRF è applicato ai codec video configurati; per l'audio il controllo qualità non è ancora tradotto in parametri specifici del codec. Le immagini/PDF, il ridimensionamento e l'estrazione/unione PDF non sono ancora collegati ai sidecar.
+1. Clona il repository e installa le dipendenze:
+
+   ```sh
+   git clone https://github.com/biolaris/biolaris.git
+   cd biolaris
+   npm ci
+   ```
+
+2. Inserisci in `src-tauri/binaries/` i sidecar `ffmpeg` e `ffprobe` per il target corrente. I nomi devono includere il target triple Rust, per esempio `ffmpeg-aarch64-apple-darwin` e `ffprobe-aarch64-apple-darwin`. Su Windows aggiungi `.exe`.
+
+3. Avvia l’app:
+
+   ```sh
+   npm run dev:tauri
+   ```
+
+Per compilare la parte web usa `npm run build`. Per creare il pacchetto desktop usa `npm run tauri build`, fornendo prima i sidecar richiesti.
+
+## Sidecar e distribuzione
+
+La configurazione Tauri include `binaries/ffmpeg` e `binaries/ffprobe` come binari esterni. Per ogni piattaforma di rilascio occorrono i binari con il suffisso target triple corretto, ad esempio `x86_64-pc-windows-msvc` o `x86_64-unknown-linux-gnu`. I binari non sono inclusi nel repository: `src-tauri/binaries/` è esclusa da Git.
+
+Prima di distribuire una build, verifica le licenze di FFmpeg e dei codec effettivamente inclusi, oltre alle licenze di eventuali pacchetti binari usati. La licenza MIT di questo repository non sostituisce né modifica quelle delle dipendenze e dei codec.
+
+## Contribuire
+
+Segnala bug e proponi funzionalità tramite le [GitHub Issues](https://github.com/biolaris/biolaris/issues). Per modifiche più ampie, apri una issue per discutere l’approccio e poi invia una pull request. Leggi [CONTRIBUTING.md](CONTRIBUTING.md) e il [Codice di condotta](CODE_OF_CONDUCT.md).
+
+## Sicurezza
+
+Per segnalazioni di vulnerabilità, segui le istruzioni in [SECURITY.md](SECURITY.md) invece di pubblicare dettagli sfruttabili in una issue pubblica.
+
+## Licenza
+
+Il codice di questo progetto è distribuito secondo i termini della [licenza MIT](LICENSE).

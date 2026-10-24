@@ -1,9 +1,12 @@
-import {NavLink, Route, Routes, Navigate} from 'react-router-dom';
+import {Route, Routes, Navigate} from 'react-router-dom';
 import {ConvertScreen} from './screens/ConvertScreen';
 import {CompressScreen} from './screens/CompressScreen';
 import Sidebar from "./components/Sidebar.tsx";
+import {useTranslation} from 'react-i18next';
 
 export default function App() {
+  const {t} = useTranslation();
+
   return (
     <div className="flex h-screen">
       <Sidebar />
@@ -15,12 +18,10 @@ export default function App() {
             <Route path="/compress" element={<CompressScreen/>}/>
           </Routes>
           <p className="mt-8 text-center text-xs text-zinc-600">
-            I file vengono elaborati sul dispositivo. I formati disponibili dipendono dai codec inclusi nel pacchetto.
+            {t('privacyNote')}
           </p>
         </div>
       </main>
     </div>
   );
 }
-
-

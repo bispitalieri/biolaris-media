@@ -2,6 +2,7 @@ import {useCallback, useEffect, useRef, useState} from 'react';
 import {DropZone} from '../components/DropZone';
 import {ConversionQueue, type QueueItem} from '../components/ConversionQueue';
 import {enqueueConversion, getParallelism, type JobUpdate, type OutputFormat, subscribeToProgress, getDefaultFormat, detectFileType} from '../lib/media';
+import {useTranslation} from 'react-i18next';
 
 function basename(path: string) {
   return path.split(/[\/]/).pop() || path;
@@ -13,6 +14,7 @@ function outputForConvert(path: string, format: OutputFormat) {
 }
 
 export function ConvertScreen() {
+  const {t} = useTranslation();
   const [items, setItems] = useState<QueueItem[]>([]);
   const [parallelism, setParallelism] = useState(1);
   const [jobPaths, setJobPaths] = useState<Record<string, string>>({});
@@ -97,10 +99,9 @@ export function ConvertScreen() {
     }
   }, [changeConvert]);
 
-  const convertMany = useCallback((batch: QueueItem[], format: OutputFormat) => {
+  const convertMany = useCallback((batch: QueueItem[]) => {
     for (const item of batch) {
-      changeConvert(item.path, {format});
-      void convert({...item, format});
+      void convert(item);
     }
   }, [changeConvert, convert]);
 
@@ -119,8 +120,8 @@ export function ConvertScreen() {
   return (
     <>
       <header className="mb-8">
-        <h1 className="text-xl font-bold tracking-tight">Converti</h1>
-        <p className="text-sm text-zinc-500">Converti file in diversi formati</p>
+        <h1 className="text-xl font-bold tracking-tight">{t('convertTitle')}</h1>
+        <p className="text-sm text-zinc-500">{t('convertDescription')}</p>
       </header>
       <DropZone onFiles={addFilesConvert}/>
       <ConversionQueue
