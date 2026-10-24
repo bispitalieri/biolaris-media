@@ -97,6 +97,13 @@ export function ConvertScreen() {
     }
   }, [changeConvert]);
 
+  const convertMany = useCallback((batch: QueueItem[], format: OutputFormat) => {
+    for (const item of batch) {
+      changeConvert(item.path, {format});
+      void convert({...item, format});
+    }
+  }, [changeConvert, convert]);
+
   const removeItemConvert = useCallback((path: string) => {
     setItems((all) => all.filter((item) => item.path !== path));
   }, []);
@@ -120,6 +127,7 @@ export function ConvertScreen() {
         items={items}
         onChange={changeConvert}
         onConvert={convert}
+        onConvertMany={convertMany}
         parallelism={parallelism}
         onRemove={removeItemConvert}
         onRemoveCompleted={removeCompletedConvert}

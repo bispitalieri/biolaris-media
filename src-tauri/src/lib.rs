@@ -25,8 +25,7 @@ impl Default for QueueState {
 pub struct ConversionRequest {
     pub input_path: String,
     pub output_path: String,
-    pub format: OutputFormat,
-    /// FFmpeg CRF range; smaller values mean higher quality.
+    pub format: String,
     pub quality: u8,
     pub preserve_metadata: bool,
 }
@@ -38,39 +37,6 @@ pub struct CompressionRequest {
     pub output_path: String,
     pub quality: u8,
     pub preserve_metadata: bool,
-}
-
-#[derive(Debug, Deserialize, Clone, Copy)]
-#[serde(rename_all = "lowercase")]
-pub enum OutputFormat {
-    Mp4,
-    Webm,
-    Mp3,
-    Wav,
-    Flac,
-}
-impl OutputFormat {
-    fn extension(self) -> &'static str {
-        match self {
-            Self::Mp4 => "mp4",
-            Self::Webm => "webm",
-            Self::Mp3 => "mp3",
-            Self::Wav => "wav",
-            Self::Flac => "flac",
-        }
-    }
-    fn codec_args(self) -> &'static [&'static str] {
-        match self {
-            Self::Mp4 => &["-c:v", "libx264", "-c:a", "aac"],
-            Self::Webm => &["-c:v", "libvpx-vp9", "-c:a", "libopus"],
-            Self::Mp3 => &["-vn", "-c:a", "libmp3lame"],
-            Self::Wav => &["-vn", "-c:a", "pcm_s16le"],
-            Self::Flac => &["-vn", "-c:a", "flac"],
-        }
-    }
-    fn is_video(self) -> bool {
-        matches!(self, Self::Mp4 | Self::Webm)
-    }
 }
 
 #[derive(Clone, Serialize)]
@@ -109,10 +75,219 @@ fn validate_output(path: &str, expected_ext: &str) -> Result<PathBuf, String> {
         return Err(format!("L'estensione deve essere .{expected_ext}"));
     }
     let result = parent.join(filename);
-    if result.exists() {
+    if std::fs::symlink_metadata(&result).is_ok() {
         return Err("Il file di destinazione esiste già".into());
     }
     Ok(result)
+}
+
+fn get_file_ext(path: &Path) -> String {
+    path.extension()
+        .and_then(|v| v.to_str())
+        .unwrap_or("")
+        .to_lowercase()
+}
+
+fn is_image_ext(ext: &str) -> bool {
+    matches!(
+        ext,
+        "jpg"
+            | "jpeg"
+            | "png"
+            | "webp"
+            | "webp2"
+            | "heic"
+            | "heif"
+            | "avif"
+            | "jxl"
+            | "bpg"
+            | "gif"
+            | "bmp"
+            | "tiff"
+            | "tif"
+            | "svg"
+            | "ico"
+            | "icns"
+            | "jfif"
+            | "pjpeg"
+            | "pjpg"
+            | "psd"
+            | "ai"
+            | "xcf"
+            | "tga"
+            | "dds"
+            | "hdr"
+            | "exr"
+            | "wmf"
+            | "emf"
+            | "eps"
+            | "pcx"
+            | "dcx"
+            | "pbm"
+            | "pgm"
+            | "ppm"
+            | "pnm"
+            | "cr2"
+            | "cr3"
+            | "nef"
+            | "arw"
+            | "sr2"
+            | "dng"
+            | "rw2"
+            | "orf"
+            | "pef"
+            | "raf"
+            | "mrw"
+            | "x3f"
+            | "erf"
+            | "3fr"
+            | "fff"
+    )
+}
+
+fn is_video_ext(ext: &str) -> bool {
+    matches!(
+        ext,
+        "mp4"
+            | "mkv"
+            | "avi"
+            | "mov"
+            | "webm"
+            | "wmv"
+            | "flv"
+            | "f4v"
+            | "vob"
+            | "ogv"
+            | "ogm"
+            | "qt"
+            | "m4v"
+            | "mpg"
+            | "mpeg"
+            | "m2v"
+            | "3gp"
+            | "3g2"
+            | "ts"
+            | "mts"
+            | "m2ts"
+            | "m2t"
+            | "asf"
+            | "rm"
+            | "rmvb"
+            | "divx"
+            | "xvid"
+            | "dv"
+            | "amv"
+            | "mjpeg"
+            | "mjpg"
+            | "roq"
+            | "yuv"
+            | "nut"
+    )
+}
+
+fn is_audio_ext(ext: &str) -> bool {
+    matches!(
+        ext,
+        "mp3"
+            | "wav"
+            | "ogg"
+            | "oga"
+            | "mka"
+            | "flac"
+            | "m4a"
+            | "m4r"
+            | "aac"
+            | "adts"
+            | "wma"
+            | "alac"
+            | "aiff"
+            | "aif"
+            | "ape"
+            | "pcm"
+            | "opus"
+            | "spx"
+            | "amr"
+            | "gsm"
+            | "mid"
+            | "midi"
+            | "m4b"
+            | "m4p"
+            | "mpc"
+            | "wv"
+            | "dsf"
+            | "dff"
+            | "caf"
+            | "tak"
+            | "tta"
+            | "ra"
+            | "ram"
+            | "au"
+            | "snd"
+            | "voc"
+    )
+}
+
+/// Formats commonly supported by FFmpeg's image2 pipeline and its bundled codecs.
+/// Less common image formats are delegated to ImageMagick, whose delegates vary
+/// by installation (for example HEIC and JPEG XL support).
+fn is_ffmpeg_image_ext(ext: &str) -> bool {
+    matches!(ext, "jpg" | "jpeg" | "png" | "webp" | "bmp" | "gif" | "tif" | "tiff")
+}
+
+fn ffmpeg_codec_args_for_format(fmt: &str) -> Vec<String> {
+    match fmt {
+        "mp4" => vec!["-c:v".into(), "libx264".into(), "-c:a".into(), "aac".into()],
+        "webm" => vec![
+            "-c:v".into(),
+            "libvpx-vp9".into(),
+            "-c:a".into(),
+            "libopus".into(),
+        ],
+        "mkv" => vec!["-c:v".into(), "libx264".into(), "-c:a".into(), "aac".into()],
+        "avi" => vec!["-c:v".into(), "libx264".into(), "-c:a".into(), "mp3".into()],
+        "mov" => vec!["-c:v".into(), "libx264".into(), "-c:a".into(), "aac".into()],
+        "gif" => vec!["-vf".into(), "fps=10,scale=320:-1:flags=lanczos".into()],
+        "mp3" => vec!["-vn".into(), "-c:a".into(), "libmp3lame".into()],
+        "wav" => vec!["-vn".into(), "-c:a".into(), "pcm_s16le".into()],
+        "flac" => vec!["-vn".into(), "-c:a".into(), "flac".into()],
+        "ogg" => vec!["-vn".into(), "-c:a".into(), "libvorbis".into()],
+        "m4a" => vec!["-vn".into(), "-c:a".into(), "aac".into()],
+        "aac" => vec!["-vn".into(), "-c:a".into(), "aac".into()],
+        "opus" => vec!["-vn".into(), "-c:a".into(), "libopus".into()],
+        _ => vec![],
+    }
+}
+
+fn is_video_out(fmt: &str) -> bool {
+    matches!(fmt, "mp4" | "webm" | "mkv" | "avi" | "mov")
+}
+
+fn video_crf(quality: u8) -> u8 {
+    // The UI uses 0..100 where a larger value means better quality.
+    (51.0 - (quality.min(100) as f32 * 0.33))
+        .round()
+        .clamp(18.0, 51.0) as u8
+}
+
+fn valid_conversion_pair(input: &str, output: &str) -> bool {
+    let image_output = matches!(
+        output,
+        "jpg" | "jpeg" | "png" | "webp" | "avif" | "heic" | "heif" | "jxl" | "bmp" | "tif" | "tiff" | "ico" | "gif" | "tga" | "dds" | "hdr" | "exr" | "pcx" | "pbm" | "pgm" | "ppm" | "pnm"
+    );
+    let audio_output = matches!(
+        output,
+        "mp3" | "wav" | "flac" | "ogg" | "m4a" | "aac" | "opus"
+    );
+    let video_output = matches!(output, "mp4" | "webm" | "mkv" | "avi" | "mov" | "gif");
+    (image_output && (is_image_ext(input) || input == "pdf"))
+        || (audio_output && is_audio_ext(input))
+        || (video_output && (is_video_ext(input) || is_audio_ext(input)))
+}
+
+fn is_compressible(ext: &str) -> bool {
+    (is_image_ext(ext) && ext != "pdf")
+        || matches!(ext, "mp4" | "mov" | "m4v" | "avi" | "mkv" | "webm")
+        || matches!(ext, "mp3" | "ogg" | "oga")
 }
 
 #[tauri::command]
@@ -121,11 +296,15 @@ async fn enqueue_conversion(
     state: State<'_, QueueState>,
     request: ConversionRequest,
 ) -> Result<String, String> {
-    if request.quality > 51 {
-        return Err("La qualità CRF deve essere compresa tra 0 e 51".into());
+    if request.quality > 100 {
+        return Err("La qualità deve essere valida".into());
     }
     let input = canonical_existing_file(&request.input_path)?;
-    let output = validate_output(&request.output_path, request.format.extension())?;
+    let format = request.format.to_lowercase();
+    if !valid_conversion_pair(&get_file_ext(&input), &format) {
+        return Err("Conversione non supportata per questo formato di input e output".into());
+    }
+    let output = validate_output(&request.output_path, &format)?;
     let id = Uuid::new_v4().to_string();
     let semaphore = state.slots.clone();
     let task_id = id.clone();
@@ -144,7 +323,7 @@ async fn enqueue_conversion(
                 error: None,
             },
         );
-        let result = run_ffmpeg_convert(&app, &task_id, &input, &output, request).await;
+        let result = run_convert(&app, &task_id, &input, &output, request).await;
         match result {
             Ok(()) => {
                 let _ = app.emit(
@@ -185,7 +364,10 @@ async fn enqueue_compression(
         return Err("La qualità deve essere compresa tra 30 e 70".into());
     }
     let input = canonical_existing_file(&request.input_path)?;
-    let ext = input.extension().and_then(|v| v.to_str()).unwrap_or("").to_lowercase();
+    let ext = get_file_ext(&input);
+    if !is_compressible(&ext) {
+        return Err("Compressione non supportata per questo formato".into());
+    }
     let output = validate_output(&request.output_path, &ext)?;
     let id = Uuid::new_v4().to_string();
     let semaphore = state.slots.clone();
@@ -236,103 +418,248 @@ async fn enqueue_compression(
     Ok(id)
 }
 
-async fn run_ffmpeg_convert(
+async fn try_run_magick(app: &tauri::AppHandle, args: Vec<String>) -> Result<bool, String> {
+    // Try magick sidecar first (ImageMagick 7), then convert (IM6)
+    if let Ok(sidecar) = app.shell().sidecar("magick") {
+        if let Ok((mut rx, _child)) = sidecar.args(args.clone()).spawn() {
+            let mut exit_code = None;
+            while let Some(event) = rx.recv().await {
+                match event {
+                    CommandEvent::Terminated(payload) => exit_code = payload.code,
+                    CommandEvent::Error(_) => break,
+                    _ => {}
+                }
+            }
+            if exit_code == Some(0) {
+                return Ok(true);
+            }
+        }
+    }
+    if let Ok(sidecar) = app.shell().sidecar("convert") {
+        if let Ok((mut rx, _child)) = sidecar.args(args).spawn() {
+            let mut exit_code = None;
+            while let Some(event) = rx.recv().await {
+                match event {
+                    CommandEvent::Terminated(payload) => exit_code = payload.code,
+                    CommandEvent::Error(_) => break,
+                    _ => {}
+                }
+            }
+            if exit_code == Some(0) {
+                return Ok(true);
+            }
+        }
+    }
+    Ok(false)
+}
+
+async fn run_convert_image_magick(
+    app: &tauri::AppHandle,
+    input: &Path,
+    output: &Path,
+    out_ext: &str,
+    quality: u8,
+    preserve_metadata: bool,
+) -> Result<(), String> {
+    let input_text = input.to_string_lossy().into_owned();
+    let output_text = output.to_string_lossy().into_owned();
+    let q = quality.clamp(1, 100);
+
+    // Try ImageMagick first for all image-like formats (especially RAW, HEIC, etc.)
+    let mut args: Vec<String> = vec![input_text.clone()];
+    if !preserve_metadata {
+        args.push("-strip".into());
+    }
+    // Quality setting varies by format
+    match out_ext {
+        "jpg" | "jpeg" => args.extend(["-quality".into(), q.to_string()]),
+        "webp" => args.extend(["-quality".into(), q.to_string()]),
+        "avif" => args.extend(["-quality".into(), q.to_string()]),
+        "png" => {
+            // For PNG, use compression level
+            let comp = ((100 - q) * 9 / 100).min(9);
+            args.extend(["-quality".into(), format!("{}00", comp)]);
+        }
+        "tif" | "tiff" => args.extend(["-compress".into(), "lzw".into()]),
+        "ico" => {}
+        _ => args.extend(["-quality".into(), q.to_string()]),
+    }
+    args.push(output_text.clone());
+
+    if try_run_magick(app, args).await? {
+        return Ok(());
+    }
+    Err("Nessun convertitore immagine disponibile (magick/convert)".into())
+}
+
+async fn run_convert(
     app: &tauri::AppHandle,
     id: &str,
     input: &Path,
     output: &Path,
     request: ConversionRequest,
 ) -> Result<(), String> {
+    let in_ext = get_file_ext(input);
+    let out_ext = request.format.to_lowercase();
     let input_text = input.to_string_lossy().into_owned();
     let output_text = output.to_string_lossy().into_owned();
-    // Probe duration first, so FFmpeg's machine-readable out_time can be converted to %.
-    let probe = app
-        .shell()
-        .sidecar("ffprobe")
-        .map_err(|e| e.to_string())?
-        .args([
-            "-v",
-            "error",
-            "-show_entries",
-            "format=duration",
-            "-of",
-            "default=noprint_wrappers=1:nokey=1",
-            &input_text,
-        ])
-        .output()
-        .await
-        .map_err(|e| format!("Avvio ffprobe non riuscito: {e}"))?;
-    if !probe.status.success() {
-        return Err("ffprobe non riconosce il file di input".into());
-    }
-    let duration_secs: f64 = String::from_utf8_lossy(&probe.stdout)
-        .trim()
-        .parse()
-        .map_err(|_| "Durata del file non leggibile")?;
-    if !duration_secs.is_finite() || duration_secs <= 0.0 {
-        return Err("Durata del file non valida".into());
+
+    // Use ImageMagick when either side is outside FFmpeg's common image formats.
+    if (is_image_ext(&in_ext) || in_ext == "pdf")
+        && (!is_ffmpeg_image_ext(&in_ext) || !is_ffmpeg_image_ext(&out_ext))
+    {
+        run_convert_image_magick(
+            app,
+            input,
+            output,
+            &out_ext,
+            request.quality,
+            request.preserve_metadata,
+        )
+        .await?;
+        let _ = app.emit(
+            "conversion-progress",
+            JobUpdate {
+                id: id.into(),
+                status: "running".into(),
+                progress: 99,
+                output_path: None,
+                error: None,
+            },
+        );
+        return Ok(());
     }
 
-    let mut args: Vec<String> = vec![
-        "-hide_banner".into(),
-        "-nostats".into(),
-        "-n".into(),
-        "-i".into(),
-        input_text.clone(),
-        "-progress".into(),
-        "pipe:1".into(),
-    ];
-    args.extend(request.format.codec_args().iter().map(|s| (*s).to_owned()));
-    if request.format.is_video() {
-        args.extend(["-crf".into(), request.quality.to_string()]);
-    }
-    if !request.preserve_metadata {
-        args.extend(["-map_metadata".into(), "-1".into()]);
-    }
-    args.push(output_text);
-    let (mut rx, _child) = app
-        .shell()
-        .sidecar("ffmpeg")
-        .map_err(|e| e.to_string())?
-        .args(args)
-        .spawn()
-        .map_err(|e| format!("Avvio ffmpeg non riuscito: {e}"))?;
-    let mut exit_code = None;
-    while let Some(event) = rx.recv().await {
-        match event {
-            CommandEvent::Stdout(bytes) => {
-                let line = String::from_utf8_lossy(&bytes);
-                if let Some(value) = line
+    // FFmpeg handles audio/video and common raster image conversions.
+    if is_audio_ext(&in_ext)
+        || is_video_ext(&in_ext)
+        || (is_ffmpeg_image_ext(&in_ext) && is_ffmpeg_image_ext(&out_ext))
+        || matches!(
+            out_ext.as_str(),
+            "mp4"
+                | "webm"
+                | "mkv"
+                | "avi"
+                | "mov"
+                | "gif"
+                | "mp3"
+                | "wav"
+                | "flac"
+                | "ogg"
+                | "m4a"
+                | "aac"
+                | "opus"
+        )
+    {
+        // Probe duration for progress
+        let probe = app
+            .shell()
+            .sidecar("ffprobe")
+            .map_err(|e| e.to_string())?
+            .args([
+                "-v",
+                "error",
+                "-show_entries",
+                "format=duration",
+                "-of",
+                "default=noprint_wrappers=1:nokey=1",
+                &input_text,
+            ])
+            .output()
+            .await;
+        let duration_secs: f64 = if let Ok(probe_res) = probe {
+            if probe_res.status.success() {
+                String::from_utf8_lossy(&probe_res.stdout)
                     .trim()
-                    .strip_prefix("out_time_ms=")
-                    .and_then(|n| n.parse::<f64>().ok())
-                {
-                    let pct =
-                        ((value / 1_000_000.0 / duration_secs) * 100.0).clamp(0.0, 99.0) as u8;
-                    let _ = app.emit(
-                        "conversion-progress",
-                        JobUpdate {
-                            id: id.into(),
-                            status: "running".into(),
-                            progress: pct,
-                            output_path: None,
-                            error: None,
-                        },
-                    );
+                    .parse()
+                    .unwrap_or(1.0)
+            } else {
+                1.0
+            }
+        } else {
+            1.0
+        };
+
+        let mut args: Vec<String> = vec![
+            "-hide_banner".into(),
+            "-nostats".into(),
+            "-n".into(),
+            "-i".into(),
+            input_text.clone(),
+            "-progress".into(),
+            "pipe:1".into(),
+        ];
+        args.extend(ffmpeg_codec_args_for_format(&out_ext));
+        if is_ffmpeg_image_ext(&in_ext) && is_ffmpeg_image_ext(&out_ext) {
+          let quality_input = request.quality as u32;
+
+          // 2. Limitiamo la qualità in ingresso tra 1 e 100
+          let clean_quality = quality_input.clamp(1, 100);
+
+          // 3. Calcoliamo la scala FFmpeg (da 1 a 31)
+          let ffmpeg_q = ((100 - clean_quality) * 31) / 100;
+
+          // 4. FFmpeg -q:v per le immagini non dovrebbe essere 0, forziamo un minimo di 1
+          let final_q = ffmpeg_q.max(1);
+
+          args.extend(["-q:v".into(), final_q.to_string()]);
+            // args.extend(["-q:v".into(), ((100 - request.quality.min(100)) * 31 / 100).to_string()]);
+        }
+        if is_video_out(&out_ext) {
+            args.extend(["-crf".into(), video_crf(request.quality).to_string()]);
+        }
+        if !request.preserve_metadata {
+            args.extend(["-map_metadata".into(), "-1".into()]);
+        }
+        args.push(output_text);
+        let (mut rx, _child) = app
+            .shell()
+            .sidecar("ffmpeg")
+            .map_err(|e| e.to_string())?
+            .args(args)
+            .spawn()
+            .map_err(|e| format!("Avvio ffmpeg non riuscito: {e}"))?;
+        let mut exit_code = None;
+        while let Some(event) = rx.recv().await {
+            match event {
+                CommandEvent::Stdout(bytes) => {
+                    let line = String::from_utf8_lossy(&bytes);
+                    if let Some(value) = line
+                        .trim()
+                        .strip_prefix("out_time_ms=")
+                        .and_then(|n| n.parse::<f64>().ok())
+                    {
+                        if duration_secs > 0.0 {
+                            let pct = ((value / 1_000_000.0 / duration_secs) * 100.0)
+                                .clamp(0.0, 99.0) as u8;
+                            let _ = app.emit(
+                                "conversion-progress",
+                                JobUpdate {
+                                    id: id.into(),
+                                    status: "running".into(),
+                                    progress: pct,
+                                    output_path: None,
+                                    error: None,
+                                },
+                            );
+                        }
+                    }
                 }
+                CommandEvent::Terminated(payload) => exit_code = payload.code,
+                CommandEvent::Error(error) => {
+                    return Err(format!("Errore del processo ffmpeg: {error}"))
+                }
+                _ => {}
             }
-            CommandEvent::Terminated(payload) => exit_code = payload.code,
-            CommandEvent::Error(error) => {
-                return Err(format!("Errore del processo ffmpeg: {error}"))
-            }
-            _ => {}
+        }
+        if exit_code == Some(0) {
+            return Ok(());
+        } else {
+            return Err(format!("ffmpeg è terminato con codice {:?}", exit_code));
         }
     }
-    if exit_code == Some(0) {
-        Ok(())
-    } else {
-        Err(format!("ffmpeg è terminato con codice {:?}", exit_code))
-    }
+
+    Err("Formato non supportato o nessun convertitore disponibile".into())
 }
 
 async fn run_ffmpeg_compress(
@@ -344,8 +671,16 @@ async fn run_ffmpeg_compress(
 ) -> Result<(), String> {
     let input_text = input.to_string_lossy().into_owned();
     let output_text = output.to_string_lossy().into_owned();
-    let ext = input.extension().and_then(|v| v.to_str()).unwrap_or("").to_lowercase();
-    
+    let ext = get_file_ext(input);
+
+    // Try ImageMagick for images
+    if is_image_ext(&ext) {
+        // Map compression quality 30-70 to 0-100 scale
+        let q = ((request.quality as u32) * 100 / 70).max(10).min(95) as u8;
+        return run_convert_image_magick(app, input, output, &ext, q, request.preserve_metadata)
+            .await;
+    }
+
     // Probe duration first for progress
     let probe = app
         .shell()
@@ -362,7 +697,6 @@ async fn run_ffmpeg_compress(
         ])
         .output()
         .await;
-    
     let duration_secs: f64 = if let Ok(probe_res) = probe {
         if probe_res.status.success() {
             String::from_utf8_lossy(&probe_res.stdout)
@@ -375,7 +709,7 @@ async fn run_ffmpeg_compress(
     } else {
         1.0
     };
-    
+
     let mut args: Vec<String> = vec![
         "-hide_banner".into(),
         "-nostats".into(),
@@ -385,28 +719,93 @@ async fn run_ffmpeg_compress(
         "-progress".into(),
         "pipe:1".into(),
     ];
-    
-    // Compression strategy based on file type
+
     if ["mp4", "mov", "m4v", "avi", "mkv"].contains(&ext.as_str()) {
-        // For video: use CRF based on quality (30-70 maps to CRF)
-        let crf = ((100 - request.quality as u32) * 51 / 70).max(0).min(51);
-        args.extend(["-c:v".into(), "libx264".into(), "-crf".into(), crf.to_string(), "-c:a".into(), "aac".into(), "-b:a".into(), "128k".into()]);
+        let crf = 51 - ((request.quality as u32 - 30) * 33 / 40);
+        args.extend([
+            "-c:v".into(),
+            "libx264".into(),
+            "-crf".into(),
+            crf.to_string(),
+            "-c:a".into(),
+            "aac".into(),
+            "-b:a".into(),
+            "128k".into(),
+        ]);
     } else if ["webm"].contains(&ext.as_str()) {
-        let crf = ((100 - request.quality as u32) * 63 / 70).max(0).min(63);
-        args.extend(["-c:v".into(), "libvpx-vp9".into(), "-crf".into(), crf.to_string(), "-b:v".into(), "0".into(), "-c:a".into(), "libopus".into()]);
+        let crf = 63 - ((request.quality as u32 - 30) * 45 / 40);
+        args.extend([
+            "-c:v".into(),
+            "libvpx-vp9".into(),
+            "-crf".into(),
+            crf.to_string(),
+            "-b:v".into(),
+            "0".into(),
+            "-c:a".into(),
+            "libopus".into(),
+        ]);
     } else if ["mp3"].contains(&ext.as_str()) {
-        // For MP3, adjust bitrate
-        let bitrate = if request.quality >= 60 { "192k" } else if request.quality >= 50 { "128k" } else { "96k" };
-        args.extend(["-vn".into(), "-c:a".into(), "libmp3lame".into(), "-b:a".into(), bitrate.into()]);
+        let bitrate = if request.quality >= 60 {
+            "192k"
+        } else if request.quality >= 50 {
+            "128k"
+        } else {
+            "96k"
+        };
+        args.extend([
+            "-vn".into(),
+            "-c:a".into(),
+            "libmp3lame".into(),
+            "-b:a".into(),
+            bitrate.into(),
+        ]);
+    } else if ["ogg", "oga"].contains(&ext.as_str()) {
+        let qv = ((request.quality as u32) as i32 - 30) / 5; // rough mapping
+        args.extend([
+            "-vn".into(),
+            "-c:a".into(),
+            "libvorbis".into(),
+            "-q:a".into(),
+            qv.to_string(),
+        ]);
     } else if ["jpg", "jpeg"].contains(&ext.as_str()) {
-        args.extend(["-c:v".into(), "mjpeg".into(), "-q:v".into(), ((100 - request.quality as u32) / 2).max(2).min(31).to_string()]);
+        args.extend([
+            "-c:v".into(),
+            "mjpeg".into(),
+            "-q:v".into(),
+            ((100 - request.quality as u32) / 2)
+                .max(2)
+                .min(31)
+                .to_string(),
+        ]);
     } else if ["png"].contains(&ext.as_str()) {
-        args.extend(["-c:v".into(), "png".into(), "-compression_level".into(), ((70 - request.quality as u32) / 10).max(0).min(9).to_string()]);
+        args.extend([
+            "-c:v".into(),
+            "png".into(),
+            "-compression_level".into(),
+            ((70 - request.quality as u32) / 10)
+                .max(0)
+                .min(9)
+                .to_string(),
+        ]);
+    } else if ["webp"].contains(&ext.as_str()) {
+        args.extend([
+            "-c:v".into(),
+            "libwebp".into(),
+            "-quality".into(),
+            request.quality.to_string(),
+        ]);
     } else {
-        // Generic compression
-        args.extend(["-c:v".into(), "libx264".into(), "-crf".into(), "28".into(), "-c:a".into(), "aac".into()]);
+        args.extend([
+            "-c:v".into(),
+            "libx264".into(),
+            "-crf".into(),
+            "28".into(),
+            "-c:a".into(),
+            "aac".into(),
+        ]);
     }
-    
+
     if !request.preserve_metadata {
         args.extend(["-map_metadata".into(), "-1".into()]);
     }
@@ -478,4 +877,3 @@ pub fn run() {
         .run(tauri::generate_context!())
         .expect("errore durante l'avvio di Biolaris");
 }
-
