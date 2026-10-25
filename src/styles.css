@@ -12,3 +12,30 @@ body {
   min-width: 800px;
   min-height: 100vh;
 }
+
+:root[data-theme='light'] {
+  color-scheme: light;
+  background: #ffffff;
+  color: #18181b;
+  --color-zinc-950: #ffffff;
+  --color-zinc-900: #fafafa;
+  --color-zinc-800: #f4f4f5;
+  --color-zinc-700: #e4e4e7;
+  --color-zinc-600: #52525b;
+  --color-zinc-500: #71717a;
+  --color-zinc-400: #52525b;
+  --color-zinc-300: #3f3f46;
+  --color-zinc-200: #27272a;
+  --color-zinc-100: #18181b;
+  --color-violet-300: #6d28d9;
+  --color-violet-400: #6d28d9;
+  --color-violet-950: #ddd6fe;
+  --color-emerald-400: #047857;
+  --color-amber-300: #a16207;
+  --color-red-400: #b91c1c;
+}
+
+:root[data-theme='light'] body {
+  background: #ffffff;
+  color: #18181b;
+}

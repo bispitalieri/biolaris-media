@@ -16,7 +16,7 @@ export const FORMATS_BY_FILE_TYPE: Record<FileType, OutputFormat[]> = {
   raw: ['jpg', 'png', 'webp', 'avif', 'heic', 'heif', 'tiff', 'tif'],
   audio: ['mp3', 'wav', 'flac', 'ogg', 'm4a', 'aac', 'opus'],
   video: ['mp4', 'webm', 'mkv', 'avi', 'mov', 'gif'],
-  pdf: ['pdf'],
+  pdf: ['jpg', 'png', 'webp'],
   unknown: []
 };
 
@@ -53,8 +53,8 @@ export const getDefaultFormat = (fileType: FileType): OutputFormat => {
     case 'image': case 'raw': return 'jpg';
     case 'audio': return 'mp3';
     case 'video': return 'mp4';
-    case 'pdf': return 'pdf';
-    default: return 'mp4';
+    case 'pdf': return 'png';
+    default: return 'jpg';
   }
 };
 

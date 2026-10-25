@@ -2,6 +2,7 @@ import {detectFileType} from '../lib/media';
 import {useState} from 'react';
 import type {OutputFormat, FileType} from '../lib/media';
 import {useTranslation} from 'react-i18next';
+import {getConfiguredQuality} from '../lib/settings';
 
 export type QueueItem = {
   path: string;
@@ -32,7 +33,7 @@ function getAvailableFormats(fileType: FileType): OutputFormat[] {
     case 'video':
       return ['mp4', 'webm', 'mkv', 'avi', 'mov', 'gif'];
     case 'pdf':
-      return ['pdf'];
+      return ['jpg', 'png', 'webp'];
     default:
       return ['jpg', 'png', 'webp'];
   }
@@ -86,7 +87,10 @@ export function ConversionQueue({items, onChange, onConvert, onConvertMany, para
       </div>}
       {selected.length > 0 && <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-violet-700/50 bg-violet-950/30 p-3">
         <span className="text-sm">{t('selectedCount', {count: selected.length})}</span>
-        <select aria-label={t('outputFormatForSelected')} value={selectedFormat ?? ''} disabled={!selectedFormats.length} onChange={(e) => readySelected.forEach((item) => onChange(item.path, {format: e.target.value as OutputFormat}))} className="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm">{selectedFormats.map((format) => <option key={format} value={format}>{format.toUpperCase()}</option>)}</select>
+        <select aria-label={t('outputFormatForSelected')} value={selectedFormat ?? ''} disabled={!selectedFormats.length} onChange={(e) => readySelected.forEach((item) => {
+          const format = e.target.value as OutputFormat;
+          onChange(item.path, {format, quality: getConfiguredQuality(detectFileType(item.path), format)});
+        })} className="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm">{selectedFormats.map((format) => <option key={format} value={format}>{format.toUpperCase()}</option>)}</select>
         <label className="flex items-center gap-2 text-xs text-zinc-400">{t('quality')} {selectedQuality}<input aria-label={t('qualityForSelected')} type="range" min="0" max="100" value={selectedQuality} onChange={(e) => readySelected.forEach((item) => onChange(item.path, {quality: Number(e.target.value)}))} className="w-24 accent-violet-500"/></label>
         <button disabled={!readySelected.length} onClick={() => onConvertMany(readySelected)} className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium hover:bg-violet-500 disabled:opacity-40">{t('convertSelected', {count: readySelected.length})}</button>
         <button onClick={() => setSelectedPaths([])} className="rounded-lg border border-zinc-700 px-3 py-2 text-sm hover:bg-zinc-800">{t('deselectAll')}</button>
@@ -100,7 +104,10 @@ export function ConversionQueue({items, onChange, onConvert, onConvertMany, para
               <input type="checkbox" aria-label={t('selectFile', {name: item.name})} checked={selectedPaths.includes(item.path)} onChange={() => setSelectedPaths((current) => current.includes(item.path) ? current.filter((path) => path !== item.path) : [...current, item.path])} />
               <div className="min-w-0 flex-1"><p className="truncate font-medium">{item.name}</p><p
                 className="truncate text-xs text-zinc-500">{item.path}</p></div>
-              {selected.length === 0 && <select aria-label={t('outputFormatFor', {name: item.name})} value={item.format} onChange={(e) => onChange(item.path, {format: e.target.value as OutputFormat})} className="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm">{availableFormats.map((f) =>
+              {selected.length === 0 && <select aria-label={t('outputFormatFor', {name: item.name})} value={item.format} onChange={(e) => {
+                const format = e.target.value as OutputFormat;
+                onChange(item.path, {format, quality: getConfiguredQuality(detectFileType(item.path), format)});
+              }} className="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm">{availableFormats.map((f) =>
                 <option key={f} value={f}>{f.toUpperCase()}</option>
               )}</select>}
               {selected.length === 0 && <label className="flex items-center gap-2 text-xs text-zinc-400">{t('quality')} {item.quality}<input

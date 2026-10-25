@@ -1,7 +1,8 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {DropZone} from '../components/DropZone';
 import {ConversionQueue, type QueueItem} from '../components/ConversionQueue';
-import {enqueueConversion, getParallelism, type JobUpdate, type OutputFormat, subscribeToProgress, getDefaultFormat, detectFileType} from '../lib/media';
+import {enqueueConversion, getParallelism, type JobUpdate, type OutputFormat, subscribeToProgress, detectFileType} from '../lib/media';
+import {getConfiguredFormat, getConfiguredQuality} from '../lib/settings';
 import {useTranslation} from 'react-i18next';
 
 function basename(path: string) {
@@ -63,14 +64,18 @@ export function ConvertScreen() {
 
   const addFilesConvert = useCallback((paths: string[]) => setItems((previous) => {
     const existing = new Set(previous.map((item) => item.path));
-    return [...previous, ...paths.filter((path) => !existing.has(path)).map((path) => ({
-      path,
-      name: basename(path),
-      format: getDefaultFormat(detectFileType(path)),
-      quality: 23,
-      status: 'ready' as const,
-      progress: 0
-    }))];
+    return [...previous, ...paths.filter((path) => !existing.has(path)).map((path) => {
+      const fileType = detectFileType(path);
+      const format = getConfiguredFormat(fileType);
+      return {
+        path,
+        name: basename(path),
+        format,
+        quality: getConfiguredQuality(fileType, format),
+        status: 'ready' as const,
+        progress: 0
+      };
+    })];
   }), []);
 
   const changeConvert = useCallback((path: string, patch: Partial<QueueItem>) => setItems((all) => all.map((item) => item.path === path ? {...item, ...patch} : item)), []);
