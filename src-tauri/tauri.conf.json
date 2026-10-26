@@ -28,7 +28,8 @@
     "targets": "all",
     "externalBin": [
       "binaries/ffmpeg",
-      "binaries/ffprobe"
+      "binaries/ffprobe",
+      "binaries/magick"
     ],
     "icon": [
       "icons/icon.png"
