@@ -2,9 +2,9 @@
 
 🇬🇧 English | [🇮🇹 Italiano](SUPPORT.it.md)
 
-- For setup and development instructions, start with the [README](../README.md).
-- For a reproducible bug, use the **Bug report** issue form and include your app version and operating system.
-- For a feature idea, use the **Feature request** issue form.
-- For a security vulnerability, follow [SECURITY.md](../SECURITY.md) and do not open a public issue.
+- New to the project? The [README](../README.md) explains how to get started.
+- Found a bug? Choose **🇬🇧 Bug report** and tell us which app version and operating system you use.
+- Have an idea? Choose **🇬🇧 Feature request** and tell us what you would like the app to do.
+- Found a security problem? Follow [SECURITY.md](../SECURITY.md); please do not report it in a public issue.
 
-Search existing issues before opening a new one. Do not attach private media, credentials, or other sensitive data.
+Before opening an issue, check whether someone has already reported the same problem. Please do not attach personal media, passwords, or other private information.

@@ -6,18 +6,18 @@ body:
   - type: textarea
     id: problem
     attributes:
-      label: Problema o esigenza
-      description: Quale problema risolverebbe questa funzionalità?
+      label: Che cosa vorresti che facesse l’app?
+      description: Quale problema risolverebbe?
     validations:
       required: true
   - type: textarea
     id: proposal
     attributes:
-      label: Soluzione proposta
-      description: Descrivi il comportamento che vorresti.
+      label: Come immagini che funzioni?
+      description: È sufficiente una descrizione generale.
     validations:
       required: true
   - type: textarea
     id: alternatives
     attributes:
-      label: Alternative considerate
+      label: Hai già provato un altro modo per risolvere il problema?

@@ -2,25 +2,25 @@
 
 🇬🇧 English | [🇮🇹 Italiano](CONTRIBUTING.it.md)
 
-Thank you for your interest in Biolaris Media. Bug reports, documentation updates, fixes, and feature contributions are welcome.
+Thanks for taking an interest in Biolaris Media. Bug reports, documentation, fixes, and new features are all welcome.
 
 ## Before you start
 
-- Search existing issues before opening a new one.
-- For substantial changes, open an issue first to describe the problem and proposed approach.
-- Do not commit personal media files, credentials, downloaded binaries, or build output.
+- Check the open issues first to see if someone has already raised the same problem or idea.
+- If you are planning a larger change, open an issue first so we can talk through the approach.
+- Please keep personal media files, credentials, downloaded binaries, and build output out of commits.
 
 ## Pull requests
 
-1. Create a dedicated branch for your change.
-2. Keep the change focused and update the documentation when behavior changes.
-3. Run `npm run build` to check the frontend build. For Rust changes, also run `cargo check --manifest-path src-tauri/Cargo.toml` with the Tauri prerequisites installed.
-4. Open a pull request with context, motivation, and the checks you ran. Include screenshots for UI changes when useful.
+1. Create a branch for your change.
+2. Keep the change focused. If it changes how the app works, update the documentation too.
+3. Run `npm run build`. If you changed Rust code, also run `cargo check --manifest-path src-tauri/Cargo.toml` (you will need the Tauri prerequisites for your platform).
+4. In your pull request, explain what changed and why, and tell us which checks you ran. Screenshots are helpful for changes to the interface.
 
-Maintainers review pull requests. Submitting one does not guarantee acceptance or a particular review timeline.
+A maintainer will review your pull request. We cannot promise that every suggestion will be accepted or give a review date in advance.
 
 ## Style
 
-Follow the formatting and conventions already used in the code. Prefer simple changes that fit the existing Tauri/React/Rust architecture. If your change needs a new dependency, explain why in the pull request.
+Follow the formatting and patterns already used in the code. Keep changes straightforward and in line with the Tauri, React, and Rust structure. If you add a dependency, explain why it is needed in the pull request.
 
 By participating, you agree to follow the [Code of Conduct](CODE_OF_CONDUCT.md).

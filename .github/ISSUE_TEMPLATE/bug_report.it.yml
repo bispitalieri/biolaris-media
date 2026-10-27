@@ -5,19 +5,19 @@ labels: [bug]
 body:
   - type: markdown
     attributes:
-      value: "Cerca prima nelle issue esistenti. Non allegare file media privati o informazioni sensibili."
+      value: "Prima di segnalare il bug, controlla che nessuno l’abbia già fatto. Non allegare file media personali o informazioni private."
   - type: textarea
     id: description
     attributes:
       label: Che cosa è successo?
-      description: Che cosa ti aspettavi che succedesse?
+      description: Che cosa stavi facendo e che cosa ti aspettavi?
     validations:
       required: true
   - type: textarea
     id: steps
     attributes:
-      label: Passaggi per riprodurre il problema
-      placeholder: "1. ...\n2. ..."
+      label: Come possiamo riprodurlo?
+      placeholder: "1. Apri ...\n2. Scegli ..."
     validations:
       required: true
   - type: input
@@ -35,5 +35,5 @@ body:
   - type: textarea
     id: logs
     attributes:
-      label: Log o messaggi di errore
-      description: Rimuovi percorsi personali e informazioni sensibili prima di condividerli.
+      label: Messaggio di errore o log (facoltativo)
+      description: Se condividi un log, rimuovi prima percorsi personali e informazioni private.

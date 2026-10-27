@@ -4,10 +4,10 @@
 
 ## Segnalare una vulnerabilità
 
-Non pubblicare vulnerabilità o dettagli che consentano di sfruttarle nelle issue o nelle pull request pubbliche.
+Se trovi un problema di sicurezza, non descriverlo in una issue o pull request pubblica: qualcuno potrebbe usare quei dettagli per attaccare altri utenti.
 
-Usa la funzione **Report a vulnerability** nella scheda Security del repository GitHub per inviare una segnalazione privata. Includi i passaggi per riprodurre il problema, l’impatto osservato e le versioni interessate. I maintainer ti aggiorneranno dopo aver esaminato la segnalazione. Non divulgare pubblicamente i dettagli finché non è stata coordinata una correzione.
+Usa **Report a vulnerability** nella scheda Security del repository per contattare i maintainer in privato. Spiega come riprodurre il problema, che cosa potrebbe permettere di fare e quali versioni sono interessate. Attendi che sia pronta una correzione prima di condividere i dettagli pubblicamente.
 
-Se la segnalazione privata non è disponibile, contatta un maintainer tramite il [profilo GitHub del maintainer del progetto](https://github.com/bispitalieri), senza pubblicare dettagli sensibili.
+Se la segnalazione privata di GitHub non è disponibile, usa i recapiti indicati nel [profilo GitHub del maintainer del progetto](https://github.com/bispitalieri) per contattare un maintainer in privato. Non condividere dettagli sensibili in pubblico.
 
-Biolaris Media è in sviluppo attivo; le versioni precedenti potrebbero non ricevere aggiornamenti di sicurezza.
+Biolaris Media è ancora in sviluppo. Le versioni precedenti potrebbero non ricevere correzioni di sicurezza.

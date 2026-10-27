@@ -4,21 +4,21 @@
 
 ## Il nostro impegno
 
-Vogliamo che la partecipazione a Biolaris Media sia accogliente e rispettosa per tutti, indipendentemente da età, corporatura, disabilità, etnia, identità ed espressione di genere, esperienza, nazionalità, aspetto, religione o orientamento sessuale.
+Vogliamo che tutti si sentano accolti nella comunità di Biolaris Media. Trattiamo le persone con rispetto, indipendentemente da età, corporatura, disabilità, etnia, identità ed espressione di genere, esperienza, nazionalità, aspetto, religione o orientamento sessuale.
 
 ## Comportamenti attesi
 
-- Mantieni un tono rispettoso e considera con attenzione gli altri negli spazi e nelle discussioni del progetto.
-- Accogli punti di vista ed esperienze differenti e dai o ricevi con disponibilità feedback costruttivi.
-- Mantieni comunicazioni pertinenti, inclusive e professionali.
-- Concentrati su ciò che è meglio per il progetto e la sua comunità.
+- Considera gli altri quando partecipi agli spazi del progetto.
+- Ascolta punti di vista diversi e dai feedback in modo costruttivo.
+- Mantieni le discussioni pertinenti, accoglienti e professionali.
+- Collaboriamo per migliorare il progetto a beneficio di tutti.
 
 ## Comportamenti non accettabili
 
-Non sono tollerati molestie, insulti, attacchi personali, discriminazione, intimidazioni, contatti indesiderati o la condivisione senza consenso di informazioni private altrui.
+Molestie, insulti, attacchi personali, discriminazione, intimidazioni, contatti indesiderati e condivisione di informazioni private senza consenso non sono ammessi.
 
 ## Applicazione
 
-I maintainer possono rimuovere contenuti o limitare temporaneamente o permanentemente la partecipazione in risposta a comportamenti non accettabili. Per segnalare un problema in privato, contatta i maintainer tramite il [profilo GitHub del maintainer del progetto](https://github.com/bispitalieri). Le segnalazioni saranno gestite con la massima riservatezza possibile.
+I maintainer possono rimuovere contenuti o limitare la partecipazione se questo Codice di condotta non viene rispettato. Se qualcosa ti preoccupa, usa i recapiti indicati nel [profilo GitHub del maintainer del progetto](https://github.com/bispitalieri) per inviare una segnalazione privata. Faranno il possibile per mantenerla riservata.
 
-Questo Codice di condotta si applica agli spazi del progetto e alle interazioni pubbliche in cui qualcuno rappresenta il progetto.
+Questo Codice di condotta si applica agli spazi del progetto e alle conversazioni pubbliche in cui qualcuno parla a nome del progetto.

@@ -2,9 +2,9 @@
 
 🇬🇧 English | [🇮🇹 Italiano](README.it.md)
 
-Biolaris Media is an open-source desktop app for converting and compressing media files locally on your computer. It is built with Tauri 2, React, TypeScript, and Rust. The app bundles the media tools it uses.
+Biolaris Media is an open-source desktop app for converting and compressing media files on your computer. It is built with Tauri 2, React, TypeScript, and Rust, and includes the tools it needs to work with your files.
 
-> **Project status:** Biolaris Media is under active development. Audio and video conversion and compression queues are implemented. Image and PDF tools, resizing, and PDF extraction/merging are not connected yet. The audio quality setting is not yet applied to codec parameters.
+> **Project status:** Biolaris Media is still in development. You can convert and compress audio and video files. Image and PDF tools, resizing, and PDF extraction and merging are still being connected. The audio quality setting does not change codec settings yet.
 
 ## Requirements
 
@@ -31,7 +31,7 @@ See the [Tauri prerequisites guide](https://v2.tauri.app/start/prerequisites/) f
    npm run binaries:download
    ```
 
-   This does not download releases from the Biolaris repository. It downloads FFmpeg/FFprobe and Poppler from the public [unpins](https://unpins.org/) catalog, ImageMagick from its platform distributor, and libvips from its upstream archive on Windows. The script verifies published SHA-256 checksums and stores each runtime in `src-tauri/binaries/<target-triple>/`. Add `-- --force` to download the runtime again. Run the download on a native runner for the target you intend to build.
+   The script gets the tools from their distributors: FFmpeg/FFprobe and Poppler from the public [unpins](https://unpins.org/) catalog, ImageMagick from its platform distributor, and libvips from its upstream archive on Windows. It checks published SHA-256 hashes and saves the files in `src-tauri/binaries/<target-triple>/`. Add `-- --force` if you need to download them again. Build on the same kind of system as your target platform.
 
 3. Start the desktop app:
 
@@ -39,24 +39,24 @@ See the [Tauri prerequisites guide](https://v2.tauri.app/start/prerequisites/) f
    npm run dev:tauri
    ```
 
-To build the web frontend alone, run `npm run build`. The `dev:tauri` and `tauri:build` scripts download the runtime automatically when it is missing.
+To build only the web frontend, run `npm run build`. The `dev:tauri` and `tauri:build` commands download the tools automatically if they are not already on your system.
 
 ## Runtime binaries and distribution
 
-Before starting Tauri, `binaries:stage` copies only the current target's runtime into `src-tauri/binaries/runtime-current/`. The Tauri configuration bundles that directory rather than the full `binaries/` archive, so binaries for other targets are not included. The runtime contains FFmpeg/FFprobe, ImageMagick (`magick`/`convert`), and Poppler (`pdftoppm`/`pdfunite`). Windows bundles libvips too. The libvips project does not publish official standalone executables for macOS or Linux; the current app code does not use the `vips` command, so it is omitted on those systems.
+Before Tauri starts, `binaries:stage` puts the tools for your system in `src-tauri/binaries/runtime-current/`. Tauri packages that folder, which keeps binaries for other platforms out of your build. The folder contains FFmpeg/FFprobe, ImageMagick (`magick`/`convert`), and Poppler (`pdftoppm`/`pdfunite`). Windows builds also include libvips. There are no official standalone libvips builds for macOS or Linux, and the app does not currently use the `vips` command, so those builds leave it out.
 
-The `dev:tauri` and `tauri:build` scripts download and stage the native runtime automatically. GitHub Actions builds Windows, macOS, and Linux packages separately so each package contains only its platform's binaries. ImageMagick for Linux is distributed as an x86_64 AppImage. The standalone macOS package comes from an external distributor and requires macOS Sonoma or later. Download sources, versions, and checksums are recorded in `runtime-manifest.json`.
+The `dev:tauri` and `tauri:build` commands download and prepare the tools automatically. GitHub Actions builds a separate package for Windows, macOS, and Linux, with only the binaries needed by that platform. The Linux build uses an x86_64 ImageMagick AppImage. The standalone macOS package comes from an external distributor and needs macOS Sonoma or later. You can find download sources, versions, and checksums in `runtime-manifest.json`.
 
-Before distributing the app, review the licenses for FFmpeg and its included codecs, ImageMagick, libvips, Poppler, and their included libraries. This repository's MIT license does not replace or change the licenses of bundled programs.
+Before sharing or distributing the app, check the licenses for FFmpeg and its codecs, ImageMagick, libvips, Poppler, and the libraries they include. The MIT license for this repository does not cover those separate programs.
 
 ## Contributing
 
-Bug reports and feature ideas are welcome through [GitHub Issues](https://github.com/bispitalieri/biolaris/issues). For larger changes, open an issue to discuss the approach before submitting a pull request. Read the [contribution guide](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md).
+Found a bug or have an idea? Let us know through [GitHub Issues](https://github.com/bispitalieri/biolaris/issues). For a larger change, open an issue first so we can discuss the approach. See the [contribution guide](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md) before getting started.
 
 ## Security
 
-For vulnerability reports, follow [SECURITY.md](SECURITY.md) instead of posting exploitable details in a public issue.
+If you find a security vulnerability, follow the instructions in [SECURITY.md](SECURITY.md). Please do not post details that could be used to exploit it in a public issue.
 
 ## License
 
-The code in this project is distributed under the terms of the [MIT License](LICENSE).
+Biolaris Media's code is available under the [MIT License](LICENSE).

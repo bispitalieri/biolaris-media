@@ -4,10 +4,10 @@
 
 ## Reporting a vulnerability
 
-Do not publish vulnerabilities or exploitable details in public issues or pull requests.
+If you find a security problem, please do not describe it in a public issue or pull request. Someone could use those details to attack other users.
 
-Use GitHub's **Report a vulnerability** option in the repository's Security tab to send a private report. Include steps to reproduce the issue, its observed impact, and the affected versions. The maintainers will follow up after reviewing the report. Please do not disclose details publicly until a fix has been coordinated.
+Use **Report a vulnerability** in the repository's Security tab to contact the maintainers privately. Tell us how to reproduce the problem, what it could let someone do, and which versions are affected. Please wait until a fix is ready before sharing the details publicly.
 
-If private vulnerability reporting is unavailable, contact a maintainer through the [project maintainer's GitHub profile](https://github.com/bispitalieri) without posting sensitive details publicly.
+If GitHub's private reporting option is unavailable, use the contact information on the [project maintainer's GitHub profile](https://github.com/bispitalieri) to reach a maintainer privately. Do not include sensitive details in a public post.
 
-Biolaris Media is under active development, and older versions may not receive security updates.
+Biolaris Media is still in development. Older versions may not receive security fixes.

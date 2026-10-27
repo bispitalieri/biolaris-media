@@ -2,9 +2,9 @@
 
 [🇬🇧 English](README.md) | 🇮🇹 Italiano
 
-Biolaris Media è un’applicazione desktop open source per convertire e comprimere file multimediali mantenendoli sul proprio computer. È realizzata con Tauri 2, React, TypeScript e Rust e include nel pacchetto gli strumenti multimediali utilizzati.
+Biolaris Media è un’applicazione desktop open source per convertire e comprimere file multimediali sul proprio computer. È realizzata con Tauri 2, React, TypeScript e Rust e include gli strumenti necessari per lavorare con i file.
 
-> **Stato del progetto:** Biolaris Media è in sviluppo attivo. Sono implementate le code di conversione e compressione audio/video. Gli strumenti per immagini e PDF, il ridimensionamento e l’estrazione/unione PDF non sono ancora collegati. L’opzione di qualità audio non è ancora applicata ai parametri del codec.
+> **Stato del progetto:** Biolaris Media è ancora in sviluppo. Puoi convertire e comprimere file audio e video. Gli strumenti per immagini e PDF, il ridimensionamento e l’estrazione e l’unione dei PDF sono ancora in lavorazione. L’opzione di qualità audio non modifica ancora le impostazioni del codec.
 
 ## Requisiti
 
@@ -31,7 +31,7 @@ Consulta la [guida ufficiale Tauri per i prerequisiti](https://v2.tauri.app/star
    npm run binaries:download
    ```
 
-   Lo script non scarica release dal repository Biolaris. Scarica FFmpeg/FFprobe e Poppler dal catalogo pubblico [unpins](https://unpins.org/), ImageMagick dal distributore della piattaforma e, su Windows, libvips dal suo archivio upstream. Verifica gli SHA-256 pubblicati e conserva ogni runtime in `src-tauri/binaries/<target-triple>/`. Aggiungi `-- --force` per scaricare di nuovo il runtime. Esegui il download su un runner nativo per il target da compilare.
+   Lo script scarica gli strumenti dai rispettivi distributori: FFmpeg/FFprobe e Poppler dal catalogo pubblico [unpins](https://unpins.org/), ImageMagick dal distributore della piattaforma e, su Windows, libvips dal suo archivio upstream. Verifica gli hash SHA-256 pubblicati e salva i file in `src-tauri/binaries/<target-triple>/`. Aggiungi `-- --force` per scaricarli di nuovo. Compila l’app sullo stesso tipo di sistema della piattaforma di destinazione.
 
 3. Avvia l’app desktop:
 
@@ -39,24 +39,24 @@ Consulta la [guida ufficiale Tauri per i prerequisiti](https://v2.tauri.app/star
    npm run dev:tauri
    ```
 
-Per compilare soltanto il frontend web, esegui `npm run build`. Gli script `dev:tauri` e `tauri:build` scaricano automaticamente il runtime se manca.
+Per compilare soltanto il frontend web, esegui `npm run build`. I comandi `dev:tauri` e `tauri:build` scaricano gli strumenti se non sono già presenti.
 
 ## Binari runtime e distribuzione
 
-Prima di avviare Tauri, `binaries:stage` copia soltanto il runtime del target corrente in `src-tauri/binaries/runtime-current/`. La configurazione Tauri include quella directory, non l’intero archivio `binaries/`, quindi i binari per altri target non vengono inclusi. Il runtime contiene FFmpeg/FFprobe, ImageMagick (`magick`/`convert`) e Poppler (`pdftoppm`/`pdfunite`). Su Windows viene incluso anche libvips. Il progetto libvips non pubblica eseguibili standalone ufficiali per macOS o Linux; il codice applicativo attuale non usa il comando `vips`, quindi su questi sistemi viene omesso.
+Prima che Tauri si avvii, `binaries:stage` copia gli strumenti per il sistema in uso in `src-tauri/binaries/runtime-current/`. Tauri include quella cartella nel pacchetto, lasciando fuori i binari per altre piattaforme. La cartella contiene FFmpeg/FFprobe, ImageMagick (`magick`/`convert`) e Poppler (`pdftoppm`/`pdfunite`). Le versioni per Windows includono anche libvips. Per macOS e Linux non esistono versioni standalone ufficiali di libvips e l’app al momento non usa il comando `vips`, quindi non viene incluso.
 
-Gli script `dev:tauri` e `tauri:build` scaricano e preparano automaticamente il runtime nativo. GitHub Actions compila separatamente i pacchetti per Windows, macOS e Linux, in modo che ciascuno contenga soltanto i binari della propria piattaforma. ImageMagick per Linux è distribuito come AppImage x86_64. Il pacchetto standalone per macOS proviene da un distributore esterno e richiede macOS Sonoma o successivo. Le sorgenti, le versioni e gli hash scaricati sono registrati in `runtime-manifest.json`.
+I comandi `dev:tauri` e `tauri:build` scaricano e preparano automaticamente gli strumenti. GitHub Actions compila pacchetti separati per Windows, macOS e Linux, ciascuno con i binari necessari alla propria piattaforma. La versione Linux usa un’AppImage x86_64 di ImageMagick. Il pacchetto standalone per macOS proviene da un distributore esterno e richiede macOS Sonoma o successivo. In `runtime-manifest.json` trovi sorgenti, versioni e hash dei download.
 
-Prima di distribuire l’app, verifica le licenze di FFmpeg e dei codec inclusi, ImageMagick, libvips, Poppler e delle relative librerie incluse. La licenza MIT di questo repository non sostituisce né modifica le licenze dei programmi distribuiti.
+Prima di condividere o distribuire l’app, controlla le licenze di FFmpeg e dei suoi codec, ImageMagick, libvips, Poppler e delle librerie incluse. La licenza MIT di questo repository non copre questi programmi separati.
 
 ## Contribuire
 
-Bug report e proposte di funzionalità sono benvenuti tramite le [GitHub Issues](https://github.com/bispitalieri/biolaris/issues). Per modifiche più ampie, apri una issue per discutere l’approccio prima di inviare una pull request. Leggi la [guida per contribuire](CONTRIBUTING.md) e il [Codice di condotta](CODE_OF_CONDUCT.md).
+Hai trovato un bug o hai un’idea? Scrivici tramite le [GitHub Issues](https://github.com/bispitalieri/biolaris/issues). Per una modifica più ampia, apri prima una issue così possiamo discuterne insieme. Prima di iniziare, consulta la [guida per contribuire](CONTRIBUTING.md) e il [Codice di condotta](CODE_OF_CONDUCT.md).
 
 ## Sicurezza
 
-Per segnalare vulnerabilità, segui le istruzioni in [SECURITY.md](SECURITY.md) invece di pubblicare dettagli sfruttabili in una issue pubblica.
+Se trovi una vulnerabilità, segui le istruzioni in [SECURITY.md](SECURITY.md). Non pubblicare in una issue dettagli che potrebbero essere usati per sfruttarla.
 
 ## Licenza
 
-Il codice di questo progetto è distribuito secondo i termini della [licenza MIT](LICENSE).
+Il codice di Biolaris Media è disponibile secondo i termini della [licenza MIT](LICENSE).
