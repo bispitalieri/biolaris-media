@@ -110,7 +110,18 @@ function githubHeaders() {
   };
 }
 
+// Fetch generico per siti terzi (unpins.org, mendelson.org, ecc.) senza header GitHub
 async function fetchResponse(url, headers = {}) {
+  const response = await fetch(url, {headers, redirect: "follow"});
+  if (!response.ok) {
+    const details = (await response.text()).slice(0, 300);
+    throw new Error("Download " + url + " non riuscito (" + response.status + " " + response.statusText + "): " + details);
+  }
+  return response;
+}
+
+// Fetch specifico per le API di GitHub
+async function fetchGithubResponse(url, headers = {}) {
   const response = await fetch(url, {headers: {...githubHeaders(), ...headers}, redirect: "follow"});
   if (!response.ok) {
     const details = (await response.text()).slice(0, 300);
@@ -120,7 +131,7 @@ async function fetchResponse(url, headers = {}) {
 }
 
 async function fetchJson(url) {
-  return (await fetchResponse(url)).json();
+  return (await fetchGithubResponse(url)).json();
 }
 
 function parseSha256(text) {
@@ -129,8 +140,8 @@ function parseSha256(text) {
   return match[1].toLowerCase();
 }
 
-async function downloadFile(url, destination, expectedSha256, maxBytes = maxDownloadBytes) {
-  const response = await fetchResponse(url, {Accept: "application/octet-stream"});
+async function downloadFile(url, destination, expectedSha256, maxBytes = maxDownloadBytes, isGithub = false) {
+  const response = isGithub ? await fetchGithubResponse(url, {Accept: "application/octet-stream"}) : await fetchResponse(url, {Accept: "application/octet-stream"});
   if (!response.body) throw new Error("Risposta senza contenuto: " + url);
   const advertisedBytes = Number(response.headers.get("content-length") || 0);
   if (advertisedBytes > maxBytes) throw new Error("Il file supera il limite di " + maxBytes + " byte: " + url);
@@ -162,7 +173,7 @@ async function getGithubAsset(ownerRepo, namePattern, label) {
   let sha256 = asset.digest?.match(/^sha256:([a-f0-9]{64})$/i)?.[1]?.toLowerCase();
   if (!sha256) {
     const checksum = release.assets.find((item) => item.name === asset.name + ".sha256");
-    if (checksum) sha256 = parseSha256(await (await fetchResponse(checksum.browser_download_url, {Accept: "application/octet-stream"})).text());
+    if (checksum) sha256 = parseSha256(await (await fetchGithubResponse(checksum.browser_download_url, {Accept: "application/octet-stream"})).text());
   }
   if (!sha256) throw new Error("La release di " + label + " non pubblica un checksum SHA-256 per " + asset.name + ".");
   return {release, asset, sha256};
@@ -179,16 +190,21 @@ function assertSupportedHost() {
 
 async function installUnpinsPackages(scratch, binDir, sourceRecords) {
   const os = process.platform === "win32" ? "windows" : process.platform === "darwin" ? "darwin" : "linux";
-  const architecture = process.arch === "arm64" ? "aarch64" : process.arch === "x64" ? "x86_64" : process.arch;
+  // unpins.org fornisce solo la versione x86_64 per macOS (eseguita via Rosetta 2 su Apple Silicon)
+  const architecture = process.platform === "darwin"
+    ? "x86_64"
+    : (process.arch === "arm64" ? "aarch64" : process.arch === "x64" ? "x86_64" : process.arch);
+
   if (os === "windows" && architecture !== "x86_64") throw new Error("unpins non pubblica ancora build Windows ARM64 per questi pacchetti.");
   const executableName = os === "windows" ? "unpin.exe" : "unpin";
   const unpinUrl = os === "windows"
     ? "https://unpins.org/unpin-x86_64-windows.exe"
     : "https://unpins.org/unpin-" + architecture + "-" + os;
-  const unpinPath = join(scratch, executableName);
+
   const checksumText = await (await fetchResponse(unpinUrl + ".sha256", {Accept: "text/plain"})).text();
   const checksum = parseSha256(checksumText);
-  const downloaded = await downloadFile(unpinUrl, unpinPath, checksum, 30 * 1024 * 1024);
+  const unpinPath = join(scratch, executableName);
+  const downloaded = await downloadFile(unpinUrl, unpinPath, checksum, 30 * 1024 * 1024, false);
   if (process.platform !== "win32") await chmod(unpinPath, 0o755);
 
   const isolatedHome = join(scratch, "home");
@@ -260,7 +276,7 @@ async function extractArchive(archivePath, destination, scratch, kind = "tar") {
   if (kind === "7z") {
     const sevenZip = await getGithubAsset("ip7z/7zip", /\/7zr\.exe$|^7zr\.exe$/i, "7-Zip");
     const extractor = join(scratch, "7zr.exe");
-    await downloadFile(sevenZip.asset.browser_download_url, extractor, sevenZip.sha256, 20 * 1024 * 1024);
+    await downloadFile(sevenZip.asset.browser_download_url, extractor, sevenZip.sha256, 20 * 1024 * 1024, true);
     run(extractor, ["x", "-y", archivePath, "-o" + destination]);
   } else {
     const listing = run("tar", ["-tf", archivePath], {maxBuffer: 32 * 1024 * 1024});
@@ -295,7 +311,7 @@ async function installImageMagick(scratch, prefix, binDir, sourceRecords) {
     const {release, asset, sha256} = await getGithubAsset("ImageMagick/ImageMagick", /-gcc-x86_64\.AppImage$/i, "ImageMagick Linux");
     const destination = join(binDir, "magick");
     console.log("Scarico ImageMagick " + release.tag_name + " da GitHub Releases...");
-    const downloaded = await downloadFile(asset.browser_download_url, destination, sha256, 150 * 1024 * 1024);
+    const downloaded = await downloadFile(asset.browser_download_url, destination, sha256, 150 * 1024 * 1024, true);
     await chmod(destination, 0o755);
     sourceRecords.push({provider: "ImageMagick/ImageMagick", version: release.tag_name, asset: asset.name, sha256: downloaded.sha256});
     await makeAlias(destination, join(binDir, "convert"));
@@ -307,7 +323,7 @@ async function installImageMagick(scratch, prefix, binDir, sourceRecords) {
     const {release, asset, sha256} = await getGithubAsset("ImageMagick/ImageMagick", /-portable-Q16-x64\.7z$/i, "ImageMagick Windows");
     const archive = join(scratch, asset.name);
     console.log("Scarico ImageMagick " + release.tag_name + " da GitHub Releases...");
-    const downloaded = await downloadFile(asset.browser_download_url, archive, sha256, 100 * 1024 * 1024);
+    const downloaded = await downloadFile(asset.browser_download_url, archive, sha256, 100 * 1024 * 1024, true);
     const extracted = join(scratch, "imagemagick");
     await extractArchive(archive, extracted, scratch, "7z");
     const executable = await findNamedFile(extracted, "magick.exe");
@@ -330,7 +346,7 @@ async function installImageMagick(scratch, prefix, binDir, sourceRecords) {
 
   const dmgPath = join(scratch, "imagemagick.dmg");
   console.log("Scarico il DMG standalone ImageMagick per macOS...");
-  const downloaded = await downloadFile(dmgUrl, dmgPath, undefined, 150 * 1024 * 1024);
+  const downloaded = await downloadFile(dmgUrl, dmgPath, undefined, 150 * 1024 * 1024, false);
   const mountPoint = join(scratch, "imagemagick-mounted");
   await mkdir(mountPoint, {recursive: true});
   run("hdiutil", ["verify", dmgPath]);
@@ -376,7 +392,7 @@ async function installVipsWindows(scratch, prefix, binDir, sourceRecords) {
   const {release, asset, sha256} = await getGithubAsset("libvips/build-win64-mxe", /^vips-dev-x64-web-.*-static\.zip$/i, "libvips Windows");
   const archive = join(scratch, asset.name);
   console.log("Scarico libvips " + release.tag_name + " dal progetto upstream...");
-  const downloaded = await downloadFile(asset.browser_download_url, archive, sha256, 100 * 1024 * 1024);
+  const downloaded = await downloadFile(asset.browser_download_url, archive, sha256, 100 * 1024 * 1024, true);
   const extracted = join(scratch, "vips");
   await extractArchive(archive, extracted, scratch);
   const executable = await findNamedFile(extracted, "vips.exe");

@@ -243,11 +243,13 @@ export function CropScreen() {
               src={image.url}
               alt={image.name}
               draggable={false}
-              onLoad={({nativeEvent}) => {
+              onLoad={() => {
+                if (!imageRef.current) return;
+
                 setImage((current) => current?.path === image.path ? {
                   ...current,
-                  width: (nativeEvent?.target as HTMLImageElement)?.naturalWidth,
-                  height: (nativeEvent?.target as HTMLImageElement)?.naturalHeight
+                  width: imageRef.current!.naturalWidth,
+                  height: imageRef.current!.naturalHeight
                 } : current)
               }}
               onError={() => setError(t('cropImageDecodeError'))}
