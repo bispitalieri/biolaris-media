@@ -246,8 +246,8 @@ export function CropScreen() {
               onLoad={({nativeEvent}) => {
                 setImage((current) => current?.path === image.path ? {
                   ...current,
-                  width: nativeEvent?.target?.naturalWidth,
-                  height: nativeEvent?.target?.naturalHeight
+                  width: (nativeEvent?.target as HTMLImageElement)?.naturalWidth,
+                  height: (nativeEvent?.target as HTMLImageElement)?.naturalHeight
                 } : current)
               }}
               onError={() => setError(t('cropImageDecodeError'))}
