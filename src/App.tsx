@@ -3,6 +3,7 @@ import {Route, Routes, Navigate, useLocation} from 'react-router-dom';
 import {isTauri} from '@tauri-apps/api/core';
 import {ConvertScreen} from './screens/ConvertScreen';
 import {CompressScreen} from './screens/CompressScreen';
+import {CropScreen} from './screens/CropScreen';
 import {SettingsScreen} from './screens/SettingsScreen';
 import Sidebar from "./components/Sidebar.tsx";
 import {useTranslation} from 'react-i18next';
@@ -44,6 +45,7 @@ export default function App() {
             <Route path="/" element={<Navigate to="/convert" replace/>}/>
             <Route path="/convert" element={<ConvertScreen/>}/>
             <Route path="/compress" element={<CompressScreen/>}/>
+            <Route path="/crop" element={<CropScreen/>}/>
           </Routes>
           <p className="mt-8 text-center text-xs text-zinc-600">
             {t('privacyNote')}

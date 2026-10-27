@@ -26,11 +26,9 @@
   "bundle": {
     "active": true,
     "targets": "all",
-    "externalBin": [
-      "binaries/ffmpeg",
-      "binaries/ffprobe",
-      "binaries/magick"
-    ],
+    "resources": {
+      "binaries/runtime-current/": "runtime/"
+    },
     "icon": [
       "icons/icon.png"
     ]

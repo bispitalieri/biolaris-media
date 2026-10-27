@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::{
+  ffi::{OsStr, OsString},
   path::{Path, PathBuf},
   sync::Arc,
 };
@@ -7,7 +8,7 @@ use tauri::{
   menu::{Menu, MenuItem, PredefinedMenuItem},
   Emitter, Manager, State, WebviewUrl, WebviewWindowBuilder,
 };
-use tauri_plugin_shell::{process::CommandEvent, ShellExt};
+use tauri_plugin_shell::{process::{Command, CommandEvent}, ShellExt};
 use tokio::sync::Semaphore;
 use uuid::Uuid;
 
@@ -21,6 +22,101 @@ impl Default for QueueState {
       slots: Arc::new(Semaphore::new(num_cpus::get().max(1))),
     }
   }
+}
+
+fn binary_target_triple() -> Option<&'static str> {
+  match (std::env::consts::OS, std::env::consts::ARCH) {
+    ("windows", "x86_64") => Some("x86_64-pc-windows-msvc"),
+    ("macos", "x86_64") => Some("x86_64-apple-darwin"),
+    ("macos", "aarch64") => Some("aarch64-apple-darwin"),
+    ("linux", "x86_64") => Some("x86_64-unknown-linux-gnu"),
+    ("linux", "aarch64") => Some("aarch64-unknown-linux-gnu"),
+    _ => None,
+  }
+}
+
+fn bundled_tool_prefix(app: &tauri::AppHandle) -> Option<PathBuf> {
+  let target = binary_target_triple()?;
+  let mut candidates = Vec::new();
+  if let Ok(resource_dir) = app.path().resource_dir() {
+    candidates.push(resource_dir.join("runtime").join(target));
+  }
+  candidates.push(
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+      .join("binaries")
+      .join("runtime-current")
+      .join(target),
+  );
+  candidates.into_iter().find(|path| path.is_dir())
+}
+
+fn prepend_search_paths(prefix_paths: &[PathBuf], variable: &str) -> Option<OsString> {
+  let mut paths: Vec<PathBuf> = prefix_paths
+    .iter()
+    .filter(|path| path.is_dir())
+    .cloned()
+    .collect();
+  if let Some(existing) = std::env::var_os(variable) {
+    paths.extend(std::env::split_paths(&existing));
+  }
+  std::env::join_paths(paths).ok()
+}
+
+fn tool_command(app: &tauri::AppHandle, name: &str) -> Command {
+  if let Some(prefix) = bundled_tool_prefix(app) {
+    let executable_dirs = if cfg!(target_os = "windows") {
+      vec![prefix.join("Library").join("bin"), prefix.join("bin")]
+    } else {
+      vec![prefix.join("bin")]
+    };
+    let executable_name = if cfg!(target_os = "windows") {
+      format!("{name}.exe")
+    } else {
+      name.to_owned()
+    };
+    if let Some(executable) = executable_dirs
+      .iter()
+      .map(|directory| directory.join(&executable_name))
+      .find(|path| path.is_file())
+    {
+      let mut command = app.shell().command(executable.as_os_str());
+      if let Some(path) = prepend_search_paths(&executable_dirs, "PATH") {
+        command = command.env("PATH", path);
+      }
+
+      #[cfg(target_os = "linux")]
+      if let Some(path) = prepend_search_paths(
+        &[prefix.join("lib"), prefix.join("lib64")],
+        "LD_LIBRARY_PATH",
+      ) {
+        command = command.env("LD_LIBRARY_PATH", path);
+      }
+      #[cfg(target_os = "macos")]
+      {
+        let library_dirs = [prefix.join("lib"), prefix.join("lib64")];
+        if let Some(path) = prepend_search_paths(&library_dirs, "DYLD_LIBRARY_PATH") {
+          command = command.env("DYLD_LIBRARY_PATH", path);
+        }
+        if let Some(path) = prepend_search_paths(&library_dirs, "DYLD_FALLBACK_LIBRARY_PATH") {
+          command = command.env("DYLD_FALLBACK_LIBRARY_PATH", path);
+        }
+      }
+
+      #[cfg(target_os = "linux")]
+      if name == "magick" || name == "convert" {
+        command = command.env("APPIMAGE_EXTRACT_AND_RUN", "1");
+      }
+      if cfg!(target_os = "windows") {
+        if let Some(path) = prefix.to_str() {
+          command = command.env("MAGICK_HOME", path).env("VIPSHOME", path);
+        }
+      }
+      return command;
+    }
+  }
+
+  // Keep development convenient when a developer has installed the tools globally.
+  app.shell().command(OsStr::new(name))
 }
 
 #[derive(Debug, Deserialize)]
@@ -40,6 +136,17 @@ pub struct CompressionRequest {
   pub output_path: String,
   pub quality: u8,
   pub preserve_metadata: bool,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CropRequest {
+  pub input_path: String,
+  pub output_path: String,
+  pub x: u32,
+  pub y: u32,
+  pub width: u32,
+  pub height: u32,
 }
 
 #[derive(Clone, Serialize)]
@@ -82,6 +189,47 @@ fn validate_output(path: &str, expected_ext: &str) -> Result<PathBuf, String> {
     return Err("Il file di destinazione esiste già".into());
   }
   Ok(result)
+}
+
+fn validate_output_with_suffix(path: &str, expected_ext: &str) -> Result<PathBuf, String> {
+  let output = PathBuf::from(path);
+  let parent = output
+    .parent()
+    .ok_or("Percorso output non valido")?
+    .canonicalize()
+    .map_err(|e| format!("Cartella output non valida: {e}"))?;
+  if output
+    .extension()
+    .and_then(|value| value.to_str())
+    .map(|value| value.eq_ignore_ascii_case(expected_ext))
+    != Some(true)
+  {
+    return Err(format!("L'estensione deve essere .{expected_ext}"));
+  }
+
+  let stem = output
+    .file_stem()
+    .and_then(|value| value.to_str())
+    .ok_or("Nome file output non valido")?;
+  let ext = output
+    .extension()
+    .and_then(|value| value.to_str())
+    .ok_or("Estensione file output non valida")?;
+
+  for suffix in 1u32.. {
+    let filename = if suffix == 1 {
+      format!("{stem}.{ext}")
+    } else {
+      format!("{stem}-{suffix}.{ext}")
+    };
+    let candidate = parent.join(filename);
+    match std::fs::symlink_metadata(&candidate) {
+      Ok(_) => continue,
+      Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(candidate),
+      Err(error) => return Err(format!("Percorso output non accessibile: {error}")),
+    }
+  }
+  Err("Impossibile trovare un nome per il file ritagliato".into())
 }
 
 fn get_file_ext(path: &Path) -> String {
@@ -285,6 +433,36 @@ fn ffmpeg_audio_quality_args(fmt: &str, quality: u8) -> Vec<String> {
   }
 }
 
+fn append_stderr_tail(stderr: &mut Vec<u8>, chunk: &[u8]) {
+  const MAX_STDERR_BYTES: usize = 16 * 1024;
+  if chunk.len() >= MAX_STDERR_BYTES {
+    stderr.clear();
+    stderr.extend_from_slice(&chunk[chunk.len() - MAX_STDERR_BYTES..]);
+    return;
+  }
+
+  let overflow = stderr
+    .len()
+    .saturating_add(chunk.len())
+    .saturating_sub(MAX_STDERR_BYTES);
+  if overflow > 0 {
+    stderr.drain(..overflow);
+  }
+  stderr.extend_from_slice(chunk);
+}
+
+fn ffmpeg_failure_message(exit_code: Option<i32>, stderr: &[u8]) -> String {
+  let code = exit_code
+    .map(|code| code.to_string())
+    .unwrap_or_else(|| "sconosciuto".into());
+  let details = String::from_utf8_lossy(stderr).trim().to_owned();
+  if details.is_empty() {
+    format!("ffmpeg è terminato con codice {code}")
+  } else {
+    format!("ffmpeg è terminato con codice {code}: {details}")
+  }
+}
+
 fn is_video_out(fmt: &str) -> bool {
   matches!(fmt, "mp4" | "webm" | "mkv" | "avi" | "mov")
 }
@@ -326,10 +504,11 @@ fn valid_conversion_pair(input: &str, output: &str) -> bool {
         output,
         "mp3" | "wav" | "flac" | "ogg" | "m4a" | "aac" | "opus"
     );
-  let video_output = matches!(output, "mp4" | "webm" | "mkv" | "avi" | "mov" | "gif");
+  let video_output = matches!(output, "mp4" | "webm" | "mkv" | "avi" | "mov");
   (image_output && (is_image_ext(input) || input == "pdf"))
     || (audio_output && is_audio_ext(input))
     || (video_output && (is_video_ext(input) || is_audio_ext(input)))
+    || (output == "gif" && is_video_ext(input))
 }
 
 fn is_compressible(ext: &str) -> bool {
@@ -466,39 +645,134 @@ async fn enqueue_compression(
   Ok(id)
 }
 
+#[tauri::command]
+async fn enqueue_crop(
+  app: tauri::AppHandle,
+  state: State<'_, QueueState>,
+  request: CropRequest,
+) -> Result<String, String> {
+  if request.width == 0 || request.height == 0 {
+    return Err("L'area di ritaglio deve avere dimensioni maggiori di zero".into());
+  }
+  if request.x.checked_add(request.width).is_none() || request.y.checked_add(request.height).is_none() {
+    return Err("Le coordinate di ritaglio non sono valide".into());
+  }
+
+  let input = canonical_existing_file(&request.input_path)?;
+  let ext = get_file_ext(&input);
+  if !is_image_ext(&ext) {
+    return Err("Il ritaglio è disponibile solo per le immagini".into());
+  }
+  let output = validate_output_with_suffix(&request.output_path, &ext)?;
+  let id = Uuid::new_v4().to_string();
+  let semaphore = state.slots.clone();
+  let task_id = id.clone();
+  tauri::async_runtime::spawn(async move {
+    let _permit = match semaphore.acquire_owned().await {
+      Ok(p) => p,
+      Err(_) => return,
+    };
+    let _ = app.emit(
+      "conversion-progress",
+      JobUpdate {
+        id: task_id.clone(),
+        status: "running".into(),
+        progress: 0,
+        output_path: None,
+        error: None,
+      },
+    );
+    let result = run_crop_image_magick(&app, &input, &output, &request).await;
+    match result {
+      Ok(()) => {
+        let _ = app.emit(
+          "conversion-progress",
+          JobUpdate {
+            id: task_id,
+            status: "completed".into(),
+            progress: 100,
+            output_path: Some(output.to_string_lossy().into_owned()),
+            error: None,
+          },
+        );
+      }
+      Err(error) => {
+        let _ = app.emit(
+          "conversion-progress",
+          JobUpdate {
+            id: task_id,
+            status: "failed".into(),
+            progress: 0,
+            output_path: None,
+            error: Some(error),
+          },
+        );
+      }
+    }
+  });
+  Ok(id)
+}
+
+async fn run_crop_image_magick(
+  app: &tauri::AppHandle,
+  input: &Path,
+  output: &Path,
+  request: &CropRequest,
+) -> Result<(), String> {
+  let args = vec![
+    input.to_string_lossy().into_owned(),
+    "-auto-orient".into(),
+    "-crop".into(),
+    format!("{}x{}+{}+{}", request.width, request.height, request.x, request.y),
+    "+repage".into(),
+    output.to_string_lossy().into_owned(),
+  ];
+  if try_run_magick(app, args).await? {
+    Ok(())
+  } else {
+    Err("Nessun convertitore immagine disponibile (magick/convert)".into())
+  }
+}
+
 async fn try_run_magick(app: &tauri::AppHandle, args: Vec<String>) -> Result<bool, String> {
-  // Try magick sidecar first (ImageMagick 7), then convert (IM6)
-  if let Ok(sidecar) = app.shell().sidecar("magick") {
-    if let Ok((mut rx, _child)) = sidecar.args(args.clone()).spawn() {
-      let mut exit_code = None;
-      while let Some(event) = rx.recv().await {
-        match event {
-          CommandEvent::Terminated(payload) => exit_code = payload.code,
-          CommandEvent::Error(_) => break,
-          _ => {}
+  // Try ImageMagick 7 first, then its legacy `convert` command alias.
+  let mut diagnostics = Vec::new();
+  for (name, command_args) in [("magick", args.clone()), ("convert", args)] {
+    match tool_command(app, name).args(command_args).spawn() {
+      Ok((mut rx, _child)) => {
+        let mut exit_code = None;
+        let mut stderr_tail = Vec::new();
+        while let Some(event) = rx.recv().await {
+          match event {
+            CommandEvent::Stderr(bytes) => append_stderr_tail(&mut stderr_tail, &bytes),
+            CommandEvent::Terminated(payload) => exit_code = payload.code,
+            CommandEvent::Error(error) => diagnostics.push(format!("{name}: {error}")),
+            _ => {}
+          }
+        }
+        if exit_code == Some(0) {
+          return Ok(true);
+        }
+
+        let details = String::from_utf8_lossy(&stderr_tail).trim().to_owned();
+        if !details.is_empty() {
+          diagnostics.push(format!("{name}: {details}"));
+        } else if let Some(code) = exit_code {
+          diagnostics.push(format!("{name} è terminato con codice {code}"));
         }
       }
-      if exit_code == Some(0) {
-        return Ok(true);
-      }
+      Err(error) => diagnostics.push(format!("{name}: {error}")),
     }
   }
-  if let Ok(sidecar) = app.shell().sidecar("convert") {
-    if let Ok((mut rx, _child)) = sidecar.args(args).spawn() {
-      let mut exit_code = None;
-      while let Some(event) = rx.recv().await {
-        match event {
-          CommandEvent::Terminated(payload) => exit_code = payload.code,
-          CommandEvent::Error(_) => break,
-          _ => {}
-        }
-      }
-      if exit_code == Some(0) {
-        return Ok(true);
-      }
-    }
+
+  if diagnostics.is_empty() {
+    Ok(false)
+  } else {
+    Err(format!(
+      "Conversione ImageMagick non riuscita: {}",
+      diagnostics.join("; ")
+    ))
   }
-  Ok(false)
 }
 
 async fn run_convert_image_magick(
@@ -551,10 +825,16 @@ async fn run_convert(
   let out_ext = request.format.to_lowercase();
   let input_text = input.to_string_lossy().into_owned();
   let output_text = output.to_string_lossy().into_owned();
+  let still_image_to_gif = out_ext == "gif"
+    && is_image_ext(&in_ext)
+    && in_ext != "gif"
+    && !is_video_ext(&in_ext);
 
   // Use ImageMagick when either side is outside FFmpeg's common image formats.
-  if (is_image_ext(&in_ext) || in_ext == "pdf")
-    && (!is_ffmpeg_image_ext(&in_ext) || !is_ffmpeg_image_ext(&out_ext))
+  // Still images do not need the video-only fps filter used for animated GIFs.
+  if still_image_to_gif
+    || ((is_image_ext(&in_ext) || in_ext == "pdf")
+      && (!is_ffmpeg_image_ext(&in_ext) || !is_ffmpeg_image_ext(&out_ext)))
   {
     run_convert_image_magick(
       app,
@@ -600,10 +880,7 @@ async fn run_convert(
         )
   {
     // Probe duration for progress
-    let probe = app
-      .shell()
-      .sidecar("ffprobe")
-      .map_err(|e| e.to_string())?
+    let probe = tool_command(app, "ffprobe")
       .args([
         "-v",
         "error",
@@ -661,14 +938,12 @@ async fn run_convert(
       args.extend(["-map_metadata".into(), "-1".into()]);
     }
     args.push(output_text);
-    let (mut rx, _child) = app
-      .shell()
-      .sidecar("ffmpeg")
-      .map_err(|e| e.to_string())?
+    let (mut rx, _child) = tool_command(app, "ffmpeg")
       .args(args)
       .spawn()
       .map_err(|e| format!("Avvio ffmpeg non riuscito: {e}"))?;
     let mut exit_code = None;
+    let mut stderr_tail = Vec::new();
     while let Some(event) = rx.recv().await {
       match event {
         CommandEvent::Stdout(bytes) => {
@@ -694,6 +969,7 @@ async fn run_convert(
             }
           }
         }
+        CommandEvent::Stderr(bytes) => append_stderr_tail(&mut stderr_tail, &bytes),
         CommandEvent::Terminated(payload) => exit_code = payload.code,
         CommandEvent::Error(error) => {
           return Err(format!("Errore del processo ffmpeg: {error}"))
@@ -704,7 +980,7 @@ async fn run_convert(
     if exit_code == Some(0) {
       return Ok(());
     } else {
-      return Err(format!("ffmpeg è terminato con codice {:?}", exit_code));
+      return Err(ffmpeg_failure_message(exit_code, &stderr_tail));
     }
   }
 
@@ -731,10 +1007,7 @@ async fn run_ffmpeg_compress(
   }
 
   // Probe duration first for progress
-  let probe = app
-    .shell()
-    .sidecar("ffprobe")
-    .map_err(|e| e.to_string())?
+  let probe = tool_command(app, "ffprobe")
     .args([
       "-v",
       "error",
@@ -859,14 +1132,12 @@ async fn run_ffmpeg_compress(
     args.extend(["-map_metadata".into(), "-1".into()]);
   }
   args.push(output_text);
-  let (mut rx, _child) = app
-    .shell()
-    .sidecar("ffmpeg")
-    .map_err(|e| e.to_string())?
+  let (mut rx, _child) = tool_command(app, "ffmpeg")
     .args(args)
     .spawn()
     .map_err(|e| format!("Avvio ffmpeg non riuscito: {e}"))?;
   let mut exit_code = None;
+  let mut stderr_tail = Vec::new();
   while let Some(event) = rx.recv().await {
     match event {
       CommandEvent::Stdout(bytes) => {
@@ -892,6 +1163,7 @@ async fn run_ffmpeg_compress(
           }
         }
       }
+      CommandEvent::Stderr(bytes) => append_stderr_tail(&mut stderr_tail, &bytes),
       CommandEvent::Terminated(payload) => exit_code = payload.code,
       CommandEvent::Error(error) => {
         return Err(format!("Errore del processo ffmpeg: {error}"))
@@ -902,7 +1174,7 @@ async fn run_ffmpeg_compress(
   if exit_code == Some(0) {
     Ok(())
   } else {
-    Err(format!("ffmpeg è terminato con codice {:?}", exit_code))
+    Err(ffmpeg_failure_message(exit_code, &stderr_tail))
   }
 }
 
@@ -994,6 +1266,7 @@ pub fn run() {
     .invoke_handler(tauri::generate_handler![
             enqueue_conversion,
             enqueue_compression,
+            enqueue_crop,
             available_parallelism
         ])
     .run(tauri::generate_context!())

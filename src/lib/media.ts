@@ -73,6 +73,15 @@ export type CompressionRequest = {
   preserveMetadata: boolean
 };
 
+export type CropRequest = {
+  inputPath: string;
+  outputPath: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
 export type JobUpdate = {
   id: string;
   status: 'running' | 'completed' | 'failed';
@@ -84,6 +93,8 @@ export type JobUpdate = {
 export const enqueueConversion = (request: ConversionRequest) => invoke<string>('enqueue_conversion', {request});
 
 export const enqueueCompression = (request: CompressionRequest) => invoke<string>('enqueue_compression', {request});
+
+export const enqueueCrop = (request: CropRequest) => invoke<string>('enqueue_crop', {request});
 
 export const getParallelism = () => invoke<number>('available_parallelism');
 

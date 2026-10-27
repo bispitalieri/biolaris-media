@@ -16,7 +16,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "dev:tauri": "tauri dev",
+    "binaries:download": "node scripts/download-binaries.mjs",
+    "binaries:stage": "node scripts/stage-binaries.mjs",
+    "dev:tauri": "npm run binaries:download && npm run binaries:stage && tauri dev",
+    "tauri:build": "npm run binaries:download && npm run binaries:stage && tauri build",
     "tauri": "tauri"
   },
   "dependencies": {

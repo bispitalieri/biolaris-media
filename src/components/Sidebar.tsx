@@ -1,6 +1,6 @@
 import {NavLink} from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faExchangeAlt, faCompressAlt, faGear } from "@fortawesome/free-solid-svg-icons";
+import { faExchangeAlt, faCompressAlt, faCropSimple, faGear } from "@fortawesome/free-solid-svg-icons";
 import {useTranslation} from 'react-i18next';
 import {openSettingsWindow} from '../lib/windows';
 
@@ -9,9 +9,9 @@ const Sidebar = () => {
   const settingsShortcut = navigator.userAgent.includes('Mac') ? '⌘,' : 'Ctrl+,';
 
   return (
-    <aside className="w-64 border-r border-zinc-800 bg-zinc-950">
+    <aside className="flex w-64 shrink-0 flex-col border-r border-zinc-800 bg-zinc-950">
       <div className="flex items-center gap-3 px-6 py-6">
-        <div className="grid h-10 w-10 place-items-center rounded-xl bg-violet-600 font-bold">T</div>
+        <div className="grid h-10 w-10 place-items-center rounded-xl bg-violet-600 font-bold">B</div>
         <div>
           <h1 className="text-lg font-bold tracking-tight">Biolaris Media</h1>
           <p className="text-xs text-zinc-500">{t('local')}</p>
@@ -32,6 +32,13 @@ const Sidebar = () => {
         >
           <FontAwesomeIcon icon={faCompressAlt} className="w-4"/>
           <span>{t('compress')}</span>
+        </NavLink>
+        <NavLink
+          to="/crop"
+          className={({isActive}) => `mb-1 flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}
+        >
+          <FontAwesomeIcon icon={faCropSimple} className="w-4"/>
+          <span>{t('crop')}</span>
         </NavLink>
       </nav>
       <div className="mt-auto space-y-3 px-3 py-4">
