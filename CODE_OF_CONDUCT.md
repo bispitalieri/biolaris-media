@@ -1,21 +1,24 @@
-# Codice di condotta
+# Code of Conduct
 
-## Il nostro impegno
+🇬🇧 English | [🇮🇹 Italiano](CODE_OF_CONDUCT.it.md)
 
-Come partecipanti, collaboratori e maintainer ci impegniamo a rendere la partecipazione al progetto aperta e rispettosa per tutti, indipendentemente da età, corporatura, disabilità, etnia, identità ed espressione di genere, esperienza, nazionalità, aspetto, religione o identità e orientamento sessuale.
+## Our commitment
 
-## Comportamenti attesi
+We want participation in Biolaris Media to be welcoming and respectful for everyone, regardless of age, body size, disability, ethnicity, gender identity or expression, experience, nationality, appearance, religion, or sexual orientation.
 
-- Usa un tono rispettoso e accogli punti di vista ed esperienze differenti.
-- Accetta con grazia feedback costruttivi e concentrati su ciò che è meglio per la comunità.
-- Mantieni comunicazioni e contributi pertinenti, inclusive e professionali.
+## Expected behavior
 
-## Comportamenti non accettabili
+- Be respectful and considerate in project spaces and discussions.
+- Welcome different viewpoints and experiences; give and receive constructive feedback graciously.
+- Keep communication relevant, inclusive, and professional.
+- Focus on what is best for the project and its community.
 
-Non sono tollerati molestie, insulti, attacchi personali, discriminazione, intimidazioni, contatti indesiderati o la pubblicazione di informazioni private altrui senza consenso.
+## Unacceptable behavior
 
-## Applicazione
+Harassment, insults, personal attacks, discrimination, intimidation, unwanted contact, and sharing another person's private information without consent are not acceptable.
 
-I maintainer possono rimuovere contenuti o limitare temporaneamente o permanentemente la partecipazione di chi adotta comportamenti non accettabili. Per segnalare un problema, contatta i maintainer usando i canali privati indicati nel profilo GitHub del progetto. Le segnalazioni saranno gestite con riservatezza.
+## Enforcement
 
-Questo codice si applica agli spazi del progetto e alle interazioni pubbliche che rappresentano il progetto.
+Project maintainers may remove content or temporarily or permanently restrict participation in response to unacceptable behavior. To report a concern privately, contact the maintainers through the [project maintainer's GitHub profile](https://github.com/bispitalieri). Reports will be handled as confidentially as possible.
+
+This Code of Conduct applies in project spaces and in public interactions where someone represents the project.

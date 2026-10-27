@@ -1,7 +1,13 @@
-# Segnalazioni di sicurezza
+# Security Policy
 
-Non pubblicare vulnerabilità o dettagli che consentano di sfruttarle nelle issue o nelle pull request pubbliche.
+🇬🇧 English | [🇮🇹 Italiano](SECURITY.it.md)
 
-Invia una segnalazione privata ai maintainer tramite la funzione **Report a vulnerability** nella scheda Security del repository GitHub. Includi i passaggi per riprodurre il problema, l’impatto osservato e le versioni interessate. Riceverai un aggiornamento dopo la presa in carico; evita di divulgare pubblicamente i dettagli finché non è stata coordinata una correzione.
+## Reporting a vulnerability
 
-Le versioni non più supportate potrebbero non ricevere aggiornamenti di sicurezza. Se non è disponibile la segnalazione privata GitHub, contatta un maintainer attraverso il profilo GitHub del progetto senza allegare pubblicamente dettagli sensibili.
+Do not publish vulnerabilities or exploitable details in public issues or pull requests.
+
+Use GitHub's **Report a vulnerability** option in the repository's Security tab to send a private report. Include steps to reproduce the issue, its observed impact, and the affected versions. The maintainers will follow up after reviewing the report. Please do not disclose details publicly until a fix has been coordinated.
+
+If private vulnerability reporting is unavailable, contact a maintainer through the [project maintainer's GitHub profile](https://github.com/bispitalieri) without posting sensitive details publicly.
+
+Biolaris Media is under active development, and older versions may not receive security updates.

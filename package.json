@@ -2,7 +2,7 @@
   "name": "biolaris-media",
   "version": "0.1.0",
   "private": false,
-  "description": "App desktop open source per convertire e comprimere file multimediali in locale",
+  "description": "Open-source desktop app for local media conversion and compression",
   "license": "MIT",
   "repository": {
     "type": "git",

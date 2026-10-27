@@ -1,60 +1,62 @@
 # Biolaris Media
 
-Biolaris Media è un’applicazione desktop open source per convertire e comprimere file multimediali mantenendoli sul proprio computer. È realizzata con Tauri 2, React, TypeScript e Rust; gli strumenti multimediali vengono inclusi nel pacchetto dell’applicazione.
+🇬🇧 English | [🇮🇹 Italiano](README.it.md)
 
-> Il progetto è in sviluppo. Al momento sono implementate le code di conversione e compressione audio/video. Le funzioni per immagini e PDF, il ridimensionamento e l’estrazione/unione PDF non sono ancora collegate. L’opzione di qualità audio non è ancora applicata ai parametri del codec.
+Biolaris Media is an open-source desktop app for converting and compressing media files locally on your computer. It is built with Tauri 2, React, TypeScript, and Rust. The app bundles the media tools it uses.
 
-## Requisiti
+> **Project status:** Biolaris Media is under active development. Audio and video conversion and compression queues are implemented. Image and PDF tools, resizing, and PDF extraction/merging are not connected yet. The audio quality setting is not yet applied to codec parameters.
 
-- Node.js e npm
-- Rust e Cargo
-- Prerequisiti di sviluppo Tauri 2 per la piattaforma in uso (toolchain e librerie di sistema)
-- Connessione Internet al primo download dei binari
+## Requirements
 
-Consulta la [guida ufficiale Tauri per i prerequisiti](https://v2.tauri.app/start/prerequisites/) del tuo sistema.
+- Node.js and npm
+- Rust and Cargo
+- The Tauri 2 development prerequisites for your platform
+- An internet connection for the first download of the media tool binaries
 
-## Avvio in sviluppo
+See the [Tauri prerequisites guide](https://v2.tauri.app/start/prerequisites/) for your operating system.
 
-1. Clona il repository e installa le dipendenze:
+## Run in development
+
+1. Clone the repository and install dependencies:
 
    ```sh
-   git clone https://github.com/biolaris/biolaris.git
+   git clone https://github.com/bispitalieri/biolaris.git
    cd biolaris
    npm ci
    ```
 
-2. Scarica i binari per il sistema corrente:
+2. Download the binaries for the current system:
 
    ```sh
    npm run binaries:download
    ```
 
-   Lo script non cerca release nel repository Biolaris. Scarica separatamente FFmpeg/FFprobe e Poppler dal catalogo pubblico [unpins](https://unpins.org/), ImageMagick dal distributore del sistema e, su Windows, libvips dal suo archivio upstream. Verifica gli SHA-256 pubblicati e conserva ogni runtime in `src-tauri/binaries/<target-triple>/`. Usa `npm run binaries:download -- --force` per scaricarli di nuovo. Il download va eseguito su un runner nativo per il target da compilare.
+   This does not download releases from the Biolaris repository. It downloads FFmpeg/FFprobe and Poppler from the public [unpins](https://unpins.org/) catalog, ImageMagick from its platform distributor, and libvips from its upstream archive on Windows. The script verifies published SHA-256 checksums and stores each runtime in `src-tauri/binaries/<target-triple>/`. Add `-- --force` to download the runtime again. Run the download on a native runner for the target you intend to build.
 
-3. Avvia l’app:
+3. Start the desktop app:
 
    ```sh
    npm run dev:tauri
    ```
 
-Per compilare la parte web usa `npm run build`. `npm run dev:tauri` e `npm run tauri:build` scaricano automaticamente il runtime se non è già presente.
+To build the web frontend alone, run `npm run build`. The `dev:tauri` and `tauri:build` scripts download the runtime automatically when it is missing.
 
-## Binari e distribuzione
+## Runtime binaries and distribution
 
-Prima di avviare Tauri, `binaries:stage` copia in `src-tauri/binaries/runtime-current/` solo il runtime del target corrente. La configurazione Tauri include quella directory, non l’intero archivio `binaries/`: gli altri target non entrano nel pacchetto. Il runtime contiene FFmpeg/FFprobe, ImageMagick (`magick`/`convert`) e Poppler (`pdftoppm`/`pdfunite`). Su Windows viene incluso anche libvips. Il progetto libvips non pubblica eseguibili standalone ufficiali per macOS/Linux; il comando `vips` non è usato dal codice applicativo attuale e viene omesso su questi sistemi.
+Before starting Tauri, `binaries:stage` copies only the current target's runtime into `src-tauri/binaries/runtime-current/`. The Tauri configuration bundles that directory rather than the full `binaries/` archive, so binaries for other targets are not included. The runtime contains FFmpeg/FFprobe, ImageMagick (`magick`/`convert`), and Poppler (`pdftoppm`/`pdfunite`). Windows bundles libvips too. The libvips project does not publish official standalone executables for macOS or Linux; the current app code does not use the `vips` command, so it is omitted on those systems.
 
-`npm run dev:tauri` e `npm run tauri:build` scaricano e preparano automaticamente il runtime nativo. Il workflow GitHub Actions compila separatamente Windows, macOS e Linux, così ogni pacchetto contiene solo i propri binari. ImageMagick per Linux è distribuito come AppImage x86_64; il pacchetto macOS autonomo è fornito da un distributore esterno e richiede macOS Sonoma o successivo. Le sorgenti, le versioni e gli hash scaricati sono registrati in `runtime-manifest.json`.
+The `dev:tauri` and `tauri:build` scripts download and stage the native runtime automatically. GitHub Actions builds Windows, macOS, and Linux packages separately so each package contains only its platform's binaries. ImageMagick for Linux is distributed as an x86_64 AppImage. The standalone macOS package comes from an external distributor and requires macOS Sonoma or later. Download sources, versions, and checksums are recorded in `runtime-manifest.json`.
 
-Prima della distribuzione verifica le licenze di FFmpeg e dei codec inclusi, ImageMagick, libvips, Poppler e delle librerie incluse. La licenza MIT di questo repository non sostituisce né modifica quelle dei programmi distribuiti.
+Before distributing the app, review the licenses for FFmpeg and its included codecs, ImageMagick, libvips, Poppler, and their included libraries. This repository's MIT license does not replace or change the licenses of bundled programs.
 
-## Contribuire
+## Contributing
 
-Segnala bug e proponi funzionalità tramite le [GitHub Issues](https://github.com/biolaris/biolaris/issues). Per modifiche più ampie, apri una issue per discutere l’approccio e poi invia una pull request. Leggi [CONTRIBUTING.md](CONTRIBUTING.md) e il [Codice di condotta](CODE_OF_CONDUCT.md).
+Bug reports and feature ideas are welcome through [GitHub Issues](https://github.com/bispitalieri/biolaris/issues). For larger changes, open an issue to discuss the approach before submitting a pull request. Read the [contribution guide](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md).
 
-## Sicurezza
+## Security
 
-Per segnalazioni di vulnerabilità, segui le istruzioni in [SECURITY.md](SECURITY.md) invece di pubblicare dettagli sfruttabili in una issue pubblica.
+For vulnerability reports, follow [SECURITY.md](SECURITY.md) instead of posting exploitable details in a public issue.
 
-## Licenza
+## License
 
-Il codice di questo progetto è distribuito secondo i termini della [licenza MIT](LICENSE).
+The code in this project is distributed under the terms of the [MIT License](LICENSE).

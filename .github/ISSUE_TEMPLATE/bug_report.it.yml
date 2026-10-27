@@ -1,0 +1,39 @@
+name: "🇮🇹 Segnalazione bug"
+description: Segnala un problema riproducibile
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: "Cerca prima nelle issue esistenti. Non allegare file media privati o informazioni sensibili."
+  - type: textarea
+    id: description
+    attributes:
+      label: Che cosa è successo?
+      description: Che cosa ti aspettavi che succedesse?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Passaggi per riprodurre il problema
+      placeholder: "1. ...\n2. ..."
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Versione di Biolaris Media
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: Sistema operativo e versione
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log o messaggi di errore
+      description: Rimuovi percorsi personali e informazioni sensibili prima di condividerli.

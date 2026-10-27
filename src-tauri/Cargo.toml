@@ -1,7 +1,7 @@
 [package]
 name = "biolaris_media"
 version = "0.1.0"
-description = "Suite locale per conversione e compressione media"
+description = "Local media conversion and compression suite"
 authors = ["Biolaris contributors"]
 edition = "2021"
 

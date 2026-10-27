@@ -1,0 +1,23 @@
+name: "🇮🇹 Proposta di funzionalità"
+description: Proponi un miglioramento
+title: "[Funzionalità]: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problema o esigenza
+      description: Quale problema risolverebbe questa funzionalità?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Soluzione proposta
+      description: Descrivi il comportamento che vorresti.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternative considerate

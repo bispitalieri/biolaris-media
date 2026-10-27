@@ -25,6 +25,7 @@ export async function openSettingsWindow() {
       center: true,
       decorations: true,
       alwaysOnTop: true,
+      resizable: false,
     });
     settingsWindow.once('tauri://error', (event) => console.error('Unable to open the settings window', event.payload));
   } catch (error) {
