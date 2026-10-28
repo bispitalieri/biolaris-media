@@ -58,6 +58,8 @@ jobs:
             patchelf
       - run: npm ci
       - run: npm run tauri:build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/upload-artifact@v7
         with:
           name: biolaris-${{ matrix.os }}

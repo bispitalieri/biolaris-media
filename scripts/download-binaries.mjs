@@ -206,6 +206,8 @@ async function installUnpinsPackages(scratch, binDir, sourceRecords) {
   const appData = join(scratch, "app-data");
   const env = {
     ...process.env,
+    GITHUB_TOKEN: process.env.GITHUB_TOKEN || process.env.GH_TOKEN,
+    GH_TOKEN: process.env.GH_TOKEN || process.env.GITHUB_TOKEN,
     HOME: isolatedHome,
     USERPROFILE: isolatedHome,
     LOCALAPPDATA: localAppData,
