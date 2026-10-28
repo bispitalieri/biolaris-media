@@ -35,9 +35,11 @@ Opzioni:
   --force            Scarica nuovamente e sostituisce il runtime corrente.
   --help             Mostra questo messaggio.
 
-Non usa release GitHub di Biolaris. FFmpeg/FFprobe e Poppler sono scaricati
-dal catalogo pubblico unpins; ImageMagick e vips usano le distribuzioni dei
-rispettivi progetti. vips non ha una build standalone ufficiale per macOS/Linux.`);
+FFmpeg/FFprobe e Poppler sono scaricati
+dal catalogo pubblico unpins; il suo installer viene compilato dal repository
+GitHub per evitare il download del bootstrap da unpins.org. ImageMagick e vips
+usano le distribuzioni dei rispettivi progetti. vips non ha una build
+standalone ufficiale per macOS/Linux.`);
 }
 
 function parseArgs(args) {
@@ -110,7 +112,6 @@ function githubHeaders() {
   };
 }
 
-// Fetch generico per siti terzi (unpins.org, mendelson.org, ecc.) senza header GitHub
 async function fetchResponse(url, headers = {}) {
   const response = await fetch(url, {headers, redirect: "follow"});
   if (!response.ok) {
@@ -120,7 +121,6 @@ async function fetchResponse(url, headers = {}) {
   return response;
 }
 
-// Fetch specifico per le API di GitHub
 async function fetchGithubResponse(url, headers = {}) {
   const response = await fetch(url, {headers: {...githubHeaders(), ...headers}, redirect: "follow"});
   if (!response.ok) {
@@ -190,22 +190,16 @@ function assertSupportedHost() {
 
 async function installUnpinsPackages(scratch, binDir, sourceRecords) {
   const os = process.platform === "win32" ? "windows" : process.platform === "darwin" ? "darwin" : "linux";
-  // unpins.org fornisce solo la versione x86_64 per macOS (eseguita via Rosetta 2 su Apple Silicon)
-  const architecture = process.platform === "darwin"
-    ? "x86_64"
-    : (process.arch === "arm64" ? "aarch64" : process.arch === "x64" ? "x86_64" : process.arch);
+  const architecture = process.arch === "arm64" ? "aarch64" : process.arch === "x64" ? "x86_64" : process.arch;
 
   if (os === "windows" && architecture !== "x86_64") throw new Error("unpins non pubblica ancora build Windows ARM64 per questi pacchetti.");
-  const executableName = os === "windows" ? "unpin.exe" : "unpin";
-  const unpinUrl = os === "windows"
-    ? "https://unpins.org/unpin-x86_64-windows.exe"
-    : "https://unpins.org/unpin-" + architecture + "-" + os;
-
-  const checksumText = await (await fetchResponse(unpinUrl + ".sha256", {Accept: "text/plain"})).text();
-  const checksum = parseSha256(checksumText);
-  const unpinPath = join(scratch, executableName);
-  const downloaded = await downloadFile(unpinUrl, unpinPath, checksum, 30 * 1024 * 1024, false);
-  if (process.platform !== "win32") await chmod(unpinPath, 0o755);
+  const unpin = await installUnpinCli(scratch);
+  sourceRecords.push({
+    provider: "unpins/unpin",
+    method: "compilato da sorgente con cargo install --locked",
+    version: unpin.version,
+    sha256: unpin.sha256,
+  });
 
   const isolatedHome = join(scratch, "home");
   const localAppData = join(scratch, "local-app-data");
@@ -225,7 +219,7 @@ async function installUnpinsPackages(scratch, binDir, sourceRecords) {
   await mkdir(appData, {recursive: true});
 
   console.log("Scarico separatamente FFmpeg/FFprobe e Poppler dal catalogo pubblico unpins...");
-  run(unpinPath, ["install", "--yes", "ffmpeg", "poppler-utils"], {env, stdio: "inherit"});
+  run(unpin.executable, ["install", "--yes", "ffmpeg", "poppler-utils"], {env, stdio: "inherit"});
 
   const installedAliases = [];
   for (const tool of ["ffmpeg", "ffprobe", "pdftoppm", "pdfunite"]) {
@@ -241,7 +235,22 @@ async function installUnpinsPackages(scratch, binDir, sourceRecords) {
     }
     if (process.platform !== "win32") await chmod(destination, 0o755);
   }
-  sourceRecords.push({provider: "unpins.org", packages: ["unpins/ffmpeg", "unpins/poppler-utils"], unpinSha256: downloaded.sha256});
+  sourceRecords.push({provider: "github.com/unpins", packages: ["unpins/ffmpeg", "unpins/poppler-utils"], installer: "unpins/unpin"});
+}
+
+async function installUnpinCli(scratch) {
+  const installRoot = join(scratch, "unpin-cli");
+  const executable = join(installRoot, "bin", process.platform === "win32" ? "unpin.exe" : "unpin");
+  console.log("Compilo l'installer unpin dal repository GitHub...");
+  run("cargo", ["install", "--git", "https://github.com/unpins/unpin", "--locked", "--root", installRoot], {stdio: "inherit"});
+
+  const metadata = await stat(executable).catch(() => undefined);
+  if (!metadata?.isFile() || metadata.size === 0) throw new Error("cargo install non ha creato l'eseguibile unpin atteso: " + executable);
+  if (process.platform !== "win32") await chmod(executable, 0o755);
+
+  const version = run(executable, ["--version"]).trim();
+  const sha256 = createHash("sha256").update(await readFile(executable)).digest("hex");
+  return {executable, version, sha256};
 }
 
 async function walkFiles(root, visitor, depth = 0) {
