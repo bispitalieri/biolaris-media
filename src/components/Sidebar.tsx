@@ -1,6 +1,6 @@
 import {NavLink} from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faExchangeAlt, faCompressAlt, faCropSimple, faGear } from "@fortawesome/free-solid-svg-icons";
+import { faExchangeAlt, faCompressAlt, faCropSimple, faImages, faGear } from "@fortawesome/free-solid-svg-icons";
 import {useTranslation} from 'react-i18next';
 import {openSettingsWindow} from '../lib/windows';
 
@@ -39,6 +39,13 @@ const Sidebar = () => {
         >
           <FontAwesomeIcon icon={faCropSimple} className="w-4"/>
           <span>{t('crop')}</span>
+        </NavLink>
+        <NavLink
+          to="/slideshow"
+          className={({isActive}) => `mb-1 flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}
+        >
+          <FontAwesomeIcon icon={faImages} className="w-4"/>
+          <span>{t('slideshow')}</span>
         </NavLink>
       </nav>
       <div className="mt-auto space-y-3 px-3 py-4">

@@ -3,28 +3,28 @@ import {getCurrentWebview} from '@tauri-apps/api/webview';
 import {open} from '@tauri-apps/plugin-dialog'
 import {useTranslation} from 'react-i18next';
 
-type Props = { onFiles: (paths: string[]) => void; imageOnly?: boolean };
+type Props = { onFiles: (paths: string[]) => void; imageOnly?: boolean; multiple?: boolean };
 
 const imageExtensions = [
   'jpg', 'jpeg', 'png', 'webp', 'avif', 'gif', 'bmp', 'svg'
 ];
 const imageExtensionSet = new Set(imageExtensions);
 
-function pathsForDrop(paths: string[], imageOnly: boolean) {
+function pathsForDrop(paths: string[], imageOnly: boolean, multiple: boolean) {
   if (!imageOnly) return paths;
   const imagePaths = paths.filter((path) => imageExtensionSet.has(path.split('.').pop()?.toLowerCase() || ''));
-  return (imagePaths.length > 0 ? imagePaths : paths).slice(0, 1);
+  return multiple ? imagePaths : imagePaths.slice(0, 1);
 }
 
 /** Uses Tauri's native file-drop event, which supplies real local filesystem paths. */
-export function DropZone({onFiles, imageOnly = false}: Readonly<Props>) {
+export function DropZone({onFiles, imageOnly = false, multiple = false}: Readonly<Props>) {
   const [hovering, setHovering] = useState(false);
   const {t} = useTranslation();
 
   const handleFileSelect = async () => {
     try {
       const selected = await open({
-        multiple: !imageOnly,
+        multiple: !imageOnly || multiple,
         filters: [{
           name: t(imageOnly ? 'images' : 'mediaAndDocuments'),
           extensions: imageOnly ? imageExtensions : [
@@ -51,7 +51,7 @@ export function DropZone({onFiles, imageOnly = false}: Readonly<Props>) {
 
       const paths: string[] = typeof selected === 'string' ? [selected] : selected;
 
-      onFiles(pathsForDrop(paths, imageOnly));
+      onFiles(pathsForDrop(paths, imageOnly, multiple));
     } catch (err) {
       console.error(err);
     }
@@ -64,7 +64,7 @@ export function DropZone({onFiles, imageOnly = false}: Readonly<Props>) {
     getCurrentWebview().onDragDropEvent((event) => {
       if (event.payload.type === 'enter' || event.payload.type === 'over') setHovering(true);
       if (event.payload.type === 'leave' || event.payload.type === 'drop') setHovering(false);
-      if (event.payload.type === 'drop') onFiles(pathsForDrop(event.payload.paths, imageOnly));
+      if (event.payload.type === 'drop') onFiles(pathsForDrop(event.payload.paths, imageOnly, multiple));
     })
       .then((fn) => { if (alive) unlisten = fn; else fn(); })
       .catch((err) => { console.error(err); });
@@ -73,14 +73,14 @@ export function DropZone({onFiles, imageOnly = false}: Readonly<Props>) {
       alive = false;
       unlisten?.();
     };
-  }, [imageOnly, onFiles]);
+  }, [imageOnly, multiple, onFiles]);
 
   return (
     <section
       className={`rounded-2xl border border-dashed p-3 text-center transition ${hovering ? 'border-violet-400 bg-violet-500/10' : 'border-zinc-700 bg-zinc-900/50'}`}>
       <div className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-xl bg-zinc-800 text-2xl cursor-pointer" onClick={handleFileSelect}>＋</div>
-      <h2 className="text-lg font-medium">{t(imageOnly ? 'imageDropTitle' : 'dropTitle')}</h2>
-      <p className="mt-1 text-sm text-zinc-400">{t(imageOnly ? 'imageDropDescription' : 'dropDescription')}</p>
+      <h2 className="text-lg font-medium">{t(imageOnly ? (multiple ? 'imagesDropTitle' : 'imageDropTitle') : 'dropTitle')}</h2>
+      <p className="mt-1 text-sm text-zinc-400">{t(imageOnly ? (multiple ? 'imagesDropDescription' : 'imageDropDescription') : 'dropDescription')}</p>
     </section>
   );
 }

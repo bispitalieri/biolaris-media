@@ -4,6 +4,7 @@ import {isTauri} from '@tauri-apps/api/core';
 import {ConvertScreen} from './screens/ConvertScreen';
 import {CompressScreen} from './screens/CompressScreen';
 import {CropScreen} from './screens/CropScreen';
+import {SlideshowScreen} from './screens/SlideshowScreen';
 import {SettingsScreen} from './screens/SettingsScreen';
 import Sidebar from "./components/Sidebar.tsx";
 import {useTranslation} from 'react-i18next';
@@ -46,6 +47,7 @@ export default function App() {
             <Route path="/convert" element={<ConvertScreen/>}/>
             <Route path="/compress" element={<CompressScreen/>}/>
             <Route path="/crop" element={<CropScreen/>}/>
+            <Route path="/slideshow" element={<SlideshowScreen/>}/>
           </Routes>
           <p className="mt-8 text-center text-xs text-zinc-600">
             {t('privacyNote')}

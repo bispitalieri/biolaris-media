@@ -82,6 +82,15 @@ export type CropRequest = {
   height: number;
 };
 
+export type SlideshowResolution = '720p' | '1080p' | '4k' | 'match-image';
+
+export type SlideshowRequest = {
+  imagePaths: string[];
+  outputName: string;
+  resolution: SlideshowResolution;
+  secondsPerSlide: number;
+};
+
 export type JobUpdate = {
   id: string;
   status: 'running' | 'completed' | 'failed';
@@ -95,6 +104,8 @@ export const enqueueConversion = (request: ConversionRequest) => invoke<string>(
 export const enqueueCompression = (request: CompressionRequest) => invoke<string>('enqueue_compression', {request});
 
 export const enqueueCrop = (request: CropRequest) => invoke<string>('enqueue_crop', {request});
+
+export const enqueueSlideshow = (request: SlideshowRequest) => invoke<string>('enqueue_slideshow', {request});
 
 export const getParallelism = () => invoke<number>('available_parallelism');
 
