@@ -11,6 +11,7 @@ export type QueueItem = {
   quality: number;
   status: 'ready' | 'running' | 'completed' | 'failed';
   progress: number;
+  outputPath?: string;
   error?: string
 };
 type Props = {
@@ -18,6 +19,8 @@ type Props = {
   onChange: (path: string, patch: Partial<QueueItem>) => void;
   onConvert: (item: QueueItem) => void;
   onConvertMany: (items: QueueItem[]) => void;
+  onOpenOutput: (path: string) => void;
+  onOpenOutputDirectory: (path: string) => void;
   parallelism: number;
   onRemove: (path: string) => void;
   onRemoveCompleted: () => void;
@@ -39,7 +42,7 @@ function getAvailableFormats(fileType: FileType): OutputFormat[] {
   }
 }
 
-export function ConversionQueue({items, onChange, onConvert, onConvertMany, parallelism, onRemove, onRemoveCompleted, onClear}: Readonly<Props>) {
+export function ConversionQueue({items, onChange, onConvert, onConvertMany, onOpenOutput, onOpenOutputDirectory, parallelism, onRemove, onRemoveCompleted, onClear}: Readonly<Props>) {
   const [selectedPaths, setSelectedPaths] = useState<string[]>([]);
   const {t} = useTranslation();
   const statusLabels: Record<QueueItem['status'], string> = {
@@ -87,11 +90,11 @@ export function ConversionQueue({items, onChange, onConvert, onConvertMany, para
       </div>}
       {selected.length > 0 && <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-violet-700/50 bg-violet-950/30 p-3">
         <span className="text-sm">{t('selectedCount', {count: selected.length})}</span>
-        <select aria-label={t('outputFormatForSelected')} value={selectedFormat ?? ''} disabled={!selectedFormats.length} onChange={(e) => readySelected.forEach((item) => {
+        <select aria-label={t('outputFormatForSelected')} value={selectedFormat ?? ''} disabled={!selectedFormats.length || !readySelected.length} onChange={(e) => readySelected.forEach((item) => {
           const format = e.target.value as OutputFormat;
           onChange(item.path, {format, quality: getConfiguredQuality(detectFileType(item.path), format)});
         })} className="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm">{selectedFormats.map((format) => <option key={format} value={format}>{format.toUpperCase()}</option>)}</select>
-        <label className="flex items-center gap-2 text-xs text-zinc-400">{t('quality')} {selectedQuality}<input aria-label={t('qualityForSelected')} type="range" min="0" max="100" value={selectedQuality} onChange={(e) => readySelected.forEach((item) => onChange(item.path, {quality: Number(e.target.value)}))} className="w-24 accent-violet-500"/></label>
+        <label className="flex items-center gap-2 text-xs text-zinc-400">{t('quality')} {selectedQuality}<input aria-label={t('qualityForSelected')} type="range" min="0" max="100" value={selectedQuality} disabled={!readySelected.length} onChange={(e) => readySelected.forEach((item) => onChange(item.path, {quality: Number(e.target.value)}))} className="w-24 accent-violet-500 disabled:cursor-not-allowed disabled:opacity-40"/></label>
         <button disabled={!readySelected.length} onClick={() => onConvertMany(readySelected)} className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium hover:bg-violet-500 disabled:opacity-40">{t('convertSelected', {count: readySelected.length})}</button>
         <button onClick={() => setSelectedPaths([])} className="rounded-lg border border-zinc-700 px-3 py-2 text-sm hover:bg-zinc-800">{t('deselectAll')}</button>
       </div>}
@@ -104,7 +107,7 @@ export function ConversionQueue({items, onChange, onConvert, onConvertMany, para
               <input type="checkbox" aria-label={t('selectFile', {name: item.name})} checked={selectedPaths.includes(item.path)} onChange={() => setSelectedPaths((current) => current.includes(item.path) ? current.filter((path) => path !== item.path) : [...current, item.path])} />
               <div className="min-w-0 flex-1"><p className="truncate font-medium">{item.name}</p><p
                 className="truncate text-xs text-zinc-500">{item.path}</p></div>
-              {selected.length === 0 && <select aria-label={t('outputFormatFor', {name: item.name})} value={item.format} onChange={(e) => {
+              {selected.length === 0 && <select aria-label={t('outputFormatFor', {name: item.name})} value={item.format} disabled={item.status === 'running' || item.status === 'completed'} onChange={(e) => {
                 const format = e.target.value as OutputFormat;
                 onChange(item.path, {format, quality: getConfiguredQuality(detectFileType(item.path), format)});
               }} className="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm">{availableFormats.map((f) =>
@@ -112,11 +115,16 @@ export function ConversionQueue({items, onChange, onConvert, onConvertMany, para
               )}</select>}
               {selected.length === 0 && <label className="flex items-center gap-2 text-xs text-zinc-400">{t('quality')} {item.quality}<input
                 aria-label={t('qualityFor', {name: item.name})} type="range" min="0" max="100" value={item.quality}
+                disabled={item.status === 'running' || item.status === 'completed'}
                 onChange={(e) => onChange(item.path, {quality: Number(e.target.value)})}
-                className="w-24 accent-violet-500"/></label>}
-              {selected.length === 0 && <button disabled={item.status === 'running' || item.status === 'completed'} onClick={() => onConvert(item)} className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-40">{t('convertFile')}
+                className="w-24 accent-violet-500 disabled:cursor-not-allowed disabled:opacity-40"/></label>}
+              {selected.length === 0 && item.status !== 'completed' && <button disabled={item.status === 'running'} onClick={() => onConvert(item)} className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-40">{t('convertFile')}
               </button>
               }
+              {item.status === 'completed' && item.outputPath && <>
+                <button onClick={() => onOpenOutput(item.outputPath!)} className="rounded-lg border border-emerald-700 px-4 py-2 text-sm font-medium text-emerald-300 hover:bg-emerald-950/50">{t('openOutputFile')}</button>
+                <button onClick={() => onOpenOutputDirectory(item.outputPath!)} className="rounded-lg border border-zinc-700 px-4 py-2 text-sm hover:bg-zinc-800">{t('openOutputDirectory')}</button>
+              </>}
               <button onClick={() => onRemove(item.path)} disabled={item.status === 'running'} className="rounded-lg border border-zinc-700 px-3 py-2 text-sm hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-40" aria-label={t('removeFile', {name: item.name})}>×
               </button>
             </div>

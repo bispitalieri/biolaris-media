@@ -9,6 +9,7 @@ export type AppSettings = {
     language: string;
     theme: ThemePreference;
     launchAtStartup: boolean;
+    autoRenameOutputs: boolean;
   };
   media: Record<MediaCategory, {
     defaultFormat: OutputFormat;
@@ -30,6 +31,7 @@ const initialSettings: AppSettings = {
     language: 'en',
     theme: 'system',
     launchAtStartup: false,
+    autoRenameOutputs: true,
   },
   media: {
     images: {
@@ -90,6 +92,7 @@ export function loadAppSettings(): AppSettings {
       language: typeof general.language === 'string' ? general.language : legacyLanguage,
       theme: general.theme === 'light' || general.theme === 'dark' || general.theme === 'system' ? general.theme : 'system',
       launchAtStartup: typeof general.launchAtStartup === 'boolean' ? general.launchAtStartup : false,
+      autoRenameOutputs: typeof general.autoRenameOutputs === 'boolean' ? general.autoRenameOutputs : true,
     },
     media: {...initialSettings.media},
   };

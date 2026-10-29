@@ -1,8 +1,8 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {DropZone} from '../components/DropZone';
 import {ConversionQueue, type QueueItem} from '../components/ConversionQueue';
-import {enqueueConversion, getParallelism, type JobUpdate, type OutputFormat, subscribeToProgress, detectFileType} from '../lib/media';
-import {getConfiguredFormat, getConfiguredQuality} from '../lib/settings';
+import {enqueueConversion, getParallelism, openOutputDirectory as openOutputDirectoryCommand, openOutputFile, type JobUpdate, type OutputFormat, subscribeToProgress, detectFileType} from '../lib/media';
+import {getConfiguredFormat, getConfiguredQuality, useAppSettings} from '../lib/settings';
 import {useTranslation} from 'react-i18next';
 
 function basename(path: string) {
@@ -16,8 +16,10 @@ function outputForConvert(path: string, format: OutputFormat) {
 
 export function ConvertScreen() {
   const {t} = useTranslation();
+  const {settings} = useAppSettings();
   const [items, setItems] = useState<QueueItem[]>([]);
   const [parallelism, setParallelism] = useState(1);
+  const [openError, setOpenError] = useState<string | null>(null);
   const [jobPaths, setJobPaths] = useState<Record<string, string>>({});
   const jobPathsRef = useRef(jobPaths);
   const pendingUpdates = useRef<Record<string, JobUpdate>>({});
@@ -46,6 +48,7 @@ export function ConvertScreen() {
         ...i,
         status: update.status,
         progress: update.progress,
+        outputPath: update.outputPath ?? i.outputPath,
         error: update.error ?? undefined
       } : i));
     })
@@ -88,7 +91,8 @@ export function ConvertScreen() {
         outputPath,
         format: item.format,
         quality: item.quality,
-        preserveMetadata: true
+        preserveMetadata: true,
+        autoRenameOutputs: settings.general.autoRenameOutputs
       });
 
       jobPathsRef.current = {...jobPathsRef.current, [id]: item.path};
@@ -102,13 +106,31 @@ export function ConvertScreen() {
     } catch (error) {
       changeConvert(item.path, {status: 'failed', error: String(error)});
     }
-  }, [changeConvert]);
+  }, [changeConvert, settings.general.autoRenameOutputs]);
 
   const convertMany = useCallback((batch: QueueItem[]) => {
     for (const item of batch) {
       void convert(item);
     }
   }, [changeConvert, convert]);
+
+  const openOutput = useCallback(async (path: string) => {
+    setOpenError(null);
+    try {
+      await openOutputFile(path);
+    } catch (error) {
+      setOpenError(String(error));
+    }
+  }, []);
+
+  const openOutputDirectory = useCallback(async (path: string) => {
+    setOpenError(null);
+    try {
+      await openOutputDirectoryCommand(path);
+    } catch (error) {
+      setOpenError(String(error));
+    }
+  }, []);
 
   const removeItemConvert = useCallback((path: string) => {
     setItems((all) => all.filter((item) => item.path !== path));
@@ -129,11 +151,14 @@ export function ConvertScreen() {
         <p className="text-sm text-zinc-500">{t('convertDescription')}</p>
       </header>
       <DropZone onFiles={addFilesConvert}/>
+      {openError && <p role="alert" className="mt-3 text-sm text-red-400">{t('openOutputError', {error: openError})}</p>}
       <ConversionQueue
         items={items}
         onChange={changeConvert}
         onConvert={convert}
         onConvertMany={convertMany}
+        onOpenOutput={(path) => void openOutput(path)}
+        onOpenOutputDirectory={(path) => void openOutputDirectory(path)}
         parallelism={parallelism}
         onRemove={removeItemConvert}
         onRemoveCompleted={removeCompletedConvert}

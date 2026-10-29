@@ -1,6 +1,7 @@
 import {useCallback, useEffect, useRef, useState, type PointerEvent} from 'react';
 import {readFile} from '@tauri-apps/plugin-fs';
 import {useTranslation} from 'react-i18next';
+import {useAppSettings} from '../lib/settings';
 import {DropZone} from '../components/DropZone';
 import {detectFileType, enqueueCrop, subscribeToProgress, type JobUpdate} from '../lib/media';
 
@@ -78,6 +79,7 @@ function mimeTypeFor(path: string) {
 
 export function CropScreen() {
   const {t} = useTranslation();
+  const {settings} = useAppSettings();
   const [image, setImage] = useState<CropImage | null>(null);
   const [selection, setSelection] = useState<CropRect | null>(null);
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>('free');
@@ -186,6 +188,7 @@ export function CropScreen() {
         y: selection.y,
         width: selection.width,
         height: selection.height,
+        autoRenameOutputs: settings.general.autoRenameOutputs,
       });
       jobPaths.current[id] = image.path;
       const early = pendingUpdates.current[id];
@@ -197,7 +200,7 @@ export function CropScreen() {
       setStatus('failed');
       setError(String(reason));
     }
-  }, [applyUpdate, image, selection]);
+  }, [applyUpdate, image, selection, settings.general.autoRenameOutputs]);
 
   const hasSelection = Boolean(selection && selection.width > 0 && selection.height > 0);
 

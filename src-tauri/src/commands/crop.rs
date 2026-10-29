@@ -3,7 +3,7 @@ use crate::{
   formats::{get_file_ext, is_image_ext},
   images::run_crop_image_magick,
   models::{CropRequest, JobUpdate, QueueState},
-  paths::{canonical_existing_file, validate_output_with_suffix},
+  paths::{canonical_existing_file, validate_output},
 };
 use tauri::{Emitter, State};
 use uuid::Uuid;
@@ -28,7 +28,7 @@ pub(crate) async fn enqueue_crop(
   if !is_image_ext(&ext) {
     return Err("Il ritaglio è disponibile solo per le immagini".into());
   }
-  let output = validate_output_with_suffix(&request.output_path, &ext)?;
+  let output = validate_output(&request.output_path, &ext, request.auto_rename_outputs)?;
   let id = Uuid::new_v4().to_string();
   let semaphore = state.slots.clone();
   let task_id = id.clone();

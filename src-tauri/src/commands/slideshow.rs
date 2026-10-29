@@ -3,7 +3,7 @@ use crate::{
   formats::{get_file_ext, is_ffmpeg_image_ext, is_image_ext},
   images::run_convert_image_magick,
   models::{JobUpdate, QueueState, SlideshowRequest},
-  paths::{canonical_existing_file, validate_output_with_suffix},
+  paths::{canonical_existing_file, validate_output},
   tools::{append_stderr_tail, ffmpeg_failure_message, tool_command},
 };
 use std::path::{Path, PathBuf};
@@ -152,7 +152,11 @@ pub(crate) async fn enqueue_slideshow(
     .first()
     .ok_or("Seleziona almeno un'immagine per creare lo slideshow")?;
   let requested_output = slideshow_output_path(first_input, &request.output_name)?;
-  let output = validate_output_with_suffix(&requested_output.to_string_lossy(), "mp4")?;
+  let output = validate_output(
+    &requested_output.to_string_lossy(),
+    "mp4",
+    request.auto_rename_outputs,
+  )?;
   let seconds_per_slide = request.seconds_per_slide;
   let id = Uuid::new_v4().to_string();
   let semaphore = state.slots.clone();

@@ -94,6 +94,8 @@ pub fn run() {
             commands::compression::enqueue_compression,
             commands::crop::enqueue_crop,
             commands::slideshow::enqueue_slideshow,
+            commands::open_output::open_output_file,
+            commands::open_output::open_output_directory,
             available_parallelism
         ])
     .run(tauri::generate_context!())

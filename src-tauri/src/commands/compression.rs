@@ -25,7 +25,7 @@ pub(crate) async fn enqueue_compression(
   if !is_compressible(&ext) {
     return Err("Compressione non supportata per questo formato".into());
   }
-  let output = validate_output(&request.output_path, &ext)?;
+  let output = validate_output(&request.output_path, &ext, request.auto_rename_outputs)?;
   let id = Uuid::new_v4().to_string();
   let semaphore = state.slots.clone();
   let task_id = id.clone();

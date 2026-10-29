@@ -1,8 +1,9 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {DropZone} from '../components/DropZone';
 import {CompressionQueue, type CompressionQueueItem} from '../components/CompressionQueue';
-import {enqueueCompression, getParallelism, type JobUpdate, subscribeToProgress} from '../lib/media';
+import {enqueueCompression, getParallelism, openOutputDirectory as openOutputDirectoryCommand, openOutputFile, type JobUpdate, subscribeToProgress} from '../lib/media';
 import {useTranslation} from 'react-i18next';
+import {useAppSettings} from '../lib/settings';
 
 function basename(path: string) {
   return path.split(/[\\/]/).pop() || path;
@@ -15,8 +16,10 @@ function outputForCompress(path: string) {
 
 export function CompressScreen() {
   const {t} = useTranslation();
+  const {settings} = useAppSettings();
   const [compressItems, setCompressItems] = useState<CompressionQueueItem[]>([]);
   const [parallelism, setParallelism] = useState(1);
+  const [openError, setOpenError] = useState<string | null>(null);
   const [jobPaths, setJobPaths] = useState<Record<string, string>>({});
   const jobPathsRef = useRef(jobPaths);
   const pendingUpdates = useRef<Record<string, JobUpdate>>({});
@@ -45,6 +48,7 @@ export function CompressScreen() {
         ...i,
         status: update.status,
         progress: update.progress,
+        outputPath: update.outputPath ?? i.outputPath,
         error: update.error ?? undefined
       } : i));
     })
@@ -81,7 +85,8 @@ export function CompressScreen() {
         inputPath: item.path,
         outputPath,
         quality: item.quality,
-        preserveMetadata: true
+        preserveMetadata: true,
+        autoRenameOutputs: settings.general.autoRenameOutputs
       });
 
       jobPathsRef.current = {...jobPathsRef.current, [id]: item.path};
@@ -95,7 +100,25 @@ export function CompressScreen() {
     } catch (error) {
       changeCompress(item.path, {status: 'failed', error: String(error)});
     }
-  }, [changeCompress]);
+  }, [changeCompress, settings.general.autoRenameOutputs]);
+
+  const openOutput = useCallback(async (path: string) => {
+    setOpenError(null);
+    try {
+      await openOutputFile(path);
+    } catch (error) {
+      setOpenError(String(error));
+    }
+  }, []);
+
+  const openOutputDirectory = useCallback(async (path: string) => {
+    setOpenError(null);
+    try {
+      await openOutputDirectoryCommand(path);
+    } catch (error) {
+      setOpenError(String(error));
+    }
+  }, []);
 
   const removeItemCompress = useCallback((path: string) => {
     setCompressItems((all) => all.filter((item) => item.path !== path));
@@ -116,10 +139,13 @@ export function CompressScreen() {
         <p className="text-sm text-zinc-500">{t('compressDescription')}</p>
       </header>
       <DropZone onFiles={addFilesCompress}/>
+      {openError && <p role="alert" className="mt-3 text-sm text-red-400">{t('openOutputError', {error: openError})}</p>}
       <CompressionQueue
         items={compressItems}
         onChange={changeCompress}
         onCompress={compress}
+        onOpenOutput={(path) => void openOutput(path)}
+        onOpenOutputDirectory={(path) => void openOutputDirectory(path)}
         parallelism={parallelism}
         onRemove={removeItemCompress}
         onRemoveCompleted={removeCompletedCompress}

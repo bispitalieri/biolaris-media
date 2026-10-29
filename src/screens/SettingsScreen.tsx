@@ -155,6 +155,7 @@ export function SettingsScreen() {
               autostartError={autostartError}
               onLanguageChange={(language) => updateGeneral({language})}
               onThemeChange={(theme) => updateGeneral({theme})}
+              onAutoRenameOutputsChange={(enabled) => updateGeneral({autoRenameOutputs: enabled})}
               onAutostartChange={(enabled) => void setLaunchAtStartup(enabled)}
             />
           ) : (
@@ -185,10 +186,11 @@ type GeneralSettingsProps = {
   autostartError: string;
   onLanguageChange: (language: string) => void;
   onThemeChange: (theme: ThemePreference) => void;
+  onAutoRenameOutputsChange: (enabled: boolean) => void;
   onAutostartChange: (enabled: boolean) => void;
 };
 
-function GeneralSettings({settings, autostartAvailable, autostartBusy, autostartError, onLanguageChange, onThemeChange, onAutostartChange}: Readonly<GeneralSettingsProps>) {
+function GeneralSettings({settings, autostartAvailable, autostartBusy, autostartError, onLanguageChange, onThemeChange, onAutoRenameOutputsChange, onAutostartChange}: Readonly<GeneralSettingsProps>) {
   const {t} = useTranslation();
   const languageOptions = Object.entries(languageNames).sort(([codeA, nameA], [codeB, nameB]) => {
     if (codeA === 'en') return -1;
@@ -224,6 +226,25 @@ function GeneralSettings({settings, autostartAvailable, autostartBusy, autostart
             <option value="light">{t('themeLight')}</option>
             <option value="dark">{t('themeDark')}</option>
           </select>
+        </section>
+
+        <section className={`${cardClass} md:col-span-2`}>
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h3 className="text-sm font-semibold">{t('settingsAutoRenameOutputs')}</h3>
+              <p className="mt-1 text-xs text-zinc-500">{t('settingsAutoRenameOutputsDescription')}</p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={settings.general.autoRenameOutputs}
+              aria-label={t('settingsAutoRenameOutputs')}
+              onClick={() => onAutoRenameOutputsChange(!settings.general.autoRenameOutputs)}
+              className={`relative h-7 w-12 rounded-full transition ${settings.general.autoRenameOutputs ? 'bg-violet-600' : 'bg-zinc-700'}`}
+            >
+              <span className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-all ${settings.general.autoRenameOutputs ? 'left-6' : 'left-1'}`} />
+            </button>
+          </div>
         </section>
 
         <section className={`${cardClass} md:col-span-2`}>

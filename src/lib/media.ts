@@ -64,6 +64,7 @@ export type ConversionRequest = {
   format: OutputFormat;
   quality: number;
   preserveMetadata: boolean
+  autoRenameOutputs: boolean
 };
 
 export type CompressionRequest = {
@@ -71,6 +72,7 @@ export type CompressionRequest = {
   outputPath: string;
   quality: CompressionQuality;
   preserveMetadata: boolean
+  autoRenameOutputs: boolean
 };
 
 export type CropRequest = {
@@ -80,6 +82,7 @@ export type CropRequest = {
   y: number;
   width: number;
   height: number;
+  autoRenameOutputs: boolean;
 };
 
 export type SlideshowResolution = '720p' | '1080p' | '4k' | 'match-image';
@@ -89,6 +92,7 @@ export type SlideshowRequest = {
   outputName: string;
   resolution: SlideshowResolution;
   secondsPerSlide: number;
+  autoRenameOutputs: boolean;
 };
 
 export type JobUpdate = {
@@ -106,6 +110,10 @@ export const enqueueCompression = (request: CompressionRequest) => invoke<string
 export const enqueueCrop = (request: CropRequest) => invoke<string>('enqueue_crop', {request});
 
 export const enqueueSlideshow = (request: SlideshowRequest) => invoke<string>('enqueue_slideshow', {request});
+
+export const openOutputFile = (path: string) => invoke<void>('open_output_file', {path});
+
+export const openOutputDirectory = (path: string) => invoke<void>('open_output_directory', {path});
 
 export const getParallelism = () => invoke<number>('available_parallelism');
 

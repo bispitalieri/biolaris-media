@@ -9,7 +9,11 @@ pub(crate) fn canonical_existing_file(path: &str) -> Result<PathBuf, String> {
   }
   Ok(path)
 }
-pub(crate) fn validate_output(path: &str, expected_ext: &str) -> Result<PathBuf, String> {
+pub(crate) fn validate_output(
+  path: &str,
+  expected_ext: &str,
+  auto_rename_outputs: bool,
+) -> Result<PathBuf, String> {
   let output = PathBuf::from(path);
   let parent = output
     .parent()
@@ -26,31 +30,12 @@ pub(crate) fn validate_output(path: &str, expected_ext: &str) -> Result<PathBuf,
     return Err(format!("L'estensione deve essere .{expected_ext}"));
   }
   let result = parent.join(filename);
-  if std::fs::symlink_metadata(&result).is_ok() {
-    return Err("Il file di destinazione esiste già".into());
+  match std::fs::symlink_metadata(&result) {
+    Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(result),
+    Err(error) => return Err(format!("Percorso output non accessibile: {error}")),
+    Ok(_) if !auto_rename_outputs => return Err("Il file di destinazione esiste già".into()),
+    Ok(_) => {}
   }
-  Ok(result)
-}
-
-pub(crate) fn validate_output_with_suffix(
-  path: &str,
-  expected_ext: &str,
-) -> Result<PathBuf, String> {
-  let output = PathBuf::from(path);
-  let parent = output
-    .parent()
-    .ok_or("Percorso output non valido")?
-    .canonicalize()
-    .map_err(|e| format!("Cartella output non valida: {e}"))?;
-  if output
-    .extension()
-    .and_then(|value| value.to_str())
-    .map(|value| value.eq_ignore_ascii_case(expected_ext))
-    != Some(true)
-  {
-    return Err(format!("L'estensione deve essere .{expected_ext}"));
-  }
-
   let stem = output
     .file_stem()
     .and_then(|value| value.to_str())
@@ -60,18 +45,13 @@ pub(crate) fn validate_output_with_suffix(
     .and_then(|value| value.to_str())
     .ok_or("Estensione file output non valida")?;
 
-  for suffix in 1u32.. {
-    let filename = if suffix == 1 {
-      format!("{stem}.{ext}")
-    } else {
-      format!("{stem}-{suffix}.{ext}")
-    };
-    let candidate = parent.join(filename);
+  for suffix in 1u64.. {
+    let candidate = parent.join(format!("{stem}_{suffix}.{ext}"));
     match std::fs::symlink_metadata(&candidate) {
       Ok(_) => continue,
       Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(candidate),
       Err(error) => return Err(format!("Percorso output non accessibile: {error}")),
     }
   }
-  Err("Impossibile trovare un nome per il file ritagliato".into())
+  Err("Impossibile trovare un nome libero per il file di destinazione".into())
 }

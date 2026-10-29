@@ -2,6 +2,7 @@ import {useCallback, useEffect, useRef, useState} from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faArrowDown, faArrowUp, faImage, faTrash} from '@fortawesome/free-solid-svg-icons';
 import {useTranslation} from 'react-i18next';
+import {useAppSettings} from '../lib/settings';
 import {DropZone} from '../components/DropZone';
 import {
   enqueueSlideshow,
@@ -25,6 +26,7 @@ function defaultOutputName(path: string) {
 
 export function SlideshowScreen() {
   const {t, i18n} = useTranslation();
+  const {settings} = useAppSettings();
   const [images, setImages] = useState<SlideshowImage[]>([]);
   const [resolution, setResolution] = useState<SlideshowResolution>('1080p');
   const [secondsPerSlide, setSecondsPerSlide] = useState(3);
@@ -136,6 +138,7 @@ export function SlideshowScreen() {
         outputName: outputName.trim(),
         resolution,
         secondsPerSlide,
+        autoRenameOutputs: settings.general.autoRenameOutputs,
       });
       jobId.current = id;
       const early = pendingUpdates.current[id];

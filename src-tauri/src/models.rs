@@ -22,6 +22,8 @@ pub struct ConversionRequest {
   pub format: String,
   pub quality: u8,
   pub preserve_metadata: bool,
+  #[serde(default = "default_true")]
+  pub auto_rename_outputs: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -31,6 +33,8 @@ pub struct CompressionRequest {
   pub output_path: String,
   pub quality: u8,
   pub preserve_metadata: bool,
+  #[serde(default = "default_true")]
+  pub auto_rename_outputs: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -42,6 +46,8 @@ pub struct CropRequest {
   pub y: u32,
   pub width: u32,
   pub height: u32,
+  #[serde(default = "default_true")]
+  pub auto_rename_outputs: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -51,6 +57,12 @@ pub struct SlideshowRequest {
   pub output_name: String,
   pub resolution: String,
   pub seconds_per_slide: f64,
+  #[serde(default = "default_true")]
+  pub auto_rename_outputs: bool,
+}
+
+fn default_true() -> bool {
+  true
 }
 
 #[derive(Clone, Serialize)]

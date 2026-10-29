@@ -7,6 +7,7 @@ export type CompressionQueueItem = {
   quality: CompressionQuality;
   status: 'ready' | 'running' | 'completed' | 'failed';
   progress: number;
+  outputPath?: string;
   error?: string
 };
 
@@ -14,6 +15,8 @@ type Props = {
   items: CompressionQueueItem[];
   onChange: (path: string, patch: Partial<CompressionQueueItem>) => void;
   onCompress: (item: CompressionQueueItem) => void;
+  onOpenOutput: (path: string) => void;
+  onOpenOutputDirectory: (path: string) => void;
   parallelism: number;
   onRemove: (path: string) => void;
   onRemoveCompleted: () => void;
@@ -22,7 +25,7 @@ type Props = {
 
 const qualityOptions: CompressionQuality[] = [30, 40, 50, 60, 70];
 
-export function CompressionQueue({items, onChange, onCompress, parallelism, onRemove, onRemoveCompleted, onClear}: Readonly<Props>) {
+export function CompressionQueue({items, onChange, onCompress, onOpenOutput, onOpenOutputDirectory, parallelism, onRemove, onRemoveCompleted, onClear}: Readonly<Props>) {
   const {t} = useTranslation();
   const statusLabels: Record<CompressionQueueItem['status'], string> = {
     ready: t('statusReady'),
@@ -52,6 +55,10 @@ export function CompressionQueue({items, onChange, onCompress, parallelism, onRe
           </label>
           <button disabled={item.status === 'running' || item.status === 'completed'} onClick={() => onCompress(item)} className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-40">{t('compressFile')}
           </button>
+          {item.status === 'completed' && item.outputPath && <>
+            <button onClick={() => onOpenOutput(item.outputPath!)} className="rounded-lg border border-emerald-700 px-4 py-2 text-sm font-medium text-emerald-300 hover:bg-emerald-950/50">{t('openOutputFile')}</button>
+            <button onClick={() => onOpenOutputDirectory(item.outputPath!)} className="rounded-lg border border-zinc-700 px-4 py-2 text-sm hover:bg-zinc-800">{t('openOutputDirectory')}</button>
+          </>}
           <button onClick={() => onRemove(item.path)} disabled={item.status === 'running'} className="rounded-lg border border-zinc-700 px-3 py-2 text-sm hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-40" aria-label={t('removeFile', {name: item.name})}>×
           </button>
         </div>

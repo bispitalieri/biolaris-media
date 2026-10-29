@@ -29,7 +29,7 @@ pub(crate) async fn enqueue_conversion(
   if !valid_conversion_pair(&get_file_ext(&input), &format) {
     return Err("Conversione non supportata per questo formato di input e output".into());
   }
-  let output = validate_output(&request.output_path, &format)?;
+  let output = validate_output(&request.output_path, &format, request.auto_rename_outputs)?;
   let id = Uuid::new_v4().to_string();
   let semaphore = state.slots.clone();
   let task_id = id.clone();
