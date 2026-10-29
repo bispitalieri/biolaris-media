@@ -5,6 +5,7 @@ import {ConvertScreen} from './screens/ConvertScreen';
 import {CompressScreen} from './screens/CompressScreen';
 import {CropScreen} from './screens/CropScreen';
 import {SlideshowScreen} from './screens/SlideshowScreen';
+import {AppIconScreen} from './screens/AppIconScreen';
 import {SettingsScreen} from './screens/SettingsScreen';
 import Sidebar from "./components/Sidebar.tsx";
 import {useTranslation} from 'react-i18next';
@@ -48,6 +49,7 @@ export default function App() {
             <Route path="/compress" element={<CompressScreen/>}/>
             <Route path="/crop" element={<CropScreen/>}/>
             <Route path="/slideshow" element={<SlideshowScreen/>}/>
+            <Route path="/app-icon" element={<AppIconScreen/>}/>
           </Routes>
           <p className="mt-8 text-center text-xs text-zinc-600">
             {t('privacyNote')}
