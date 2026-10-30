@@ -8,6 +8,7 @@ import {SlideshowScreen} from './screens/SlideshowScreen';
 import {CombineVideosScreen} from './screens/CombineVideosScreen';
 import {AppIconScreen} from './screens/AppIconScreen';
 import {RemoveBackgroundScreen} from './screens/RemoveBackgroundScreen';
+import {DownloadVideoScreen} from './screens/DownloadVideoScreen';
 import {SettingsScreen} from './screens/SettingsScreen';
 import Sidebar from "./components/Sidebar.tsx";
 import {useTranslation} from 'react-i18next';
@@ -53,6 +54,7 @@ export default function App() {
             <Route path="/remove-background" element={<RemoveBackgroundScreen/>}/>
             <Route path="/slideshow" element={<SlideshowScreen/>}/>
             <Route path="/combine-videos" element={<CombineVideosScreen/>}/>
+            <Route path="/download-video" element={<DownloadVideoScreen/>}/>
             <Route path="/app-icon" element={<AppIconScreen/>}/>
           </Routes>
           <p className="mt-8 text-center text-xs text-zinc-600">

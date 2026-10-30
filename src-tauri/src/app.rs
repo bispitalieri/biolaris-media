@@ -99,6 +99,7 @@ pub fn run() {
       commands::open_output::open_output_directory,
       commands::app_icon::create_app_icons,
       commands::remove_background::save_background_removed_png,
+      commands::download_video::enqueue_video_download,
       available_parallelism
     ])
     .run(tauri::generate_context!())

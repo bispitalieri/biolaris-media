@@ -12,7 +12,7 @@ import {spawnSync} from "node:child_process";
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const binariesDir = join(projectRoot, "src-tauri", "binaries");
 const maxDownloadBytes = Number(process.env.BIOLARIS_BINARY_MAX_BYTES || 400 * 1024 * 1024);
-const requiredTools = ["ffmpeg", "ffprobe", "magick", "convert", "pdftoppm", "pdfunite"];
+const requiredTools = ["ffmpeg", "ffprobe", "magick", "convert", "pdftoppm", "pdfunite", "yt-dlp"];
 const versionArgs = new Map([
   ["ffmpeg", ["-version"]],
   ["ffprobe", ["-version"]],
@@ -21,6 +21,7 @@ const versionArgs = new Map([
   ["vips", ["--version"]],
   ["pdftoppm", ["-v"]],
   ["pdfunite", ["-v"]],
+  ["yt-dlp", ["--version"]],
 ]);
 
 function printHelp() {
@@ -238,6 +239,17 @@ async function installUnpinsPackages(scratch, binDir, sourceRecords) {
     if (process.platform !== "win32") await chmod(destination, 0o755);
   }
   sourceRecords.push({provider: "github.com/unpins", packages: ["unpins/ffmpeg", "unpins/poppler-utils"], installer: "unpins/unpin"});
+}
+
+async function installYtDlp(scratch, binDir, sourceRecords) {
+  const pattern = process.platform === "win32" ? /^yt-dlp\.exe$/i
+    : process.platform === "darwin" ? /^yt-dlp_macos$/i : /^yt-dlp_linux$/i;
+  const {release, asset, sha256} = await getGithubAsset("yt-dlp/yt-dlp", pattern, "yt-dlp");
+  const destination = join(binDir, process.platform === "win32" ? "yt-dlp.exe" : "yt-dlp");
+  console.log("Scarico yt-dlp " + release.tag_name + " dal progetto upstream...");
+  const downloaded = await downloadFile(asset.browser_download_url, destination, sha256, 25 * 1024 * 1024, true);
+  if (process.platform !== "win32") await chmod(destination, 0o755);
+  sourceRecords.push({provider: "yt-dlp/yt-dlp", version: release.tag_name, asset: asset.name, sha256: downloaded.sha256});
 }
 
 async function installUnpinCli(scratch) {
@@ -529,6 +541,7 @@ try {
   console.log("Scarico i binari separatamente dai distributori pubblici per " + target + "...");
   await installUnpinsPackages(scratch, binDir, sourceRecords);
   await installImageMagick(scratch, prefix, binDir, sourceRecords);
+  await installYtDlp(scratch, binDir, sourceRecords);
 
   const tools = [...requiredTools];
   if (process.platform === "win32") {

@@ -22,13 +22,9 @@ pub(crate) fn open_output_directory(app: tauri::AppHandle, path: String) -> Resu
   let file = std::path::PathBuf::from(path)
     .canonicalize()
     .map_err(|error| format!("File di output non accessibile: {error}"))?;
-  let directory = file
-    .parent()
-    .ok_or("Cartella di output non valida")?;
+  let directory = if file.is_dir() { file.as_path() } else { file.parent().ok_or("Cartella di output non valida")? };
 
-  if !file.is_file() || !directory.is_dir() {
-    return Err("Il percorso di output non è un file valido".into());
-  }
+  if !directory.is_dir() { return Err("Il percorso di output non è valido".into()); }
 
   app.shell()
     .open(directory.to_string_lossy().into_owned(), None)
