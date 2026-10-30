@@ -52,6 +52,15 @@ pub struct CropRequest {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct SaveBackgroundPngRequest {
+  pub output_path: String,
+  pub png_base64: String,
+  #[serde(default = "default_true")]
+  pub auto_rename_outputs: bool,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SlideshowRequest {
   pub image_paths: Vec<String>,
   pub output_name: String,

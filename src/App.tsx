@@ -6,6 +6,7 @@ import {CompressScreen} from './screens/CompressScreen';
 import {CropScreen} from './screens/CropScreen';
 import {SlideshowScreen} from './screens/SlideshowScreen';
 import {AppIconScreen} from './screens/AppIconScreen';
+import {RemoveBackgroundScreen} from './screens/RemoveBackgroundScreen';
 import {SettingsScreen} from './screens/SettingsScreen';
 import Sidebar from "./components/Sidebar.tsx";
 import {useTranslation} from 'react-i18next';
@@ -48,6 +49,7 @@ export default function App() {
             <Route path="/convert" element={<ConvertScreen/>}/>
             <Route path="/compress" element={<CompressScreen/>}/>
             <Route path="/crop" element={<CropScreen/>}/>
+            <Route path="/remove-background" element={<RemoveBackgroundScreen/>}/>
             <Route path="/slideshow" element={<SlideshowScreen/>}/>
             <Route path="/app-icon" element={<AppIconScreen/>}/>
           </Routes>

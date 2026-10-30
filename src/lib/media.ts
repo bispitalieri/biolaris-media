@@ -85,6 +85,12 @@ export type CropRequest = {
   autoRenameOutputs: boolean;
 };
 
+export type SaveBackgroundPngRequest = {
+  outputPath: string;
+  pngBase64: string;
+  autoRenameOutputs: boolean;
+};
+
 export type SlideshowResolution = '720p' | '1080p' | '4k' | 'match-image';
 
 export type SlideshowRequest = {
@@ -108,6 +114,9 @@ export const enqueueConversion = (request: ConversionRequest) => invoke<string>(
 export const enqueueCompression = (request: CompressionRequest) => invoke<string>('enqueue_compression', {request});
 
 export const enqueueCrop = (request: CropRequest) => invoke<string>('enqueue_crop', {request});
+
+export const saveBackgroundRemovedPng = (request: SaveBackgroundPngRequest) =>
+  invoke<string>('save_background_removed_png', {request});
 
 export const enqueueSlideshow = (request: SlideshowRequest) => invoke<string>('enqueue_slideshow', {request});
 

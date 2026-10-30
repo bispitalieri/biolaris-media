@@ -78,7 +78,7 @@ export function DropZone({onFiles, imageOnly = false, multiple = false}: Readonl
   return (
     <section
       className={`rounded-2xl border border-dashed p-3 text-center transition ${hovering ? 'border-violet-400 bg-violet-500/10' : 'border-zinc-700 bg-zinc-900/50'}`}>
-      <div className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-xl bg-zinc-800 text-2xl cursor-pointer" onClick={handleFileSelect}>＋</div>
+      <div className="mx-auto mb-3 grid h-12 w-12 cursor-pointer place-items-center rounded-xl bg-zinc-800 text-2xl" onClick={handleFileSelect}>＋</div>
       <h2 className="text-lg font-medium">{t(imageOnly ? (multiple ? 'imagesDropTitle' : 'imageDropTitle') : 'dropTitle')}</h2>
       <p className="mt-1 text-sm text-zinc-400">{t(imageOnly ? (multiple ? 'imagesDropDescription' : 'imageDropDescription') : 'dropDescription')}</p>
     </section>

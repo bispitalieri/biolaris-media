@@ -97,6 +97,7 @@ pub fn run() {
       commands::open_output::open_output_file,
       commands::open_output::open_output_directory,
       commands::app_icon::create_app_icons,
+      commands::remove_background::save_background_removed_png,
       available_parallelism
     ])
     .run(tauri::generate_context!())

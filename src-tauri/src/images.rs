@@ -2,8 +2,35 @@ use crate::{
   models::CropRequest,
   tools::{append_stderr_tail, tool_command},
 };
-use std::path::Path;
+use std::{fs::OpenOptions, io::Write, path::Path};
 use tauri_plugin_shell::process::CommandEvent;
+
+pub(crate) fn save_background_png(output: &Path, bytes: &[u8]) -> Result<(), String> {
+  let png_signature = b"\x89PNG\r\n\x1a\n";
+  if bytes.get(..8) != Some(png_signature) || bytes.get(12..16) != Some(b"IHDR") || bytes.len() < 24 {
+    return Err("Il risultato non è un PNG valido".into());
+  }
+  let width = u32::from_be_bytes([bytes[16], bytes[17], bytes[18], bytes[19]]);
+  let height = u32::from_be_bytes([bytes[20], bytes[21], bytes[22], bytes[23]]);
+  let pixels = u64::from(width) * u64::from(height);
+  if width == 0 || height == 0 || pixels > 100_000_000 {
+    return Err("Le dimensioni del PNG non sono valide o superano il limite supportato".into());
+  }
+
+  if output.file_name().is_none() {
+    return Err("Nome file output non valido".into());
+  }
+  let temporary = output.with_file_name(format!(".biolaris-{}.tmp", uuid::Uuid::new_v4()));
+  let result = (|| {
+    let mut file = OpenOptions::new().write(true).create_new(true).open(&temporary)
+      .map_err(|error| format!("Impossibile creare il PNG temporaneo: {error}"))?;
+    file.write_all(bytes).map_err(|error| format!("Impossibile scrivere il PNG: {error}"))?;
+    file.sync_all().map_err(|error| format!("Impossibile completare il PNG: {error}"))?;
+    std::fs::rename(&temporary, output).map_err(|error| format!("Impossibile salvare il PNG: {error}"))
+  })();
+  if result.is_err() { let _ = std::fs::remove_file(&temporary); }
+  result
+}
 
 pub(crate) async fn run_crop_image_magick(
   app: &tauri::AppHandle,
