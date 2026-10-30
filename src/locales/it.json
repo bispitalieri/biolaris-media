@@ -53,7 +53,7 @@
     "combineVideosEmpty": "Aggiungi almeno due video per iniziare.",
     "combineVideosMoveUp": "Sposta {{name}} in alto",
     "combineVideosMoveDown": "Sposta {{name}} in basso",
-    "appIcon": "AppIcon",
+    "appIcon": "App Icons",
     "appIconTitle": "Crea pacchetti AppIcon",
     "appIconDescription": "Genera icone pronte per desktop, dispositivi Apple, Android e web.",
     "appIconUnsupported": "Scegli un file SVG, PNG, JPG o WebP.",

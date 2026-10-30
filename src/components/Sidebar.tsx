@@ -40,12 +40,8 @@ const Sidebar = () => {
           <FontAwesomeIcon icon={faCropSimple} className="w-4"/>
           <span>{t('crop')}</span>
         </NavLink>
-        <NavLink
-          to="/remove-background"
-          className={({isActive}) => `mb-1 flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}
-        >
-          <FontAwesomeIcon icon={faEraser} className="w-4"/>
-          <span>{t('removeBackground')}</span>
+        <NavLink to="/combine-videos" className={({isActive}) => `mb-1 flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}>
+          <FontAwesomeIcon icon={faFilm} className="w-4"/><span>{t('combineVideos')}</span>
         </NavLink>
         <NavLink
           to="/slideshow"
@@ -54,18 +50,22 @@ const Sidebar = () => {
           <FontAwesomeIcon icon={faImages} className="w-4"/>
           <span>{t('slideshow')}</span>
         </NavLink>
-        <NavLink to="/combine-videos" className={({isActive}) => `mb-1 flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}>
-          <FontAwesomeIcon icon={faFilm} className="w-4"/><span>{t('combineVideos')}</span>
-        </NavLink>
-        <NavLink to="/download-video" className={({isActive}) => `mb-1 flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}>
-          <FontAwesomeIcon icon={faDownload} className="w-4"/><span>{t('downloadVideo')}</span>
-        </NavLink>
         <NavLink
           to="/app-icon"
           className={({isActive}) => `mb-1 flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}
         >
           <FontAwesomeIcon icon={faIcons} className="w-4" />
           <span>{t('appIcon')}</span>
+        </NavLink>
+        <NavLink
+          to="/remove-background"
+          className={({isActive}) => `mb-1 flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}
+        >
+          <FontAwesomeIcon icon={faEraser} className="w-4"/>
+          <span>{t('removeBackground')}</span>
+        </NavLink>
+        <NavLink to="/download-video" className={({isActive}) => `mb-1 flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}>
+          <FontAwesomeIcon icon={faDownload} className="w-4"/><span>{t('downloadVideo')}</span>
         </NavLink>
       </nav>
       <div className="mt-auto space-y-3 px-3 py-4">
