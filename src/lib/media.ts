@@ -101,6 +101,13 @@ export type SlideshowRequest = {
   autoRenameOutputs: boolean;
 };
 
+export type CombineVideosRequest = {
+  videoPaths: string[];
+  outputName: string;
+  format: 'mp4' | 'webm' | 'mkv' | 'avi' | 'mov';
+  autoRenameOutputs: boolean;
+};
+
 export type JobUpdate = {
   id: string;
   status: 'running' | 'completed' | 'failed';
@@ -119,6 +126,8 @@ export const saveBackgroundRemovedPng = (request: SaveBackgroundPngRequest) =>
   invoke<string>('save_background_removed_png', {request});
 
 export const enqueueSlideshow = (request: SlideshowRequest) => invoke<string>('enqueue_slideshow', {request});
+
+export const enqueueCombineVideos = (request: CombineVideosRequest) => invoke<string>('enqueue_combine_videos', {request});
 
 export const openOutputFile = (path: string) => invoke<void>('open_output_file', {path});
 

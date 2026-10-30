@@ -70,6 +70,16 @@ pub struct SlideshowRequest {
   pub auto_rename_outputs: bool,
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CombineVideosRequest {
+  pub video_paths: Vec<String>,
+  pub output_name: String,
+  pub format: String,
+  #[serde(default = "default_true")]
+  pub auto_rename_outputs: bool,
+}
+
 fn default_true() -> bool {
   true
 }

@@ -94,6 +94,7 @@ pub fn run() {
       commands::compression::enqueue_compression,
       commands::crop::enqueue_crop,
       commands::slideshow::enqueue_slideshow,
+      commands::combine_videos::enqueue_combine_videos,
       commands::open_output::open_output_file,
       commands::open_output::open_output_directory,
       commands::app_icon::create_app_icons,
