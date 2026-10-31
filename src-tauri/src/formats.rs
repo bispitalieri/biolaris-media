@@ -61,7 +61,14 @@ pub(crate) fn is_image_ext(ext: &str) -> bool {
       | "erf"
       | "3fr"
       | "fff"
-    )
+  )
+}
+
+pub(crate) fn is_vectorize_input_ext(ext: &str) -> bool {
+  matches!(
+    ext,
+    "png" | "jpg" | "jpeg" | "gif" | "bmp" | "tiff" | "tif" | "webp"
+  )
 }
 
 pub(crate) fn is_video_ext(ext: &str) -> bool {

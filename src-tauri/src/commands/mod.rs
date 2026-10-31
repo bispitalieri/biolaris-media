@@ -7,3 +7,4 @@ pub(crate) mod open_output;
 pub(crate) mod app_icon;
 pub(crate) mod remove_background;
 pub(crate) mod download_video;
+pub(crate) mod vectorize;

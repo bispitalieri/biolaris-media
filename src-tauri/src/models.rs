@@ -80,6 +80,16 @@ pub struct CombineVideosRequest {
   pub auto_rename_outputs: bool,
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct VectorizeRequest {
+  pub input_path: String,
+  pub output_path: String,
+  pub style: String,
+  #[serde(default = "default_true")]
+  pub auto_rename_outputs: bool,
+}
+
 fn default_true() -> bool {
   true
 }

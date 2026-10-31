@@ -7,6 +7,7 @@ import {CropScreen} from './screens/CropScreen';
 import {SlideshowScreen} from './screens/SlideshowScreen';
 import {CombineVideosScreen} from './screens/CombineVideosScreen';
 import {AppIconScreen} from './screens/AppIconScreen';
+import {VectorizeScreen} from './screens/VectorizeScreen';
 import {RemoveBackgroundScreen} from './screens/RemoveBackgroundScreen';
 import {DownloadVideoScreen} from './screens/DownloadVideoScreen';
 import {SettingsScreen} from './screens/SettingsScreen';
@@ -52,6 +53,7 @@ export default function App() {
             <Route path="/compress" element={<CompressScreen/>}/>
             <Route path="/crop" element={<CropScreen/>}/>
             <Route path="/remove-background" element={<RemoveBackgroundScreen/>}/>
+            <Route path="/vectorize" element={<VectorizeScreen/>}/>
             <Route path="/slideshow" element={<SlideshowScreen/>}/>
             <Route path="/combine-videos" element={<CombineVideosScreen/>}/>
             <Route path="/download-video" element={<DownloadVideoScreen/>}/>

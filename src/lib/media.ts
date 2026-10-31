@@ -110,6 +110,15 @@ export type CombineVideosRequest = {
 
 export type VideoDownloadRequest = { urls: string[]; outputDirectory: string | null };
 
+export type VectorizeStyle = 'logo' | 'photo' | 'bw';
+
+export type VectorizeRequest = {
+  inputPath: string;
+  outputPath: string;
+  style: VectorizeStyle;
+  autoRenameOutputs: boolean;
+};
+
 export type JobUpdate = {
   id: string;
   status: 'running' | 'completed' | 'failed';
@@ -124,6 +133,8 @@ export const enqueueCompression = (request: CompressionRequest) => invoke<string
 
 export const enqueueCrop = (request: CropRequest) => invoke<string>('enqueue_crop', {request});
 
+export const enqueueVectorize = (request: VectorizeRequest) => invoke<string>('enqueue_vectorize', {request});
+
 export const saveBackgroundRemovedPng = (request: SaveBackgroundPngRequest) =>
   invoke<string>('save_background_removed_png', {request});
 
@@ -136,6 +147,8 @@ export const enqueueVideoDownload = (request: VideoDownloadRequest) => invoke<st
 export const openOutputFile = (path: string) => invoke<void>('open_output_file', {path});
 
 export const openOutputDirectory = (path: string) => invoke<void>('open_output_directory', {path});
+
+export const showInFinder = (path: string) => invoke<void>('show_in_finder', {path});
 
 export const getParallelism = () => invoke<number>('available_parallelism');
 

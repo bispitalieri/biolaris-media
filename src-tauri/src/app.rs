@@ -97,6 +97,8 @@ pub fn run() {
       commands::combine_videos::enqueue_combine_videos,
       commands::open_output::open_output_file,
       commands::open_output::open_output_directory,
+      commands::open_output::show_in_finder,
+      commands::vectorize::enqueue_vectorize,
       commands::app_icon::create_app_icons,
       commands::remove_background::save_background_removed_png,
       commands::download_video::enqueue_video_download,

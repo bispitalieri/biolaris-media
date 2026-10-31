@@ -30,3 +30,23 @@ pub(crate) fn open_output_directory(app: tauri::AppHandle, path: String) -> Resu
     .open(directory.to_string_lossy().into_owned(), None)
     .map_err(|error| format!("Impossibile aprire la cartella: {error}"))
 }
+
+#[tauri::command]
+#[allow(deprecated)]
+pub(crate) fn show_in_finder(app: tauri::AppHandle, path: String) -> Result<(), String> {
+  let file = std::path::PathBuf::from(&path);
+  #[cfg(target_os = "macos")]
+  {
+    if file.exists() {
+      let status = std::process::Command::new("open")
+        .arg("-R")
+        .arg(&file)
+        .status()
+        .map_err(|error| format!("Impossibile mostrare nel Finder: {error}"))?;
+      if status.success() {
+        return Ok(());
+      }
+    }
+  }
+  open_output_directory(app, path)
+}
