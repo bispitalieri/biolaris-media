@@ -95,6 +95,8 @@ pub fn run() {
       commands::crop::enqueue_crop,
       commands::slideshow::enqueue_slideshow,
       commands::combine_videos::enqueue_combine_videos,
+      commands::merge_audio::probe_audio_file,
+      commands::merge_audio::enqueue_merge_audio,
       commands::open_output::open_output_file,
       commands::open_output::open_output_directory,
       commands::open_output::show_in_finder,

@@ -82,6 +82,17 @@ pub struct CombineVideosRequest {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct MergeAudioRequest {
+  pub audio_paths: Vec<String>,
+  pub output_name: String,
+  pub format: String,
+  pub add_chapter_markers: bool,
+  #[serde(default = "default_true")]
+  pub auto_rename_outputs: bool,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct VectorizeRequest {
   pub input_path: String,
   pub output_path: String,
@@ -102,4 +113,15 @@ pub struct JobUpdate {
   pub progress: u8,
   pub output_path: Option<String>,
   pub error: Option<String>,
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AudioFileInfo {
+  pub codec_name: String,
+  pub sample_rate: u32,
+  pub channels: u32,
+  pub channel_layout: Option<String>,
+  pub profile: Option<String>,
+  pub duration: f64,
 }

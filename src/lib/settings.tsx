@@ -1,6 +1,6 @@
 import {createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useState, type ReactNode} from 'react';
 import i18n from './i18n';
-import type {FileType, OutputFormat} from './media';
+import type {FileType, MergeAudioFormat, OutputFormat} from './media';
 
 export type ThemePreference = 'system' | 'light' | 'dark';
 export type MediaCategory = 'images' | 'audio' | 'videos' | 'pdf';
@@ -15,6 +15,10 @@ export type AppSettings = {
     defaultFormat: OutputFormat;
     qualityByFormat: Partial<Record<OutputFormat, number>>;
   }>;
+  mergeAudio: {
+    format: MergeAudioFormat;
+    addChapterMarkers: boolean;
+  };
 };
 
 export const STORAGE_KEY = 'biolaris-settings';
@@ -51,6 +55,10 @@ const initialSettings: AppSettings = {
       qualityByFormat: {jpg: 85, png: 90, webp: 85},
     },
   },
+  mergeAudio: {
+    format: 'first',
+    addChapterMarkers: false,
+  },
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -80,6 +88,7 @@ export function loadAppSettings(): AppSettings {
   const source = isRecord(saved) ? saved : {};
   const general = isRecord(source.general) ? source.general : {};
   const media = isRecord(source.media) ? source.media : {};
+  const mergeAudio = isRecord(source.mergeAudio) ? source.mergeAudio : {};
   let legacyLanguage = 'en';
   try {
     legacyLanguage = window.localStorage.getItem('biolaris-language') ?? 'en';
@@ -95,6 +104,14 @@ export function loadAppSettings(): AppSettings {
       autoRenameOutputs: typeof general.autoRenameOutputs === 'boolean' ? general.autoRenameOutputs : true,
     },
     media: {...initialSettings.media},
+    mergeAudio: {
+      format: ['first', 'mp3', 'm4a', 'm4b', 'aac', 'wav', 'aiff', 'flac', 'ogg', 'opus', 'ac3'].includes(String(mergeAudio.format))
+        ? mergeAudio.format as MergeAudioFormat
+        : initialSettings.mergeAudio.format,
+      addChapterMarkers: typeof mergeAudio.addChapterMarkers === 'boolean'
+        ? mergeAudio.addChapterMarkers
+        : initialSettings.mergeAudio.addChapterMarkers,
+    },
   };
 
   for (const category of Object.keys(initialSettings.media) as MediaCategory[]) {

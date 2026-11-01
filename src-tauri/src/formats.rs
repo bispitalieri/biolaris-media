@@ -123,6 +123,7 @@ pub(crate) fn is_audio_ext(ext: &str) -> bool {
       | "m4a"
       | "m4r"
       | "aac"
+      | "ac3"
       | "adts"
       | "wma"
       | "alac"

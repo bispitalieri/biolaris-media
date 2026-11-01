@@ -108,6 +108,23 @@ export type CombineVideosRequest = {
   autoRenameOutputs: boolean;
 };
 
+export type MergeAudioFormat = 'first' | 'mp3' | 'm4a' | 'm4b' | 'aac' | 'wav' | 'aiff' | 'flac' | 'ogg' | 'opus' | 'ac3';
+
+export type MergeAudioRequest = {
+  audioPaths: string[];
+  outputName: string;
+  format: Exclude<MergeAudioFormat, 'first'>;
+  addChapterMarkers: boolean;
+  autoRenameOutputs: boolean;
+};
+
+export type AudioFileInfo = {
+  codecName: string;
+  sampleRate: number;
+  channels: number;
+  duration: number;
+};
+
 export type VideoDownloadRequest = { urls: string[]; outputDirectory: string | null };
 
 export type VectorizeStyle = 'logo' | 'photo' | 'bw';
@@ -141,6 +158,10 @@ export const saveBackgroundRemovedPng = (request: SaveBackgroundPngRequest) =>
 export const enqueueSlideshow = (request: SlideshowRequest) => invoke<string>('enqueue_slideshow', {request});
 
 export const enqueueCombineVideos = (request: CombineVideosRequest) => invoke<string>('enqueue_combine_videos', {request});
+
+export const probeAudioFile = (path: string) => invoke<AudioFileInfo>('probe_audio_file', {path});
+
+export const enqueueMergeAudio = (request: MergeAudioRequest) => invoke<string>('enqueue_merge_audio', {request});
 
 export const enqueueVideoDownload = (request: VideoDownloadRequest) => invoke<string>('enqueue_video_download', {request});
 
