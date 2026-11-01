@@ -247,7 +247,7 @@ async function installYtDlp(scratch, binDir, sourceRecords) {
   const {release, asset, sha256} = await getGithubAsset("yt-dlp/yt-dlp", pattern, "yt-dlp");
   const destination = join(binDir, process.platform === "win32" ? "yt-dlp.exe" : "yt-dlp");
   console.log("Scarico yt-dlp " + release.tag_name + " dal progetto upstream...");
-  const downloaded = await downloadFile(asset.browser_download_url, destination, sha256, 25 * 1024 * 1024, true);
+  const downloaded = await downloadFile(asset.browser_download_url, destination, sha256, maxDownloadBytes, true);
   if (process.platform !== "win32") await chmod(destination, 0o755);
   sourceRecords.push({provider: "yt-dlp/yt-dlp", version: release.tag_name, asset: asset.name, sha256: downloaded.sha256});
 }
