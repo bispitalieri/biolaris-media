@@ -4,7 +4,7 @@ import {readFile, writeFile} from "node:fs/promises";
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const projectPath = (path) => resolve(projectRoot, path);
-const tag = process.argv[2] ?? "";
+const tag = process.env.RELEASE_VERSION ?? "";
 const version = tag.replace(/^v/, "");
 
 if (!/^((0|[1-9]\d*)\.){2}(0|[1-9]\d*)$/.test(version)) {
