@@ -180,6 +180,29 @@ async function getGithubAsset(ownerRepo, namePattern, label) {
   return {release, asset, sha256};
 }
 
+async function getLatestYtDlpAsset(namePattern) {
+  const releasePage = await fetchResponse("https://github.com/yt-dlp/yt-dlp/releases/latest", {Accept: "text/html"});
+  const tag = new URL(releasePage.url).pathname.match(/\/releases\/tag\/([^/]+)$/)?.[1];
+  await releasePage.body?.cancel();
+  if (!tag) throw new Error("Impossibile identificare la release stabile più recente di yt-dlp.");
+
+  const releaseUrl = "https://github.com/yt-dlp/yt-dlp/releases/download/" + encodeURIComponent(tag) + "/";
+  const checksums = await (await fetchResponse(releaseUrl + "SHA2-256SUMS", {Accept: "text/plain"})).text();
+  const checksumEntry = checksums.split(/\r?\n/).map((line) => line.match(/^([a-f0-9]{64})\s+\*?(.+)$/i))
+    .find((match) => match && namePattern.test(match[2]));
+  if (!checksumEntry) throw new Error("La release di yt-dlp non pubblica un checksum SHA-256 per un asset compatibile con " + namePattern + ".");
+
+  const asset = {
+    name: checksumEntry[2],
+    browser_download_url: releaseUrl + encodeURIComponent(checksumEntry[2]),
+  };
+  return {
+    release: {tag_name: decodeURIComponent(tag)},
+    asset,
+    sha256: checksumEntry[1].toLowerCase(),
+  };
+}
+
 function assertSupportedHost() {
   const supported = (process.platform === "win32" && process.arch === "x64")
     || (process.platform === "darwin" && ["x64", "arm64"].includes(process.arch))
@@ -244,7 +267,7 @@ async function installUnpinsPackages(scratch, binDir, sourceRecords) {
 async function installYtDlp(scratch, binDir, sourceRecords) {
   const pattern = process.platform === "win32" ? /^yt-dlp\.exe$/i
     : process.platform === "darwin" ? /^yt-dlp_macos$/i : /^yt-dlp_linux$/i;
-  const {release, asset, sha256} = await getGithubAsset("yt-dlp/yt-dlp", pattern, "yt-dlp");
+  const {release, asset, sha256} = await getLatestYtDlpAsset(pattern);
   const destination = join(binDir, process.platform === "win32" ? "yt-dlp.exe" : "yt-dlp");
   console.log("Scarico yt-dlp " + release.tag_name + " dal progetto upstream...");
   const downloaded = await downloadFile(asset.browser_download_url, destination, sha256, maxDownloadBytes, true);
