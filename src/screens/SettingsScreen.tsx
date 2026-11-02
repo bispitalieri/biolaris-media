@@ -174,6 +174,19 @@ export function SettingsScreen() {
           <FontAwesomeIcon icon={faCheck} className="text-emerald-400" />
           {t('settingsSavedAutomatically')}
         </div>
+
+        <footer className="mt-8 border-t border-zinc-800 pt-4 text-xs leading-relaxed text-zinc-500">
+          <p>{t('licenseNoticeCopyright')}</p>
+          <p className="mt-1">{t('licenseNoticeTerms')}</p>
+          <a
+            href="https://www.gnu.org/licenses/agpl-3.0.html"
+            target="_blank"
+            rel="noreferrer"
+            className="mt-1 inline-block text-violet-300 underline underline-offset-2 hover:text-violet-200"
+          >
+            {t('licenseNoticeLink')}
+          </a>
+        </footer>
       </div>
     </div>
   );

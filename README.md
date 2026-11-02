@@ -47,7 +47,9 @@ Before Tauri starts, `binaries:stage` puts the tools for your system in `src-tau
 
 The `dev:tauri` and `tauri:build` commands download and prepare the tools automatically. GitHub Actions builds a separate package for Windows, macOS, and Linux, with only the binaries needed by that platform. The Linux build uses an x86_64 ImageMagick AppImage. The standalone macOS package comes from an external distributor and needs macOS Sonoma or later. You can find download sources, versions, and checksums in `runtime-manifest.json`.
 
-Before sharing or distributing the app, check the licenses for FFmpeg and its codecs, ImageMagick, libvips, Poppler, and the libraries they include. The MIT license for this repository does not cover those separate programs.
+To publish a release, push a stable semantic version tag such as `v1.2.3`. GitHub Actions uses that tag as the app version and publishes the Windows, macOS, and Linux packages to a GitHub Release.
+
+Before sharing or distributing the app, check the licenses for FFmpeg and its codecs, ImageMagick, libvips, Poppler, and the libraries they include. The AGPL license for this repository does not cover those separate programs.
 
 ## Contributing
 
@@ -59,4 +61,4 @@ If you find a security vulnerability, follow the instructions in [SECURITY.md](S
 
 ## License
 
-Biolaris Media's code is available under the [MIT License](LICENSE).
+Biolaris Media's code is available under the [GNU Affero General Public License v3.0](LICENSE).
