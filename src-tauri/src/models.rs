@@ -93,6 +93,22 @@ pub struct MergeAudioRequest {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct CombinePdfsRequest {
+  pub pdf_paths: Vec<String>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SplitByChapterRequest {
+  pub input_path: String,
+  /// "original" keeps the source container and streams unchanged.
+  pub format: String,
+  #[serde(default = "default_true")]
+  pub auto_rename_outputs: bool,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct VectorizeRequest {
   pub input_path: String,
   pub output_path: String,
@@ -124,4 +140,29 @@ pub struct AudioFileInfo {
   pub channel_layout: Option<String>,
   pub profile: Option<String>,
   pub duration: f64,
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PdfFileInfo {
+  pub page_count: Option<usize>,
+  pub size_bytes: u64,
+  pub locked: bool,
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ChapterInfo {
+  pub title: String,
+  pub start: f64,
+  pub end: f64,
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ChapterFileInfo {
+  pub chapters: Vec<ChapterInfo>,
+  pub has_audio: bool,
+  pub has_video: bool,
+  pub original_format: String,
 }

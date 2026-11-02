@@ -1,6 +1,6 @@
 use crate::{
   constants::CONVERSION_PROGRESS_EVENT,
-  formats::{get_file_ext, is_audio_ext},
+  formats::{get_file_ext, is_audio_ext, is_video_ext},
   models::{AudioFileInfo, JobUpdate, MergeAudioRequest, QueueState},
   paths::{canonical_existing_file, validate_output},
   tools::{append_stderr_tail, ffmpeg_failure_message, tool_command},
@@ -11,7 +11,7 @@ use std::{
   io::Write,
   path::{Path, PathBuf},
 };
-use tauri::{Emitter, State};
+use tauri::{Emitter, Manager, State};
 use tauri_plugin_shell::process::CommandEvent;
 use uuid::Uuid;
 
@@ -156,6 +156,26 @@ fn output_path(first: &Path, requested: &str, format: &str) -> Result<PathBuf, S
     return Err("Questo nome non può essere usato come file audio".into());
   }
   Ok(parent.join(format!("{stem}.{format}")))
+}
+
+#[tauri::command]
+pub(crate) fn prepare_audio_preview(
+  app: tauri::AppHandle,
+  path: String,
+) -> Result<String, String> {
+  let input = canonical_existing_file(&path)?;
+  let extension = get_file_ext(&input);
+  if !is_audio_ext(&extension) && !is_video_ext(&extension) {
+    return Err("Il file selezionato non è un formato audio o video supportato".into());
+  }
+  app
+    .asset_protocol_scope()
+    .allow_file(&input)
+    .map_err(|error| format!("Preparazione dell'anteprima non riuscita: {error}"))?;
+  input
+    .to_str()
+    .map(str::to_owned)
+    .ok_or_else(|| "Il percorso audio non è rappresentabile come testo".into())
 }
 
 #[tauri::command]

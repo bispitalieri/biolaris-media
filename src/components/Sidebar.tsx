@@ -1,6 +1,6 @@
 import {NavLink} from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faExchangeAlt, faCompressAlt, faCropSimple, faImages, faGear, faIcons, faEraser, faFilm, faDownload, faBezierCurve, faMusic } from "@fortawesome/free-solid-svg-icons";
+import { faExchangeAlt, faCompressAlt, faCropSimple, faImages, faGear, faIcons, faEraser, faFilm, faDownload, faBezierCurve, faMusic, faBookOpen, faFilePdf } from "@fortawesome/free-solid-svg-icons";
 import {useTranslation} from 'react-i18next';
 import {openSettingsWindow} from '../lib/windows';
 
@@ -15,7 +15,7 @@ const Sidebar = () => {
         <div>
           <h1 className="text-lg font-bold tracking-tight">Biolaris Media</h1>
           <p className="text-xs text-zinc-500">{t('local')}</p>
-      </div>
+        </div>
       </div>
       <nav className="px-3">
         <div className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">{t('media')}</div>
@@ -73,6 +73,13 @@ const Sidebar = () => {
         <div className="mb-2 mt-4 px-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">{t('audio')}</div>
         <NavLink to="/merge-audio" className={({isActive}) => `mb-1 flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}>
           <FontAwesomeIcon icon={faMusic} className="w-4"/><span>{t('mergeAudio')}</span>
+        </NavLink>
+        <NavLink to="/split-by-chapter" className={({isActive}) => `mb-1 flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}>
+          <FontAwesomeIcon icon={faBookOpen} className="w-4"/><span>{t('splitByChapter')}</span>
+        </NavLink>
+        <div className="mb-2 mt-4 px-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">{t('pdf')}</div>
+        <NavLink to="/combine-pdfs" className={({isActive}) => `mb-1 flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}>
+          <FontAwesomeIcon icon={faFilePdf} className="w-4"/><span>{t('combinePdfs')}</span>
         </NavLink>
       </nav>
       <div className="mt-auto space-y-3 px-3 py-4">

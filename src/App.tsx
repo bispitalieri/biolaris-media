@@ -6,7 +6,9 @@ import {CompressScreen} from './screens/CompressScreen';
 import {CropScreen} from './screens/CropScreen';
 import {SlideshowScreen} from './screens/SlideshowScreen';
 import {CombineVideosScreen} from './screens/CombineVideosScreen';
+import {CombinePdfsScreen} from './screens/CombinePdfsScreen';
 import {MergeAudioScreen} from './screens/MergeAudioScreen';
+import {SplitByChapterScreen} from './screens/SplitByChapterScreen';
 import {AppIconScreen} from './screens/AppIconScreen';
 import {VectorizeScreen} from './screens/VectorizeScreen';
 import {RemoveBackgroundScreen} from './screens/RemoveBackgroundScreen';
@@ -57,7 +59,9 @@ export default function App() {
             <Route path="/vectorize" element={<VectorizeScreen/>}/>
             <Route path="/slideshow" element={<SlideshowScreen/>}/>
             <Route path="/combine-videos" element={<CombineVideosScreen/>}/>
+            <Route path="/combine-pdfs" element={<CombinePdfsScreen/>}/>
             <Route path="/merge-audio" element={<MergeAudioScreen/>}/>
+            <Route path="/split-by-chapter" element={<SplitByChapterScreen/>}/>
             <Route path="/download-video" element={<DownloadVideoScreen/>}/>
             <Route path="/app-icon" element={<AppIconScreen/>}/>
           </Routes>

@@ -118,6 +118,32 @@ export type MergeAudioRequest = {
   autoRenameOutputs: boolean;
 };
 
+export type PdfFileInfo = {
+  pageCount: number | null;
+  sizeBytes: number;
+  locked: boolean;
+};
+
+export const probePdfFile = (path: string) => invoke<PdfFileInfo>('probe_pdf_file', {path});
+
+export const enqueueCombinePdfs = (pdfPaths: string[]) =>
+  invoke<string>('enqueue_combine_pdfs', {request: {pdfPaths}});
+
+export type Chapter = {title: string; start: number; end: number};
+export type ChapterFileInfo = {
+  chapters: Chapter[];
+  hasAudio: boolean;
+  hasVideo: boolean;
+  originalFormat: string;
+};
+export type ChapterOutputFormat = 'original' | 'mp3' | 'm4a' | 'wav' | 'flac' | 'ogg' | 'aac' | 'opus'
+  | 'mp4' | 'mkv' | 'mov' | 'webm' | 'avi';
+export type SplitByChapterRequest = {
+  inputPath: string;
+  format: ChapterOutputFormat;
+  autoRenameOutputs: boolean;
+};
+
 export type AudioFileInfo = {
   codecName: string;
   sampleRate: number;
@@ -161,7 +187,14 @@ export const enqueueCombineVideos = (request: CombineVideosRequest) => invoke<st
 
 export const probeAudioFile = (path: string) => invoke<AudioFileInfo>('probe_audio_file', {path});
 
+export const prepareAudioPreview = (path: string) => invoke<string>('prepare_audio_preview', {path});
+
 export const enqueueMergeAudio = (request: MergeAudioRequest) => invoke<string>('enqueue_merge_audio', {request});
+
+export const probeChapters = (path: string) => invoke<ChapterFileInfo>('probe_chapters', {path});
+
+export const enqueueSplitByChapter = (request: SplitByChapterRequest) =>
+  invoke<string>('enqueue_split_by_chapter', {request});
 
 export const enqueueVideoDownload = (request: VideoDownloadRequest) => invoke<string>('enqueue_video_download', {request});
 

@@ -1,6 +1,7 @@
 import {useCallback, useEffect, useRef, useState, type MouseEvent} from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faGripVertical, faMusic, faTrash, faTriangleExclamation} from '@fortawesome/free-solid-svg-icons';
+import {convertFileSrc} from '@tauri-apps/api/core';
+import {faGripVertical, faMusic, faPause, faPlay, faTrash, faTriangleExclamation} from '@fortawesome/free-solid-svg-icons';
 import {useTranslation} from 'react-i18next';
 import {useAppSettings} from '../lib/settings';
 import {DropZone} from '../components/DropZone';
@@ -8,6 +9,7 @@ import {
   enqueueMergeAudio,
   openOutputDirectory,
   openOutputFile,
+  prepareAudioPreview,
   probeAudioFile,
   showInFinder,
   subscribeToProgress,
@@ -23,6 +25,7 @@ type AudioTrack = {
 };
 type JobStatus = 'ready' | 'running' | 'completed' | 'failed';
 type ContextMenu = {x: number; y: number; path: string};
+type AudioPreview = {path: string; trackPath: string; name: string};
 const formats: Exclude<MergeAudioFormat, 'first'>[] = ['mp3', 'm4a', 'm4b', 'aac', 'wav', 'aiff', 'flac', 'ogg', 'opus', 'ac3'];
 const basename = (path: string) => path.split(/[\\/]/).pop() || path;
 const extension = (path: string) => basename(path).split('.').pop()?.toLowerCase() || '';
@@ -49,6 +52,12 @@ export function MergeAudioScreen() {
   const [error, setError] = useState<string | null>(null);
   const [outputPath, setOutputPath] = useState<string | null>(null);
   const [openError, setOpenError] = useState<string | null>(null);
+  const [previewTrack, setPreviewTrack] = useState<AudioPreview | null>(null);
+  const [playingPath, setPlayingPath] = useState<string | null>(null);
+  const [previewLoadingPath, setPreviewLoadingPath] = useState<string | null>(null);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const previewRequest = useRef(0);
   const jobId = useRef<string | null>(null);
   const pending = useRef<Record<string, JobUpdate>>({});
   const draggedIndex = useRef<number | null>(null);
@@ -60,6 +69,63 @@ export function MergeAudioScreen() {
   const defaultName = tracks[0] ? `${basename(tracks[0].path).replace(/\.[^.]+$/, '')} (merged)` : 'merged-audio';
   const invalidTracks = tracks.filter((track) => track.status === 'invalid');
   const canMerge = tracks.length >= 2 && tracks.every((track) => track.status === 'ready') && !running;
+
+  const stopPreview = () => {
+    previewRequest.current++;
+    audioRef.current?.pause();
+    setPreviewTrack(null);
+    setPlayingPath(null);
+    setPreviewLoadingPath(null);
+    setPreviewError(null);
+  };
+
+  const togglePreview = async (track: AudioTrack) => {
+    if (track.status !== 'ready' || running) return;
+    const audio = audioRef.current;
+    if (previewTrack?.trackPath === track.path && audio) {
+      if (audio.paused) {
+        setPreviewError(null);
+        void audio.play().catch((reason: unknown) => {
+          setPreviewError(t('mergeAudioPreviewError', {error: String(reason)}));
+        });
+      } else {
+        audio.pause();
+      }
+      return;
+    }
+
+    const request = ++previewRequest.current;
+    audio?.pause();
+    setPlayingPath(null);
+    setPreviewError(null);
+    setPreviewLoadingPath(track.path);
+    try {
+      const path = await prepareAudioPreview(track.path);
+      if (request !== previewRequest.current) return;
+      setPreviewTrack({path, trackPath: track.path, name: track.name});
+    } catch (reason) {
+      if (request === previewRequest.current) {
+        setPreviewError(t('mergeAudioPreviewError', {error: String(reason)}));
+      }
+    } finally {
+      if (request === previewRequest.current) setPreviewLoadingPath(null);
+    }
+  };
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || !previewTrack) return;
+    audio.src = convertFileSrc(previewTrack.path);
+    audio.load();
+    void audio.play().catch((reason: unknown) => {
+      setPreviewError(t('mergeAudioPreviewError', {error: String(reason)}));
+    });
+  }, [previewTrack, t]);
+
+  useEffect(() => () => {
+    previewRequest.current++;
+    audioRef.current?.pause();
+  }, []);
 
   const changed = () => {
     setError(null);
@@ -135,6 +201,8 @@ export function MergeAudioScreen() {
   }, [tracks]);
 
   const removePaths = (paths: string[]) => {
+    if ((previewTrack && paths.includes(previewTrack.trackPath))
+      || (previewLoadingPath && paths.includes(previewLoadingPath))) stopPreview();
     setTracks((current) => current.filter((track) => !paths.includes(track.path)));
     setSelectedPaths((current) => current.filter((path) => !paths.includes(path)));
     setContextMenu(null);
@@ -184,6 +252,7 @@ export function MergeAudioScreen() {
 
   const merge = async () => {
     if (!canMerge) return;
+    stopPreview();
     setStatus('running');
     setProgress(0);
     setError(null);
@@ -296,6 +365,7 @@ export function MergeAudioScreen() {
         </div>
         <div className="flex gap-2">
           <button type="button" disabled={!tracks.length || running} onClick={() => {
+            stopPreview();
             setTracks([]);
             setSelectedPaths([]);
             setOutputName('');
@@ -337,12 +407,31 @@ export function MergeAudioScreen() {
               {track.status === 'invalid' && <p className="mt-1 text-xs text-orange-300">{t('mergeAudioUnreadable', {error: track.error})}</p>}
             </div>
             <span className="shrink-0 text-xs text-zinc-500">{index + 1}</span>
+            <button type="button"
+                    aria-label={playingPath === track.path ? t('mergeAudioPause', {name: track.name}) : t('mergeAudioPlay', {name: track.name})}
+                    title={playingPath === track.path ? t('mergeAudioPause', {name: track.name}) : t('mergeAudioPlay', {name: track.name})}
+                    disabled={track.status !== 'ready' || running || previewLoadingPath === track.path}
+                    onClick={() => void togglePreview(track)}
+                    className="grid h-8 w-8 shrink-0 place-items-center rounded-md text-violet-300 hover:bg-violet-950/60 hover:text-violet-200 disabled:opacity-30">
+              <FontAwesomeIcon icon={playingPath === track.path ? faPause : faPlay} className="text-xs"/>
+            </button>
             <button type="button" aria-label={t('removeFile', {name: track.name})} onClick={() => removePaths([track.path])}
                     disabled={running} className="grid h-8 w-8 shrink-0 place-items-center rounded-md text-zinc-400 hover:bg-red-950/60 hover:text-red-300 disabled:opacity-30">
               <FontAwesomeIcon icon={faTrash} className="text-xs"/>
             </button>
           </article>)}
         </div>}
+      {previewTrack && <div className="mt-3 rounded-xl border border-zinc-800 bg-zinc-900/60 p-3">
+        <p className="mb-2 truncate text-sm font-medium">{t('mergeAudioPreview', {name: previewTrack.name})}</p>
+        <audio ref={audioRef} controls preload="metadata" className="w-full"
+               onPlay={() => setPlayingPath(previewTrack.trackPath)}
+               onPause={() => setPlayingPath(null)}
+               onError={() => {
+                 setPlayingPath(null);
+                 setPreviewError(t('mergeAudioPreviewError', {error: t('mergeAudioUnsupportedPreview')}));
+               }}/>
+      </div>}
+      {previewError && <p role="alert" className="mt-3 rounded-lg border border-red-900/60 bg-red-950/40 px-4 py-3 text-sm text-red-300">{previewError}</p>}
       {selectedPaths.length > 0 && <p className="mt-2 text-xs text-zinc-500">{t('mergeAudioSelectedCount', {count: selectedPaths.length})}</p>}
     </section>
 
