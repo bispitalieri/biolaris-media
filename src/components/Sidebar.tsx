@@ -3,21 +3,22 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faExchangeAlt, faCompressAlt, faCropSimple, faImages, faGear, faIcons, faEraser, faFilm, faDownload, faBezierCurve, faMusic, faBookOpen, faFilePdf } from "@fortawesome/free-solid-svg-icons";
 import {useTranslation} from 'react-i18next';
 import {openSettingsWindow} from '../lib/windows';
+import packageJson from '../../package.json';
 
 const Sidebar = () => {
   const {t} = useTranslation();
   const settingsShortcut = navigator.userAgent.includes('Mac') ? '⌘,' : 'Ctrl+,';
 
   return (
-    <aside className="flex w-64 shrink-0 flex-col border-r border-zinc-800 bg-zinc-950">
-      <div className="flex items-center gap-3 px-6 py-6">
+    <aside className="sticky top-0 flex h-screen min-h-0 w-64 shrink-0 flex-col overflow-hidden border-r border-zinc-800 bg-zinc-950">
+      <div className="flex shrink-0 items-center gap-3 px-6 py-6">
         <div className="grid h-10 w-10 place-items-center rounded-xl bg-violet-600 font-bold">B</div>
         <div>
           <h1 className="text-lg font-bold tracking-tight">Biolaris Media</h1>
           <p className="text-xs text-zinc-500">{t('local')}</p>
         </div>
       </div>
-      <nav className="px-3">
+      <nav className="app-scrollbar min-h-0 flex-1 overflow-y-auto px-3">
         <div className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">{t('media')}</div>
         <NavLink
           to="/convert"
@@ -82,7 +83,7 @@ const Sidebar = () => {
           <FontAwesomeIcon icon={faFilePdf} className="w-4"/><span>{t('combinePdfs')}</span>
         </NavLink>
       </nav>
-      <div className="mt-auto space-y-3 px-3 py-4">
+      <div className="mt-auto shrink-0 space-y-3 px-3 py-4">
         <button
           type="button"
           onClick={() => void openSettingsWindow()}
@@ -91,7 +92,10 @@ const Sidebar = () => {
           <span className="flex items-center gap-2"><FontAwesomeIcon icon={faGear} className="w-4" /><span>{t('settings')}</span></span>
           <kbd className="rounded border border-zinc-700 px-1.5 py-0.5 text-[10px] text-zinc-500">{settingsShortcut}</kbd>
         </button>
-        <div className="px-3"><span className="inline-block rounded-full border border-zinc-800 px-3 py-1 text-xs text-zinc-400">{t('offline')}</span></div>
+        <div className="flex items-center justify-between gap-2 px-3">
+          <span className="inline-block rounded-full border border-zinc-800 px-3 py-1 text-xs text-zinc-400">{t('offline')}</span>
+          <span aria-label={`Version ${packageJson.version}`} title={`Version ${packageJson.version}`} className="inline-block rounded-full border border-zinc-800 px-3 py-1 text-xs text-zinc-500">v{packageJson.version}</span>
+        </div>
       </div>
     </aside>
   );

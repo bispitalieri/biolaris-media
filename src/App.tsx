@@ -46,9 +46,9 @@ export default function App() {
   }
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen overflow-hidden">
       <Sidebar />
-      <main className="flex-1 overflow-auto">
+      <main className="app-scrollbar min-h-0 min-w-0 flex-1 overflow-y-auto">
         <div className="mx-auto max-w-5xl px-8 py-8">
           <Routes>
             <Route path="/" element={<Navigate to="/convert" replace/>}/>
