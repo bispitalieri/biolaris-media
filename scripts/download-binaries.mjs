@@ -37,10 +37,11 @@ Opzioni:
   --help             Mostra questo messaggio.
 
 FFmpeg/FFprobe e Poppler sono scaricati
-dal catalogo pubblico unpins; il suo installer viene compilato dal repository
-GitHub per evitare il download del bootstrap da unpins.org. ImageMagick e vips
-usano le distribuzioni dei rispettivi progetti. vips non ha una build
-standalone ufficiale per macOS/Linux.`);
+dal catalogo pubblico unpins. L'installer viene compilato dal repository GitHub
+su macOS/Linux e scaricato dalla release GitHub su Windows, dove una sua
+dipendenza nativa non è compatibile con MSVC. ImageMagick e vips usano le
+distribuzioni dei rispettivi progetti. vips non ha una build standalone
+ufficiale per macOS/Linux.`);
 }
 
 function parseArgs(args) {
@@ -220,7 +221,7 @@ async function installUnpinsPackages(scratch, binDir, sourceRecords) {
   const unpin = await installUnpinCli(scratch);
   sourceRecords.push({
     provider: "unpins/unpin",
-    method: "compilato da sorgente con cargo install --locked",
+    method: unpin.method,
     version: unpin.version,
     sha256: unpin.sha256,
   });
@@ -278,6 +279,20 @@ async function installYtDlp(scratch, binDir, sourceRecords) {
 async function installUnpinCli(scratch) {
   const installRoot = join(scratch, "unpin-cli");
   const executable = join(installRoot, "bin", process.platform === "win32" ? "unpin.exe" : "unpin");
+
+  if (process.platform === "win32") {
+    const {release, asset, sha256} = await getGithubAsset("unpins/unpin", /^unpin-x86_64-windows\.exe$/i, "unpin Windows");
+    await mkdir(dirname(executable), {recursive: true});
+    console.log("Scarico unpin " + release.tag_name + " da GitHub Releases...");
+    const downloaded = await downloadFile(asset.browser_download_url, executable, sha256, 20 * 1024 * 1024, true);
+    return {
+      executable,
+      version: release.tag_name,
+      sha256: downloaded.sha256,
+      method: "release GitHub con checksum SHA-256",
+    };
+  }
+
   console.log("Compilo l'installer unpin dal repository GitHub...");
   run("cargo", ["install", "--git", "https://github.com/unpins/unpin", "--locked", "--root", installRoot], {stdio: "inherit"});
 
@@ -287,7 +302,7 @@ async function installUnpinCli(scratch) {
 
   const version = run(executable, ["--version"]).trim();
   const sha256 = createHash("sha256").update(await readFile(executable)).digest("hex");
-  return {executable, version, sha256};
+  return {executable, version, sha256, method: "compilato da sorgente con cargo install --locked"};
 }
 
 async function walkFiles(root, visitor, depth = 0) {
