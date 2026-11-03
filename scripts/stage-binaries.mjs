@@ -43,8 +43,25 @@ async function main() {
   if (!sourceStats.isDirectory()) throw new Error("Runtime non trovato: " + sourceDir);
   await rm(stageRoot, {recursive: true, force: true});
   await mkdir(stageRoot, {recursive: true});
-  await cp(sourceDir, join(stageRoot, target), {recursive: true, force: false});
-  console.log("Preparato solo il runtime " + target + " in " + join(stageRoot, target) + ".");
+  const stagedDir = join(stageRoot, target);
+  await cp(sourceDir, stagedDir, {recursive: true, force: false});
+
+  const executableExtension = target.startsWith("x86_64-pc-windows") ? ".exe" : "";
+  const aliases = [["ffprobe", "ffmpeg"], ["convert", "magick"], ["pdfunite", "pdftoppm"]];
+  for (const [alias, executable] of aliases) {
+    const aliasPath = join(sourceDir, "bin", alias + executableExtension);
+    const executablePath = join(sourceDir, "bin", executable + executableExtension);
+    const [aliasStats, executableStats] = await Promise.all([
+      stat(aliasPath).catch(() => undefined),
+      stat(executablePath).catch(() => undefined),
+    ]);
+    if (aliasStats && executableStats && aliasStats.ino !== 0 &&
+        aliasStats.dev === executableStats.dev && aliasStats.ino === executableStats.ino) {
+      await rm(join(stagedDir, "bin", alias + executableExtension), {force: true});
+    }
+  }
+
+  console.log("Preparato solo il runtime " + target + " in " + stagedDir + ".");
 }
 
 main().catch((error) => {

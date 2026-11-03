@@ -43,7 +43,7 @@ Per compilare soltanto il frontend web, esegui `npm run build`. I comandi `dev:t
 
 ## Binari runtime e distribuzione
 
-Prima che Tauri si avvii, `binaries:stage` copia gli strumenti per il sistema in uso in `src-tauri/binaries/runtime-current/`. Tauri include quella cartella nel pacchetto, lasciando fuori i binari per altre piattaforme. La cartella contiene FFmpeg/FFprobe, ImageMagick (`magick`/`convert`) e Poppler (`pdftoppm`/`pdfunite`). Le versioni per Windows includono anche libvips. Per macOS e Linux non esistono versioni standalone ufficiali di libvips e l’app al momento non usa il comando `vips`, quindi non viene incluso.
+Prima che Tauri si avvii, `binaries:stage` copia gli strumenti per il sistema in uso in `src-tauri/binaries/runtime-current/`. Tauri include quella cartella nel pacchetto, lasciando fuori i binari per altre piattaforme. La cartella contiene FFmpeg/FFprobe, ImageMagick (`magick`/`convert`) e Poppler (`pdftoppm`/`pdfunite`). Gli alias che condividono un eseguibile vengono creati nella cache utente all’avvio invece di essere inclusi come file duplicati. Le versioni per Windows includono anche libvips. Per macOS e Linux non esistono versioni standalone ufficiali di libvips e l’app al momento non usa il comando `vips`, quindi non viene incluso.
 
 I comandi `dev:tauri` e `tauri:build` scaricano e preparano automaticamente gli strumenti. GitHub Actions compila pacchetti separati per Windows, macOS e Linux, ciascuno con i binari necessari alla propria piattaforma. La versione Linux usa un’AppImage x86_64 di ImageMagick. Il pacchetto standalone per macOS proviene da un distributore esterno e richiede macOS Sonoma o successivo. In `runtime-manifest.json` trovi sorgenti, versioni e hash dei download.
 

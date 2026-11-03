@@ -78,6 +78,10 @@ fn open_settings_window<R: tauri::Runtime>(app: &tauri::AppHandle<R>) {
 
 pub fn run() {
   tauri::Builder::default()
+    .setup(|app| {
+      crate::tools::prepare_runtime_aliases(app.handle()).map_err(std::io::Error::other)?;
+      Ok(())
+    })
     .plugin(tauri_plugin_fs::init())
     .plugin(tauri_plugin_dialog::init())
     .plugin(tauri_plugin_autostart::Builder::new().build())
