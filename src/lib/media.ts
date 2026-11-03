@@ -129,6 +129,9 @@ export const probePdfFile = (path: string) => invoke<PdfFileInfo>('probe_pdf_fil
 export const enqueueCombinePdfs = (pdfPaths: string[]) =>
   invoke<string>('enqueue_combine_pdfs', {request: {pdfPaths}});
 
+export const enqueueSplitPdfs = (pdfPaths: string[], pageRanges: string) =>
+  invoke<string>('enqueue_split_pdfs', {request: {pdfPaths, pageRanges}});
+
 export type Chapter = {title: string; start: number; end: number};
 export type ChapterFileInfo = {
   chapters: Chapter[];

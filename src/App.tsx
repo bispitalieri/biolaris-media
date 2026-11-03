@@ -7,6 +7,7 @@ import {CropScreen} from './screens/CropScreen';
 import {SlideshowScreen} from './screens/SlideshowScreen';
 import {CombineVideosScreen} from './screens/CombineVideosScreen';
 import {CombinePdfsScreen} from './screens/CombinePdfsScreen';
+import {SplitPdfsScreen} from './screens/SplitPdfsScreen';
 import {MergeAudioScreen} from './screens/MergeAudioScreen';
 import {SplitByChapterScreen} from './screens/SplitByChapterScreen';
 import {AppIconScreen} from './screens/AppIconScreen';
@@ -60,6 +61,7 @@ export default function App() {
             <Route path="/slideshow" element={<SlideshowScreen/>}/>
             <Route path="/combine-videos" element={<CombineVideosScreen/>}/>
             <Route path="/combine-pdfs" element={<CombinePdfsScreen/>}/>
+            <Route path="/split-pdfs" element={<SplitPdfsScreen/>}/>
             <Route path="/merge-audio" element={<MergeAudioScreen/>}/>
             <Route path="/split-by-chapter" element={<SplitByChapterScreen/>}/>
             <Route path="/download-video" element={<DownloadVideoScreen/>}/>

@@ -99,6 +99,13 @@ pub struct CombinePdfsRequest {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct SplitPdfsRequest {
+  pub pdf_paths: Vec<String>,
+  pub page_ranges: String,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SplitByChapterRequest {
   pub input_path: String,
   /// "original" keeps the source container and streams unchanged.

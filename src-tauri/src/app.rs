@@ -101,6 +101,7 @@ pub fn run() {
       commands::combine_videos::enqueue_combine_videos,
       commands::combine_pdfs::probe_pdf_file,
       commands::combine_pdfs::enqueue_combine_pdfs,
+      commands::split_pdfs::enqueue_split_pdfs,
       commands::merge_audio::probe_audio_file,
       commands::merge_audio::prepare_audio_preview,
       commands::merge_audio::enqueue_merge_audio,

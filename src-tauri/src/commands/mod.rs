@@ -11,3 +11,4 @@ pub(crate) mod remove_background;
 pub(crate) mod download_video;
 pub(crate) mod vectorize;
 pub(crate) mod split_by_chapter;
+pub(crate) mod split_pdfs;
