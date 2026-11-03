@@ -8,7 +8,10 @@ edition = "2021"
 
 [lib]
 name = "biolaris_media_lib"
-crate-type = ["staticlib", "cdylib", "rlib"]
+# Tauri desktop builds only need the DLL and the rlib. Keeping a staticlib in the
+# same crate emits a massive PE export table on MinGW, which can overflow the
+# Windows linker limit ("export ordinal too large").
+crate-type = ["cdylib", "rlib"]
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
