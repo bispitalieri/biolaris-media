@@ -1,7 +1,7 @@
 import {NavLink} from "react-router-dom";
 import {isTauri} from '@tauri-apps/api/core';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faExchangeAlt, faCompressAlt, faCropSimple, faImages, faGear, faIcons, faEraser, faFilm, faDownload, faBezierCurve, faMusic, faBookOpen, faArrowRightArrowLeft, faImage, faScissors, faTableList } from "@fortawesome/free-solid-svg-icons";
+import { faArrowRightArrowLeft, faCompressAlt, faCropSimple, faImages, faGear, faIcons, faEraser, faLayerGroup, faDownload, faBezierCurve, faWaveSquare, faBookOpen, faObjectGroup, faImage, faScissors, faTableList } from "@fortawesome/free-solid-svg-icons";
 import {useTranslation} from 'react-i18next';
 import {openSettingsWindow} from '../lib/windows';
 import packageJson from '../../package.json';
@@ -25,7 +25,7 @@ const Sidebar = () => {
           to="/convert"
           className={({isActive}) => `mb-1 flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}
         >
-          <FontAwesomeIcon icon={faExchangeAlt} className="w-4"/>
+          <FontAwesomeIcon icon={faArrowRightArrowLeft} className="w-4"/>
           <span>{t('convert')}</span>
         </NavLink>
         <NavLink
@@ -43,7 +43,7 @@ const Sidebar = () => {
           <span>{t('crop')}</span>
         </NavLink>
         <NavLink to="/combine-videos" className={({isActive}) => `mb-1 flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}>
-          <FontAwesomeIcon icon={faFilm} className="w-4"/><span>{t('combineVideos')}</span>
+          <FontAwesomeIcon icon={faLayerGroup} className="w-4"/><span>{t('combineVideos')}</span>
         </NavLink>
         <NavLink
           to="/slideshow"
@@ -74,14 +74,14 @@ const Sidebar = () => {
         </NavLink>
         <div className="mb-2 mt-4 px-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">{t('audio')}</div>
         <NavLink to="/merge-audio" className={({isActive}) => `mb-1 flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}>
-          <FontAwesomeIcon icon={faMusic} className="w-4"/><span>{t('mergeAudio')}</span>
+          <FontAwesomeIcon icon={faWaveSquare} className="w-4"/><span>{t('mergeAudio')}</span>
         </NavLink>
         <NavLink to="/split-by-chapter" className={({isActive}) => `mb-1 flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}>
           <FontAwesomeIcon icon={faBookOpen} className="w-4"/><span>{t('splitByChapter')}</span>
         </NavLink>
         <div className="mb-2 mt-4 px-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">{t('pdf')}</div>
         <NavLink to="/combine-pdfs" className={({isActive}) => `mb-1 flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}>
-          <FontAwesomeIcon icon={faArrowRightArrowLeft} className="w-4"/><span>{t('combinePdfs')}</span>
+          <FontAwesomeIcon icon={faObjectGroup} className="w-4"/><span>{t('combinePdfs')}</span>
         </NavLink>
         <NavLink to="/images-to-pdf" className={({isActive}) => `mb-1 flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}>
           <FontAwesomeIcon icon={faImage} className="w-4"/><span>{t('imagesToPdf')}</span>
