@@ -15,7 +15,7 @@ if (!process.env.TAURI_SIGNING_PRIVATE_KEY) {
 if (process.env.TAURI_SIGNING_PRIVATE_KEY_PASSWORD === undefined) {
   throw new Error("Set the TAURI_SIGNING_PRIVATE_KEY_PASSWORD GitHub Actions secret (an empty value is allowed).");
 }
-if (process.env.RELEASE_PLATFORM?.startsWith("macOS")) {
+if (process.env.RELEASE_PLATFORM?.startsWith("macOS") && process.env.APPLE_CERTIFICATE) {
   const macOSSecrets = [
     "APPLE_CERTIFICATE",
     "APPLE_CERTIFICATE_PASSWORD",
