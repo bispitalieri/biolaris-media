@@ -4,6 +4,8 @@ import {useTranslation} from 'react-i18next';
 import {useAppSettings} from '../lib/settings';
 import {DropZone} from '../components/DropZone';
 import {detectFileType, openOutputDirectory, openOutputFile, saveBackgroundRemovedPng} from '../lib/media';
+import wasmUrl from 'onnxruntime-web/ort-wasm-simd-threaded.wasm?url';
+import wasmFactoryUrl from 'onnxruntime-web/ort-wasm-simd-threaded.mjs?url';
 
 type SourceImage = {path: string; name: string; url: string; width: number; height: number};
 type Status = 'ready' | 'loading-model' | 'processing' | 'saving' | 'completed' | 'failed';
@@ -12,63 +14,36 @@ type ProgressInfo = {status?: string; progress?: number; file?: string; name?: s
 const modelId = 'studioludens/birefnet-lite-512';
 const modelRevision = '962e67969ec6acec9c19fab76acee4f5e22e990c';
 let segmenterPromise: ReturnType<typeof createSegmenter> | null = null;
-let segmenterDevice: 'webgpu' | 'wasm' = 'wasm';
 const supported = new Set(['jpg', 'jpeg', 'png', 'webp']);
 const extension = (path: string) => path.match(/\.([^./\\]+)$/)?.[1]?.toLowerCase() || '';
 const basename = (path: string) => path.split(/[\\/]/).pop() || path;
 const outputFor = (path: string) => `${path.replace(/\.[^./\\]*$/, '')}-no-background.png`;
 const mimeFor = (ext: string) => ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' : `image/${ext}`;
 
-async function preferredDevice(): Promise<'webgpu' | 'wasm'> {
-  const gpu = (navigator as Navigator & {gpu?: {requestAdapter: () => Promise<unknown | null>}}).gpu;
-  if (!gpu) return 'wasm';
-  try { return await gpu.requestAdapter() ? 'webgpu' : 'wasm'; }
-  catch { return 'wasm'; }
-}
-
-async function createSegmenter(onProgress: (progress: ProgressInfo) => void, device: 'webgpu' | 'wasm') {
+async function createSegmenter(onProgress: (progress: ProgressInfo) => void) {
   const {pipeline, env} = await import('@huggingface/transformers');
   env.allowRemoteModels = true;
   env.useBrowserCache = true;
+  const wasm = env.backends.onnx.wasm;
+  if (!wasm) throw new Error('ONNX Runtime WebAssembly backend is unavailable');
+  wasm.wasmPaths = {wasm: wasmUrl, mjs: wasmFactoryUrl};
   return pipeline('background-removal', modelId, {
     revision: modelRevision,
-    device,
-    dtype: device === 'webgpu' ? 'fp16' : 'fp32',
+    device: 'wasm',
+    dtype: 'fp32',
     progress_callback: (progress) => onProgress(progress as ProgressInfo),
   });
-}
-
-function canFallbackToWasm(error: unknown) {
-  const message = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
-  return !/fetch|network|http|download|not found|404/.test(message);
 }
 
 async function runBackgroundRemoval(
   source: Blob,
   onProgress: (progress: ProgressInfo) => void,
-  onFallbackStart: () => void,
   onReady: () => void,
 ) {
-  if (!segmenterPromise) {
-    segmenterDevice = await preferredDevice();
-    segmenterPromise = createSegmenter(onProgress, segmenterDevice);
-  }
-
-  let segmenter: Awaited<ReturnType<typeof createSegmenter>> | undefined;
-  try {
-    segmenter = await segmenterPromise;
-    onReady();
-    return await segmenter(source);
-  } catch (error) {
-    if (segmenterDevice !== 'webgpu' || !canFallbackToWasm(error)) throw error;
-    await segmenter?.dispose();
-    segmenterDevice = 'wasm';
-    onFallbackStart();
-    segmenterPromise = createSegmenter(onProgress, 'wasm');
-    const fallback = await segmenterPromise;
-    onReady();
-    return fallback(source);
-  }
+  segmenterPromise ??= createSegmenter(onProgress);
+  const segmenter = await segmenterPromise;
+  onReady();
+  return segmenter(source);
 }
 
 function encodeBase64(bytes: Uint8Array) {
@@ -137,8 +112,6 @@ export function RemoveBackgroundScreen() {
         return response.blob();
       });
       const output = await runBackgroundRemoval(source, updateLoadProgress, () => {
-        setStatus('loading-model'); setProgress(0);
-      }, () => {
         setStatus('processing');
         setProgress(0);
       });
@@ -159,7 +132,6 @@ export function RemoveBackgroundScreen() {
       setOutputPath(savedPath); setStatus('completed'); setProgress(100);
     } catch (reason) {
       segmenterPromise = null;
-      segmenterDevice = 'wasm';
       setStatus('failed'); setError(String(reason));
     }
   };

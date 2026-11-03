@@ -9,7 +9,7 @@
     "removeBackground": "Remove background",
     "removeBackgroundTitle": "Remove background",
     "removeBackgroundDescription": "The subject is detected automatically. The result keeps the original resolution and exports as a transparent PNG.",
-    "removeBackgroundModelNote": "The mask is computed at 512×512 and resized to the original dimensions; RGB values remain unchanged and only transparency is changed. First use downloads BiRefNet Lite 512 (MIT, about 94 MB with GPU or 183 MB with CPU). Processing is local; images are never uploaded.",
+    "removeBackgroundModelNote": "The mask is computed at 512×512 and resized to the original dimensions; RGB values remain unchanged and only transparency is changed. First use downloads BiRefNet Lite 512 (MIT, about 183 MB). Processing uses the CPU for a smaller app bundle and is local; images are never uploaded.",
     "removeBackgroundUnsupported": "Choose a JPG, PNG, or WebP image.",
     "removeBackgroundEmptyPreview": "The selected image preview will appear here.",
     "removeBackgroundOpenOutputError": "Could not open the output: {{error}}",

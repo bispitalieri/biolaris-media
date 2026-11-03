@@ -9,7 +9,7 @@
     "removeBackground": "Rimuovi sfondo",
     "removeBackgroundTitle": "Rimuovi sfondo",
     "removeBackgroundDescription": "Il soggetto viene rilevato automaticamente. Il risultato mantiene la risoluzione originale ed è esportato in PNG trasparente.",
-    "removeBackgroundModelNote": "La maschera è calcolata a 512×512 e riportata alle dimensioni originali; i valori RGB restano invariati e cambia solo la trasparenza. Al primo utilizzo viene scaricato BiRefNet Lite 512 (MIT, circa 94 MB con GPU o 183 MB con CPU). L’elaborazione è locale: le immagini non vengono caricate online.",
+    "removeBackgroundModelNote": "La maschera è calcolata a 512×512 e riportata alle dimensioni originali; i valori RGB restano invariati e cambia solo la trasparenza. Al primo utilizzo viene scaricato BiRefNet Lite 512 (MIT, circa 183 MB). L’elaborazione usa la CPU per ridurre le dimensioni dell’app ed è locale: le immagini non vengono caricate online.",
     "removeBackgroundUnsupported": "Scegli un'immagine JPG, PNG o WebP.",
     "removeBackgroundEmptyPreview": "L'anteprima dell'immagine selezionata apparirà qui.",
     "removeBackgroundOpenOutputError": "Impossibile aprire l'output: {{error}}",

@@ -14,6 +14,12 @@ export default defineConfig({
     }
   },
   envPrefix: ['VITE_', 'TAURI_'],
+  resolve: {
+    alias: {
+      'onnxruntime-web/webgpu': 'onnxruntime-web/wasm',
+    },
+    conditions: ['onnxruntime-web-use-extern-wasm'],
+  },
   build: {
     target: process.env.TAURI_ENV_PLATFORM === 'windows' ? 'chrome105' : 'safari13'
   }

@@ -33,6 +33,7 @@
     "@tauri-apps/plugin-dialog": "^2.8.3",
     "@tauri-apps/plugin-fs": "^2.7.1",
     "i18next": "^26.5.10",
+    "onnxruntime-web": "1.31.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-i18next": "^17.1.7",
