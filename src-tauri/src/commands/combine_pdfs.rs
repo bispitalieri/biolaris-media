@@ -180,7 +180,7 @@ fn combine_pdfs(inputs: &[PathBuf]) -> Result<PathBuf, String> {
   save_without_overwrite(&mut merged, &inputs[0])
 }
 
-fn inherited_page_attribute(
+pub(super) fn inherited_page_attribute(
   document: &Document,
   page_id: ObjectId,
   key: &[u8],
@@ -208,7 +208,7 @@ fn inherited_page_attribute(
   }
 }
 
-fn materialize_page_attributes(
+pub(super) fn materialize_page_attributes(
   document: &Document,
   page_id: ObjectId,
 ) -> Result<Dictionary, String> {

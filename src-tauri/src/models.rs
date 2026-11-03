@@ -106,6 +106,13 @@ pub struct SplitPdfsRequest {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct OrganizePdfPagesRequest {
+  pub pdf_path: String,
+  pub page_numbers: Vec<u32>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SplitByChapterRequest {
   pub input_path: String,
   /// "original" keeps the source container and streams unchanged.
@@ -155,6 +162,13 @@ pub struct PdfFileInfo {
   pub page_count: Option<usize>,
   pub size_bytes: u64,
   pub locked: bool,
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PdfPagePreview {
+  pub page_number: u32,
+  pub data_url: String,
 }
 
 #[derive(Clone, Debug, Serialize)]

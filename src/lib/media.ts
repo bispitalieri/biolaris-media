@@ -132,6 +132,14 @@ export const enqueueCombinePdfs = (pdfPaths: string[]) =>
 export const enqueueSplitPdfs = (pdfPaths: string[], pageRanges: string) =>
   invoke<string>('enqueue_split_pdfs', {request: {pdfPaths, pageRanges}});
 
+export type PdfPagePreview = {pageNumber: number; dataUrl: string};
+export const renderPdfPages = (path: string) =>
+  invoke<PdfPagePreview[]>('render_pdf_pages', {path});
+export const renderPdfPage = (path: string, pageNumber: number) =>
+  invoke<string>('render_pdf_page', {path, pageNumber});
+export const organizePdfPages = (pdfPath: string, pageNumbers: number[]) =>
+  invoke<string>('organize_pdf_pages', {request: {pdfPath, pageNumbers}});
+
 export type Chapter = {title: string; start: number; end: number};
 export type ChapterFileInfo = {
   chapters: Chapter[];

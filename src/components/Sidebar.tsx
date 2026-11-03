@@ -1,4 +1,5 @@
 import {NavLink} from "react-router-dom";
+import {isTauri} from '@tauri-apps/api/core';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faExchangeAlt, faCompressAlt, faCropSimple, faImages, faGear, faIcons, faEraser, faFilm, faDownload, faBezierCurve, faMusic, faBookOpen, faFilePdf } from "@fortawesome/free-solid-svg-icons";
 import {useTranslation} from 'react-i18next';
@@ -85,6 +86,9 @@ const Sidebar = () => {
         <NavLink to="/split-pdfs" className={({isActive}) => `mb-1 flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}>
           <FontAwesomeIcon icon={faFilePdf} className="w-4"/><span>{t('splitPdfs')}</span>
         </NavLink>
+        {isTauri() && <NavLink to="/organize-pages" className={({isActive}) => `mb-1 flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}>
+          <FontAwesomeIcon icon={faFilePdf} className="w-4"/><span>{t('organizePages')}</span>
+        </NavLink>}
       </nav>
       <div className="mt-auto shrink-0 space-y-3 px-3 py-4">
         <button

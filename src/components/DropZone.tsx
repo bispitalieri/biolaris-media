@@ -78,11 +78,24 @@ export function DropZone({onFiles, imageOnly = false, videoOnly = false, audioOn
   useEffect(() => {
     let unlisten: (() => void) | undefined;
     let alive = true;
+    let acceptedPaths: string[] = [];
 
     getCurrentWebview().onDragDropEvent((event) => {
-      if (event.payload.type === 'enter' || event.payload.type === 'over') setHovering(true);
-      if (event.payload.type === 'leave' || event.payload.type === 'drop') setHovering(false);
-      if (event.payload.type === 'drop') onFiles(pathsForDrop(event.payload.paths, imageOnly, videoOnly, audioOnly, multiple, allowedExtensions));
+      if (event.payload.type === 'enter') {
+        acceptedPaths = pathsForDrop(event.payload.paths, imageOnly, videoOnly, audioOnly, multiple, allowedExtensions);
+        setHovering(acceptedPaths.length > 0);
+      }
+      if (event.payload.type === 'over') setHovering(acceptedPaths.length > 0);
+      if (event.payload.type === 'leave') {
+        acceptedPaths = [];
+        setHovering(false);
+      }
+      if (event.payload.type === 'drop') {
+        const droppedPaths = pathsForDrop(event.payload.paths, imageOnly, videoOnly, audioOnly, multiple, allowedExtensions);
+        acceptedPaths = [];
+        setHovering(false);
+        if (droppedPaths.length) onFiles(droppedPaths);
+      }
     })
       .then((fn) => { if (alive) unlisten = fn; else fn(); })
       .catch((err) => { console.error(err); });
