@@ -4,10 +4,12 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowRightArrowLeft, faCompressAlt, faCropSimple, faImages, faGear, faIcons, faEraser, faLayerGroup, faDownload, faBezierCurve, faWaveSquare, faBookOpen, faObjectGroup, faImage, faScissors, faTableList } from "@fortawesome/free-solid-svg-icons";
 import {useTranslation} from 'react-i18next';
 import {openSettingsWindow} from '../lib/windows';
+import {useUpdater} from '../lib/updater';
 import packageJson from '../../package.json';
 
 const Sidebar = () => {
   const {t} = useTranslation();
+  const {update, stage, progress, showUpdate} = useUpdater();
   const settingsShortcut = navigator.userAgent.includes('Mac') ? '⌘,' : 'Ctrl+,';
 
   return (
@@ -104,7 +106,15 @@ const Sidebar = () => {
         </button>
         <div className="flex items-center justify-between gap-2 px-3">
           <span className="inline-block rounded-full border border-zinc-800 px-3 py-1 text-xs text-zinc-400">{t('offline')}</span>
-          <span aria-label={`Version ${packageJson.version}`} title={`Version ${packageJson.version}`} className="inline-block rounded-full border border-zinc-800 px-3 py-1 text-xs text-zinc-500">v{packageJson.version}</span>
+          <button
+            type="button"
+            onClick={showUpdate}
+            aria-label={update ? t('updateVersionBadge', {version: update.version}) : `Version ${packageJson.version}`}
+            title={update ? t('updateVersionBadge', {version: update.version}) : `Version ${packageJson.version}`}
+            className={`inline-block rounded-full border px-3 py-1 text-xs transition ${update ? 'border-violet-500/50 bg-violet-500/10 text-violet-200 hover:bg-violet-500/20' : 'border-zinc-800 text-zinc-500'}`}
+          >
+            {stage === 'downloading' ? `${progress.toFixed(0)}%` : update ? `v${packageJson.version} · ${t('updateBadgeNew')}` : `v${packageJson.version}`}
+          </button>
         </div>
       </div>
     </aside>

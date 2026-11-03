@@ -20,8 +20,8 @@ Consulta la [guida ufficiale Tauri per i prerequisiti](https://v2.tauri.app/star
 1. Clona il repository e installa le dipendenze:
 
    ```sh
-   git clone https://github.com/bispitalieri/biolaris.git
-   cd biolaris
+   git clone https://github.com/bispitalieri/biolaris-media.git
+   cd biolaris-media
    npm ci
    ```
 
@@ -47,13 +47,19 @@ Prima che Tauri si avvii, `binaries:stage` copia gli strumenti per il sistema in
 
 I comandi `dev:tauri` e `tauri:build` scaricano e preparano automaticamente gli strumenti. GitHub Actions compila pacchetti separati per Windows, macOS e Linux, ciascuno con i binari necessari alla propria piattaforma. La versione Linux usa un’AppImage x86_64 di ImageMagick. Il pacchetto standalone per macOS proviene da un distributore esterno e richiede macOS Sonoma o successivo. In `runtime-manifest.json` trovi sorgenti, versioni e hash dei download.
 
-Per pubblicare una release, invia un tag semantico stabile, ad esempio `v1.2.3`. GitHub Actions usa il tag come versione dell’app e pubblica i pacchetti per Windows, macOS e Linux in una GitHub Release.
+Per pubblicare una release, invia un tag semantico stabile, ad esempio `v1.2.3`. GitHub Actions usa il tag come versione dell’app, crea pacchetti firmati per l’aggiornamento, prepara la release come bozza e la pubblica solo dopo aver caricato tutti i pacchetti Windows, macOS e Linux e `latest.json`. Per aggiornare localmente tutte le versioni dell’app presenti nel repository, esegui `npm run version:update -- 1.2.3`.
+
+La chiave pubblica per gli aggiornamenti è configurata in `src-tauri/tauri.conf.json`; la chiave privata corrispondente e la password devono essere disponibili a GitHub Actions come `TAURI_SIGNING_PRIVATE_KEY` e `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`. Non inserire la chiave privata nel repository e non sostituire la coppia di chiavi senza motivo: le installazioni esistenti si fidano della chiave pubblica configurata. Per un nuovo repository, genera una chiave con `npm run tauri -- signer generate -w ~/.tauri/biolaris.key`, configura la chiave pubblica e salva la chiave privata e la password nei segreti Actions. Le build con tag si interrompono se manca la configurazione di firma.
+
+Per le release pubbliche macOS, configura nei segreti GitHub Actions `APPLE_CERTIFICATE` (certificato Developer ID `.p12` codificato in base64), `APPLE_CERTIFICATE_PASSWORD`, `APPLE_SIGNING_IDENTITY`, `KEYCHAIN_PASSWORD`, `APPLE_ID`, `APPLE_PASSWORD` (password specifica per l’app) e `APPLE_TEAM_ID`. La build macOS con tag importa il certificato, firma l’app e la invia per la notarizzazione; si interrompe se manca un segreto.
+
+La versione pubblicata `v0.1.0` non include il sistema di aggiornamento. Chi usa quella versione deve installare manualmente la prima release che include l’updater; le versioni successive potranno aggiornarsi dall’app.
 
 Prima di condividere o distribuire l’app, controlla le licenze di FFmpeg e dei suoi codec, ImageMagick, libvips, Poppler e delle librerie incluse. La licenza AGPL di questo repository non copre questi programmi separati.
 
 ## Contribuire
 
-Hai trovato un bug o hai un’idea? Scrivici tramite le [GitHub Issues](https://github.com/bispitalieri/biolaris/issues). Per una modifica più ampia, apri prima una issue così possiamo discuterne insieme. Prima di iniziare, consulta la [guida per contribuire](CONTRIBUTING.md) e il [Codice di condotta](CODE_OF_CONDUCT.md).
+Hai trovato un bug o hai un’idea? Scrivici tramite le [GitHub Issues](https://github.com/bispitalieri/biolaris-media/issues). Per una modifica più ampia, apri prima una issue così possiamo discuterne insieme. Prima di iniziare, consulta la [guida per contribuire](CONTRIBUTING.md) e il [Codice di condotta](CODE_OF_CONDUCT.md).
 
 ## Sicurezza
 

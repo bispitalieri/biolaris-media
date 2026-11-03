@@ -6,12 +6,12 @@
   "license": "AGPL-3.0-only",
   "repository": {
     "type": "git",
-    "url": "https://github.com/bispitalieri/biolaris.git"
+    "url": "https://github.com/bispitalieri/biolaris-media.git"
   },
   "bugs": {
-    "url": "https://github.com/bispitalieri/biolaris/issues"
+    "url": "https://github.com/bispitalieri/biolaris-media/issues"
   },
-  "homepage": "https://github.com/bispitalieri/biolaris#readme",
+  "homepage": "https://github.com/bispitalieri/biolaris-media#readme",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -32,11 +32,15 @@
     "@tauri-apps/plugin-autostart": "^2.7.0",
     "@tauri-apps/plugin-dialog": "^2.8.3",
     "@tauri-apps/plugin-fs": "^2.7.1",
+    "@tauri-apps/plugin-process": "^2.4.0",
+    "@tauri-apps/plugin-shell": "^2.6.0",
+    "@tauri-apps/plugin-updater": "^2.14.1",
     "i18next": "^26.5.10",
     "onnxruntime-web": "1.31.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-i18next": "^17.1.7",
+    "react-markdown": "^10.1.0",
     "react-router-dom": "^7.18.4"
   },
   "devDependencies": {

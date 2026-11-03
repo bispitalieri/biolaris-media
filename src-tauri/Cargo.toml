@@ -28,9 +28,12 @@ tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"
 vtracer = "0.6.5"
 lopdf = { version = "0.46", default-features = false }
+tauri-plugin-updater = "2"
+tauri-plugin-process = "2"
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-autostart = "2"
+tauri-plugin-updater = "2"
 
 [profile.release]
 opt-level = "z"

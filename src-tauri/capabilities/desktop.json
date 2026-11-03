@@ -10,6 +10,9 @@
     "settings"
   ],
   "permissions": [
-    "autostart:default"
+    "autostart:default",
+    "updater:default",
+    "process:allow-restart",
+    "shell:allow-open"
   ]
 }

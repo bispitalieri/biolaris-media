@@ -43,5 +43,17 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ]
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDdGQjhEMzQxMEI0QjgyN0QKUldSOWdrc0xRZE80ZjI3WkU5Y2xJdW5naE5XNzYwRlhCejFuTXRKWEcrV05la245NFh0UUlCaUIK",
+      "endpoints": [
+        "https://github.com/bispitalieri/biolaris-media/releases/latest/download/latest.json"
+      ],
+      "requireSignedVersion": true,
+      "windows": {
+        "installMode": "passive"
+      }
+    }
   }
 }

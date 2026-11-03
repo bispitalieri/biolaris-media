@@ -86,6 +86,8 @@ pub fn run() {
     .plugin(tauri_plugin_dialog::init())
     .plugin(tauri_plugin_autostart::Builder::new().build())
     .plugin(tauri_plugin_shell::init())
+    .plugin(tauri_plugin_process::init())
+    .plugin(tauri_plugin_updater::Builder::new().build())
     .menu(|app| build_native_menu(app))
     .on_menu_event(|app, event| {
       if event.id() == "open-settings" {

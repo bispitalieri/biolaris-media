@@ -3,6 +3,7 @@ import i18n from './i18n';
 import type {FileType, MergeAudioFormat, OutputFormat} from './media';
 
 export type ThemePreference = 'system' | 'light' | 'dark';
+export type UpdateCheckInterval = '5m' | 'daily' | 'weekly';
 export type MediaCategory = 'images' | 'audio' | 'videos' | 'pdf';
 export type AppSettings = {
   general: {
@@ -10,6 +11,8 @@ export type AppSettings = {
     theme: ThemePreference;
     launchAtStartup: boolean;
     autoRenameOutputs: boolean;
+    automaticUpdates: boolean;
+    updateCheckInterval: UpdateCheckInterval;
   };
   media: Record<MediaCategory, {
     defaultFormat: OutputFormat;
@@ -36,6 +39,8 @@ const initialSettings: AppSettings = {
     theme: 'system',
     launchAtStartup: false,
     autoRenameOutputs: true,
+    automaticUpdates: true,
+    updateCheckInterval: 'daily',
   },
   media: {
     images: {
@@ -102,6 +107,10 @@ export function loadAppSettings(): AppSettings {
       theme: general.theme === 'light' || general.theme === 'dark' || general.theme === 'system' ? general.theme : 'system',
       launchAtStartup: typeof general.launchAtStartup === 'boolean' ? general.launchAtStartup : false,
       autoRenameOutputs: typeof general.autoRenameOutputs === 'boolean' ? general.autoRenameOutputs : true,
+      automaticUpdates: typeof general.automaticUpdates === 'boolean' ? general.automaticUpdates : true,
+      updateCheckInterval: general.updateCheckInterval === '5m' || general.updateCheckInterval === 'weekly'
+        ? general.updateCheckInterval
+        : 'daily',
     },
     media: {...initialSettings.media},
     mergeAudio: {

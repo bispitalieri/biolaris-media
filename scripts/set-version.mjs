@@ -4,7 +4,7 @@ import {readFile, writeFile} from "node:fs/promises";
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const projectPath = (path) => resolve(projectRoot, path);
-const tag = process.env.RELEASE_VERSION ?? "";
+const tag = process.env.RELEASE_VERSION ?? process.argv[2] ?? "";
 const version = tag.replace(/^v/, "");
 
 if (!/^((0|[1-9]\d*)\.){2}(0|[1-9]\d*)$/.test(version)) {
@@ -15,6 +15,7 @@ let packageJsonContent = await readFile(projectPath("package.json"), "utf8");
 let packageLockContent = await readFile(projectPath("package-lock.json"), "utf8");
 let tauriConfigContent = await readFile(projectPath("src-tauri/tauri.conf.json"), "utf8");
 let cargoToml = await readFile(projectPath("src-tauri/Cargo.toml"), "utf8");
+let cargoLock = await readFile(projectPath("src-tauri/Cargo.lock"), "utf8");
 
 const packageJson = JSON.parse(packageJsonContent);
 const packageLock = JSON.parse(packageLockContent);
@@ -43,12 +44,20 @@ cargoToml = cargoToml.replace(
   /^(\[package\]\n[\s\S]*?^version = ")[^"]+(")/m,
   (_match, prefix, suffix) => `${prefix}${version}${suffix}`,
 );
+cargoLock = cargoLock.replace(
+  /^(\[\[package\]\]\nname = "biolaris_media"\nversion = ")[^"]+(")/m,
+  (_match, prefix, suffix) => `${prefix}${version}${suffix}`,
+);
+if (!cargoLock.includes(`name = "biolaris_media"\nversion = "${version}"`)) {
+  throw new Error("Could not find the Rust package version in src-tauri/Cargo.lock.");
+}
 
 await Promise.all([
   writeFile(projectPath("package.json"), packageJsonContent),
   writeFile(projectPath("package-lock.json"), packageLockContent),
   writeFile(projectPath("src-tauri/tauri.conf.json"), tauriConfigContent),
   writeFile(projectPath("src-tauri/Cargo.toml"), cargoToml),
+  writeFile(projectPath("src-tauri/Cargo.lock"), cargoLock),
 ]);
 
 console.log(`Set application version to ${version}.`);

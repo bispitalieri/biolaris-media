@@ -3,6 +3,7 @@ import {createRoot} from 'react-dom/client';
 import {BrowserRouter} from 'react-router-dom';
 import App from './App';
 import {SettingsProvider} from './lib/settings';
+import {UpdaterProvider} from './lib/updater';
 import './styles.css';
 import './lib/i18n';
 
@@ -11,7 +12,9 @@ createRoot(document.getElementById('root')!)
     <React.StrictMode>
       <BrowserRouter>
         <SettingsProvider>
-          <App/>
+          <UpdaterProvider>
+            <App/>
+          </UpdaterProvider>
         </SettingsProvider>
       </BrowserRouter>
     </React.StrictMode>

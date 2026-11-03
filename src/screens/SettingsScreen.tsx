@@ -7,6 +7,7 @@ import {isTauri} from '@tauri-apps/api/core';
 import {useTranslation} from 'react-i18next';
 import {languageNames} from '../lib/i18n';
 import {MEDIA_FORMATS, type AppSettings, type MediaCategory, type ThemePreference, useAppSettings} from '../lib/settings';
+import {useUpdater} from '../lib/updater';
 
 type SettingsTab = 'general' | MediaCategory;
 
@@ -157,6 +158,7 @@ export function SettingsScreen() {
               onThemeChange={(theme) => updateGeneral({theme})}
               onAutoRenameOutputsChange={(enabled) => updateGeneral({autoRenameOutputs: enabled})}
               onAutostartChange={(enabled) => void setLaunchAtStartup(enabled)}
+              onUpdateSettings={(patch) => updateGeneral(patch)}
             />
           ) : (
             <MediaSettings
@@ -201,10 +203,12 @@ type GeneralSettingsProps = {
   onThemeChange: (theme: ThemePreference) => void;
   onAutoRenameOutputsChange: (enabled: boolean) => void;
   onAutostartChange: (enabled: boolean) => void;
+  onUpdateSettings: (patch: Partial<AppSettings['general']>) => void;
 };
 
-function GeneralSettings({settings, autostartAvailable, autostartBusy, autostartError, onLanguageChange, onThemeChange, onAutoRenameOutputsChange, onAutostartChange}: Readonly<GeneralSettingsProps>) {
+function GeneralSettings({settings, autostartAvailable, autostartBusy, autostartError, onLanguageChange, onThemeChange, onAutoRenameOutputsChange, onAutostartChange, onUpdateSettings}: Readonly<GeneralSettingsProps>) {
   const {t} = useTranslation();
+  const updater = useUpdater();
   const languageOptions = Object.entries(languageNames).sort(([codeA, nameA], [codeB, nameB]) => {
     if (codeA === 'en') return -1;
     if (codeB === 'en') return 1;
@@ -280,6 +284,77 @@ function GeneralSettings({settings, autostartAvailable, autostartBusy, autostart
           </div>
           {!autostartAvailable && <p className="mt-3 text-xs text-amber-300">{t('settingsDesktopOnly')}</p>}
           {autostartError && <p className="mt-3 text-xs text-red-400">{t('settingsAutostartError', {error: autostartError})}</p>}
+        </section>
+
+        <section className={`${cardClass} md:col-span-2`}>
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="min-w-0 flex-1">
+              <h3 className="text-sm font-semibold">{t('settingsUpdates')}</h3>
+              <p className="mt-1 text-xs text-zinc-500">{t('settingsUpdatesDescription')}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => void updater.checkForUpdates(true)}
+              disabled={!isTauri() || updater.stage === 'checking'}
+              className="rounded-lg border border-zinc-700 px-4 py-2 text-sm font-medium text-zinc-200 transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {updater.stage === 'checking' ? t('settingsCheckingUpdates') : t('settingsCheckUpdates')}
+            </button>
+          </div>
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-4 border-t border-zinc-800 pt-4">
+            <div>
+              <h4 className="text-sm font-medium">{t('settingsAutomaticUpdates')}</h4>
+              <p className="mt-1 text-xs text-zinc-500">{t('settingsAutomaticUpdatesDescription')}</p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={settings.general.automaticUpdates}
+              aria-label={t('settingsAutomaticUpdates')}
+              disabled={!isTauri()}
+              onClick={() => onUpdateSettings({automaticUpdates: !settings.general.automaticUpdates})}
+              className={`relative h-7 w-12 rounded-full transition ${settings.general.automaticUpdates ? 'bg-violet-600' : 'bg-zinc-700'} disabled:cursor-not-allowed disabled:opacity-50`}
+            >
+              <span className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-all ${settings.general.automaticUpdates ? 'left-6' : 'left-1'}`} />
+            </button>
+          </div>
+          <label className="mt-4 block max-w-sm text-sm font-medium" htmlFor="update-check-interval">
+            {t('settingsUpdateFrequency')}
+            <select
+              id="update-check-interval"
+              value={settings.general.updateCheckInterval}
+              onChange={(event) => onUpdateSettings({updateCheckInterval: event.target.value as AppSettings['general']['updateCheckInterval']})}
+              disabled={!isTauri() || !settings.general.automaticUpdates}
+              className={selectClass}
+            >
+              <option value="5m">{t('settingsEveryFiveMinutes')}</option>
+              <option value="daily">{t('settingsEveryDay')}</option>
+              <option value="weekly">{t('settingsEveryWeek')}</option>
+            </select>
+          </label>
+          {!isTauri() && <p className="mt-3 text-xs text-amber-300">{t('settingsDesktopOnly')}</p>}
+          {updater.stage === 'downloading' && (
+            <div className="mt-4 rounded-lg bg-zinc-800/70 p-3 text-xs text-zinc-300" role="status" aria-live="polite">
+              <p>{t('updateBackgroundProgress', {
+                progress: updater.progress.toFixed(0),
+                downloaded: (updater.downloadedBytes / (1024 * 1024)).toFixed(1),
+                total: updater.totalBytes ? (updater.totalBytes / (1024 * 1024)).toFixed(1) : '—',
+                speed: (updater.downloadSpeed / (1024 * 1024)).toFixed(1),
+              })}</p>
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-zinc-700">
+                <div className="h-full rounded-full bg-violet-500" style={{width: `${updater.progress}%`}} />
+              </div>
+            </div>
+          )}
+          {updater.stage === 'ready' && <p className="mt-3 text-xs text-emerald-300" role="status">{t('updateReady')}</p>}
+          {updater.stage === 'installed' && (
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+              <p className="text-xs text-emerald-300" role="status">{t('updateInstalled')}</p>
+              <button type="button" onClick={() => void updater.installUpdate(true)} className="rounded-lg bg-violet-600 px-3 py-2 text-xs font-semibold text-white hover:bg-violet-500">{t('updateRelaunchInstall')}</button>
+            </div>
+          )}
+          {updater.result === 'up-to-date' && <p className="mt-3 text-xs text-emerald-300" role="status">{t('settingsUpToDate')}</p>}
+          {updater.error && <p className="mt-3 text-xs text-red-400" role="alert">{t('settingsUpdateCheckError', {error: updater.error})}</p>}
         </section>
       </div>
     </div>
