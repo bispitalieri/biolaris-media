@@ -13,3 +13,4 @@ pub(crate) mod vectorize;
 pub(crate) mod split_by_chapter;
 pub(crate) mod split_pdfs;
 pub(crate) mod organize_pdfs;
+pub(crate) mod images_to_pdf;

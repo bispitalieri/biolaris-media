@@ -113,6 +113,19 @@ pub struct OrganizePdfPagesRequest {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct ImagesToPdfRequest {
+  pub image_paths: Vec<String>,
+  pub page_size: String,
+  pub custom_width_mm: Option<f64>,
+  pub custom_height_mm: Option<f64>,
+  pub quality: u8,
+  pub password: Option<String>,
+  #[serde(default = "default_true")]
+  pub auto_rename_outputs: bool,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SplitByChapterRequest {
   pub input_path: String,
   /// "original" keeps the source container and streams unchanged.
@@ -169,6 +182,14 @@ pub struct PdfFileInfo {
 pub struct PdfPagePreview {
   pub page_number: u32,
   pub data_url: String,
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ImageToPdfPreview {
+  pub data_url: String,
+  pub width: u32,
+  pub height: u32,
 }
 
 #[derive(Clone, Debug, Serialize)]

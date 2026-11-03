@@ -140,6 +140,20 @@ export const renderPdfPage = (path: string, pageNumber: number) =>
 export const organizePdfPages = (pdfPath: string, pageNumbers: number[]) =>
   invoke<string>('organize_pdf_pages', {request: {pdfPath, pageNumbers}});
 
+export type ImagesToPdfPageSize = 'fit-to-image' | 'a4' | 'letter' | 'custom';
+export type ImageToPdfPreview = {dataUrl: string; width: number; height: number};
+export const previewImageForPdf = (path: string) =>
+  invoke<ImageToPdfPreview>('preview_image_for_pdf', {path});
+export const enqueueImagesToPdf = (request: {
+  imagePaths: string[];
+  pageSize: ImagesToPdfPageSize;
+  customWidthMm: number;
+  customHeightMm: number;
+  quality: number;
+  password: string | null;
+  autoRenameOutputs: boolean;
+}) => invoke<string>('enqueue_images_to_pdf', {request});
+
 export type Chapter = {title: string; start: number; end: number};
 export type ChapterFileInfo = {
   chapters: Chapter[];

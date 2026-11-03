@@ -7,6 +7,7 @@ import {CropScreen} from './screens/CropScreen';
 import {SlideshowScreen} from './screens/SlideshowScreen';
 import {CombineVideosScreen} from './screens/CombineVideosScreen';
 import {CombinePdfsScreen} from './screens/CombinePdfsScreen';
+import {ImagesToPdfScreen} from './screens/ImagesToPdfScreen';
 import {SplitPdfsScreen} from './screens/SplitPdfsScreen';
 import {OrganizePagesScreen} from './screens/OrganizePagesScreen';
 import {MergeAudioScreen} from './screens/MergeAudioScreen';
@@ -62,6 +63,7 @@ export default function App() {
             <Route path="/slideshow" element={<SlideshowScreen/>}/>
             <Route path="/combine-videos" element={<CombineVideosScreen/>}/>
             <Route path="/combine-pdfs" element={<CombinePdfsScreen/>}/>
+            <Route path="/images-to-pdf" element={<ImagesToPdfScreen/>}/>
             <Route path="/split-pdfs" element={<SplitPdfsScreen/>}/>
             {isTauri() && <Route path="/organize-pages" element={<OrganizePagesScreen/>}/>}
             <Route path="/merge-audio" element={<MergeAudioScreen/>}/>

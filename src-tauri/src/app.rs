@@ -105,6 +105,8 @@ pub fn run() {
       commands::organize_pdfs::render_pdf_pages,
       commands::organize_pdfs::render_pdf_page,
       commands::organize_pdfs::organize_pdf_pages,
+      commands::images_to_pdf::preview_image_for_pdf,
+      commands::images_to_pdf::enqueue_images_to_pdf,
       commands::merge_audio::probe_audio_file,
       commands::merge_audio::prepare_audio_preview,
       commands::merge_audio::enqueue_merge_audio,
