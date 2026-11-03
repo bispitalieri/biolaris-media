@@ -1,7 +1,7 @@
 import {NavLink} from "react-router-dom";
 import {isTauri} from '@tauri-apps/api/core';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faExchangeAlt, faCompressAlt, faCropSimple, faImages, faGear, faIcons, faEraser, faFilm, faDownload, faBezierCurve, faMusic, faBookOpen, faFilePdf } from "@fortawesome/free-solid-svg-icons";
+import { faExchangeAlt, faCompressAlt, faCropSimple, faImages, faGear, faIcons, faEraser, faFilm, faDownload, faBezierCurve, faMusic, faBookOpen, faArrowRightArrowLeft, faImage, faScissors, faTableList } from "@fortawesome/free-solid-svg-icons";
 import {useTranslation} from 'react-i18next';
 import {openSettingsWindow} from '../lib/windows';
 import packageJson from '../../package.json';
@@ -81,16 +81,16 @@ const Sidebar = () => {
         </NavLink>
         <div className="mb-2 mt-4 px-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">{t('pdf')}</div>
         <NavLink to="/combine-pdfs" className={({isActive}) => `mb-1 flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}>
-          <FontAwesomeIcon icon={faFilePdf} className="w-4"/><span>{t('combinePdfs')}</span>
+          <FontAwesomeIcon icon={faArrowRightArrowLeft} className="w-4"/><span>{t('combinePdfs')}</span>
         </NavLink>
         <NavLink to="/images-to-pdf" className={({isActive}) => `mb-1 flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}>
-          <FontAwesomeIcon icon={faFilePdf} className="w-4"/><span>{t('imagesToPdf')}</span>
+          <FontAwesomeIcon icon={faImage} className="w-4"/><span>{t('imagesToPdf')}</span>
         </NavLink>
         <NavLink to="/split-pdfs" className={({isActive}) => `mb-1 flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}>
-          <FontAwesomeIcon icon={faFilePdf} className="w-4"/><span>{t('splitPdfs')}</span>
+          <FontAwesomeIcon icon={faScissors} className="w-4"/><span>{t('splitPdfs')}</span>
         </NavLink>
         {isTauri() && <NavLink to="/organize-pages" className={({isActive}) => `mb-1 flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}>
-          <FontAwesomeIcon icon={faFilePdf} className="w-4"/><span>{t('organizePages')}</span>
+          <FontAwesomeIcon icon={faTableList} className="w-4"/><span>{t('organizePages')}</span>
         </NavLink>}
       </nav>
       <div className="mt-auto shrink-0 space-y-3 px-3 py-4">
