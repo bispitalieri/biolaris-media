@@ -18,6 +18,7 @@
     "build": "tsc && vite build",
     "binaries:download": "node scripts/download-binaries.mjs",
     "binaries:stage": "node scripts/stage-binaries.mjs",
+    "version:check": "node scripts/check-version.mjs",
     "version:update": "node scripts/set-version.mjs",
     "dev:tauri": "npm run binaries:download && npm run binaries:stage && tauri dev",
     "tauri:build": "npm run binaries:download && npm run binaries:stage && tauri build",
