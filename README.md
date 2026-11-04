@@ -31,7 +31,7 @@ See the [Tauri prerequisites guide](https://v2.tauri.app/start/prerequisites/) f
    npm run binaries:download
    ```
 
-   The script gets the tools from their distributors: FFmpeg/FFprobe and Poppler from the public [unpins](https://unpins.org/) catalog, ImageMagick from its platform distributor, and libvips from its upstream archive on Windows. It checks published SHA-256 hashes and saves the files in `src-tauri/binaries/<target-triple>/`. Add `-- --force` if you need to download them again. Build on the same kind of system as your target platform.
+   The script first downloads and verifies the matching platform bundle from the `runtime-latest` release in [bispitalieri/biolaris-runtime](https://github.com/bispitalieri/biolaris-runtime/releases). If that platform bundle is not published, it downloads the tools from their distributors: FFmpeg/FFprobe and Poppler from the public [unpins](https://unpins.org/) catalog, ImageMagick from its platform distributor, and libvips from its upstream archive on Windows. It saves the files in `src-tauri/binaries/<target-triple>/`. Add `-- --force` to fetch and replace the runtime again. Build on the same kind of system as your target platform.
 
 3. Start the desktop app:
 
@@ -45,7 +45,7 @@ To build only the web frontend, run `npm run build`. The `dev:tauri` and `tauri:
 
 Before Tauri starts, `binaries:stage` puts the tools for your system in `src-tauri/binaries/runtime-current/`. Tauri packages that folder, which keeps binaries for other platforms out of your build. The folder contains FFmpeg/FFprobe, ImageMagick (`magick`/`convert`), and Poppler (`pdftoppm`/`pdfunite`). Aliases that share an executable are created in the per-user cache at startup rather than bundled as duplicate files. Windows builds also include libvips. There are no official standalone libvips builds for macOS or Linux, and the app does not currently use the `vips` command, so those builds leave it out.
 
-The `dev:tauri` and `tauri:build` commands download and prepare the tools automatically. GitHub Actions builds a separate package for Windows, macOS, and Linux, with only the binaries needed by that platform. The Linux build uses an x86_64 ImageMagick AppImage. The standalone macOS package comes from an external distributor and needs macOS Sonoma or later. You can find download sources, versions, and checksums in `runtime-manifest.json`.
+The `dev:tauri` and `tauri:build` commands download and prepare the tools automatically. The independent [biolaris-runtime](https://github.com/bispitalieri/biolaris-runtime) GitHub Actions workflow generates native Windows, macOS, and Linux runtime bundles and publishes them to its `runtime-latest` prerelease, so app builds can reuse the verified bundles instead of downloading each tool separately. The runtime workflow runs weekly, on runtime-project changes, and can be started manually from that repository's Actions tab. The Linux build uses an x86_64 ImageMagick AppImage. The standalone macOS package comes from an external distributor and needs macOS Sonoma or later. You can find download sources, versions, and checksums in `runtime-manifest.json`.
 
 To publish a release, push a stable semantic version tag such as `v1.2.3`. GitHub Actions uses the tag as the app version, builds signed updater packages, stages the release as a draft, and publishes it only after the Windows, macOS, and Linux packages and `latest.json` are all uploaded. To update every checked-in app-version location locally, run `npm run version:update -- 1.2.3`.
 

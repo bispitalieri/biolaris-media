@@ -11,6 +11,8 @@ import {spawnSync} from "node:child_process";
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const binariesDir = join(projectRoot, "src-tauri", "binaries");
+const runtimeRepository = process.env.BIOLARIS_RUNTIME_REPOSITORY || "bispitalieri/biolaris-runtime";
+const runtimeReleaseTag = "runtime-latest";
 const maxDownloadBytes = Number(process.env.BIOLARIS_BINARY_MAX_BYTES || 400 * 1024 * 1024);
 const requiredTools = ["ffmpeg", "ffprobe", "magick", "convert", "pdftoppm", "pdfunite", "yt-dlp"];
 const versionArgs = new Map([
@@ -27,9 +29,10 @@ const versionArgs = new Map([
 function printHelp() {
   console.log(`Uso: node scripts/download-binaries.mjs [--target <rust-target-triple>] [--force]
 
-Scarica separatamente il runtime del sistema host e lo conserva in
-src-tauri/binaries/<target-triple>. La build Tauri prepara poi solo il target
-corrente in src-tauri/binaries/runtime-current/.
+Scarica prima l'asset runtime GitHub pubblicato per il sistema host e lo
+conserva in src-tauri/binaries/<target-triple>. Se l'asset non è disponibile,
+scarica gli strumenti separatamente dalle sorgenti. Tauri prepara poi solo il
+target corrente in src-tauri/binaries/runtime-current/.
 
 Opzioni:
   --target <triple>  Specifica il target Rust; deve corrispondere al runner.
@@ -107,11 +110,14 @@ function run(command, args, options = {}) {
 }
 
 function githubHeaders() {
-  return {
+  const headers = {
     Accept: "application/vnd.github+json",
     "User-Agent": "biolaris-binary-downloader",
     "X-GitHub-Api-Version": "2022-11-28",
   };
+  const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
+  if (token) headers.Authorization = "Bearer " + token;
+  return headers;
 }
 
 async function fetchResponse(url, headers = {}) {
@@ -140,6 +146,63 @@ function parseSha256(text) {
   const match = text.match(/\b([a-f0-9]{64})\b/i);
   if (!match) throw new Error("Risposta checksum priva di SHA-256 valido.");
   return match[1].toLowerCase();
+}
+
+async function installPublishedRuntime(target, scratch) {
+  if (!/^[\w.-]+\/[\w.-]+$/.test(runtimeRepository)) {
+    throw new Error("BIOLARIS_RUNTIME_REPOSITORY deve usare il formato owner/repository.");
+  }
+  const releaseUrl = "https://api.github.com/repos/" + runtimeRepository + "/releases/tags/" + runtimeReleaseTag;
+  const response = await fetch(releaseUrl, {headers: githubHeaders(), redirect: "follow"});
+  if (response.status === 404) {
+    await response.body?.cancel();
+    console.log("Nessuna release runtime pubblicata in " + runtimeRepository + "; scarico gli strumenti dalle sorgenti.");
+    return undefined;
+  }
+  if (!response.ok) {
+    const details = (await response.text()).slice(0, 300);
+    throw new Error("Impossibile leggere la release runtime (" + response.status + " " + response.statusText + "): " + details);
+  }
+
+  const release = await response.json();
+  const archiveName = "biolaris-runtime-" + target + ".tar.gz";
+  const archiveAsset = release.assets?.find((asset) => asset.name === archiveName);
+  const checksumAsset = release.assets?.find((asset) => asset.name === archiveName + ".sha256");
+  if (!archiveAsset || !checksumAsset) {
+    console.log("La release runtime non contiene " + target + "; scarico gli strumenti dalle sorgenti.");
+    return undefined;
+  }
+
+  const checksumResponse = await fetchResponse(checksumAsset.browser_download_url, {Accept: "text/plain"});
+  const checksumText = await checksumResponse.text();
+  const checksumMatch = checksumText.trim().match(/^([a-f0-9]{64})(?:\s+\*?(.+))?$/i);
+  if (!checksumMatch || (checksumMatch[2] && checksumMatch[2].trim() !== archiveName)) {
+    throw new Error("Il checksum pubblicato per " + archiveName + " non è valido.");
+  }
+  const expectedSha256 = checksumMatch[1].toLowerCase();
+  const releaseDigest = archiveAsset.digest?.match(/^sha256:([a-f0-9]{64})$/i)?.[1]?.toLowerCase();
+  if (releaseDigest && releaseDigest !== expectedSha256) {
+    throw new Error("Il digest GitHub non corrisponde al checksum pubblicato per " + archiveName + ".");
+  }
+
+  const archivePath = join(scratch, archiveName);
+  console.log("Scarico il runtime " + target + " dalla release GitHub " + runtimeReleaseTag + "...");
+  await downloadFile(archiveAsset.browser_download_url, archivePath, expectedSha256);
+
+  const extracted = join(scratch, "published-runtime");
+  await extractArchive(archivePath, extracted, scratch);
+  const runtimeDir = join(extracted, target);
+  const manifest = JSON.parse(await readFile(join(runtimeDir, "runtime-manifest.json"), "utf8"));
+  const expectedTools = [...requiredTools, ...(target.startsWith("x86_64-pc-windows") ? ["vips"] : [])];
+  if (manifest.schemaVersion !== 2 || manifest.targetTriple !== target ||
+      manifest.standalone !== true || !Array.isArray(manifest.tools) ||
+      manifest.tools.length !== expectedTools.length ||
+      !expectedTools.every((tool) => manifest.tools.includes(tool))) {
+    throw new Error("Il runtime pubblicato non contiene un manifest compatibile per " + target + ".");
+  }
+  await smokeCheck(runtimeDir, manifest.tools);
+  await installRuntime(runtimeDir, target, manifest);
+  return manifest;
 }
 
 async function downloadFile(url, destination, expectedSha256, maxBytes = maxDownloadBytes, isGithub = false) {
@@ -570,40 +633,45 @@ try {
 
   await mkdir(binariesDir, {recursive: true});
   scratch = await mkdtemp(join(binariesDir, ".binary-download-"));
-  const stage = join(scratch, "runtime");
-  const prefix = stage;
-  const binDir = join(prefix, "bin");
-  await mkdir(binDir, {recursive: true});
-  const sourceRecords = [];
-
-  console.log("Scarico i binari separatamente dai distributori pubblici per " + target + "...");
-  await installUnpinsPackages(scratch, binDir, sourceRecords);
-  await installImageMagick(scratch, prefix, binDir, sourceRecords);
-  await installYtDlp(scratch, binDir, sourceRecords);
-
-  const tools = [...requiredTools];
-  if (process.platform === "win32") {
-    await installVipsWindows(scratch, prefix, binDir, sourceRecords);
-    tools.push("vips");
+  const publishedManifest = await installPublishedRuntime(target, scratch);
+  if (publishedManifest) {
+    console.log("Runtime installato dalla release GitHub: " + destination);
   } else {
-    console.warn("vips non scaricato: libvips non pubblica un binario standalone ufficiale per macOS/Linux; questo comando non è usato dal codice applicativo attuale.");
+    const stage = join(scratch, "runtime");
+    const prefix = stage;
+    const binDir = join(prefix, "bin");
+    await mkdir(binDir, {recursive: true});
+    const sourceRecords = [];
+
+    console.log("Scarico i binari separatamente dai distributori pubblici per " + target + "...");
+    await installUnpinsPackages(scratch, binDir, sourceRecords);
+    await installImageMagick(scratch, prefix, binDir, sourceRecords);
+    await installYtDlp(scratch, binDir, sourceRecords);
+
+    const tools = [...requiredTools];
+    if (process.platform === "win32") {
+      await installVipsWindows(scratch, prefix, binDir, sourceRecords);
+      tools.push("vips");
+    } else {
+      console.warn("vips non scaricato: libvips non pubblica un binario standalone ufficiale per macOS/Linux; questo comando non è usato dal codice applicativo attuale.");
+    }
+
+    const manifest = {
+      schemaVersion: 2,
+      targetTriple: target,
+      tools,
+      omittedTools: process.platform === "win32" ? [] : ["vips"],
+      standalone: true,
+      sources: sourceRecords,
+      downloadedAt: new Date().toISOString(),
+    };
+    console.log("Verifico l'avvio dei binari scaricati...");
+    await smokeCheck(prefix, tools);
+    await installRuntime(stage, target, manifest);
+
+    console.log("Runtime installato: " + destination);
+    if (!tools.includes("vips")) console.warn("Nota: il runtime macOS/Linux non include vips; per distribuirlo serve compilarlo staticamente o sostituirlo con un'implementazione nativa.");
   }
-
-  const manifest = {
-    schemaVersion: 2,
-    targetTriple: target,
-    tools,
-    omittedTools: process.platform === "win32" ? [] : ["vips"],
-    standalone: true,
-    sources: sourceRecords,
-    downloadedAt: new Date().toISOString(),
-  };
-  console.log("Verifico l'avvio dei binari scaricati...");
-  await smokeCheck(prefix, tools);
-  await installRuntime(stage, target, manifest);
-
-  console.log("Runtime installato: " + destination);
-  if (!tools.includes("vips")) console.warn("Nota: il runtime macOS/Linux non include vips; per distribuirlo serve compilarlo staticamente o sostituirlo con un'implementazione nativa.");
 } catch (error) {
   console.error("Download binari non riuscito: " + error.message);
   process.exitCode = 1;

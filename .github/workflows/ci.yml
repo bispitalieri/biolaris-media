@@ -16,6 +16,9 @@ permissions:
 jobs:
   desktop-build:
     name: Tauri build (${{ matrix.platform }})
+    env:
+      BIOLARIS_RUNTIME_REPOSITORY: bispitalieri/biolaris-runtime
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     strategy:
       fail-fast: false
       matrix:
