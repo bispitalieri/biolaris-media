@@ -12,8 +12,54 @@ permissions:
   contents: read
 
 jobs:
+  validate:
+    name: Validate release configuration
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Verify release version
+        env:
+          RELEASE_VERSION: ${{ github.ref_name }}
+        run: npm run version:check
+
+      - name: Validate updater signing configuration
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          RELEASE_PLATFORM: macOS
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: node scripts/validate-updater-config.mjs
+
+      - name: Verify updater signing key and password
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          test_file="$(mktemp)"
+          trap 'rm -f "$test_file" "$test_file.sig"' EXIT
+          printf 'Tauri updater signing preflight\n' > "$test_file"
+          ./node_modules/.bin/tauri signer sign \
+            --private-key "$TAURI_SIGNING_PRIVATE_KEY" \
+            --password "$TAURI_SIGNING_PRIVATE_KEY_PASSWORD" \
+            "$test_file"
+
   build:
     name: Release build (${{ matrix.platform }})
+    needs: validate
     env:
       BIOLARIS_RUNTIME_REPOSITORY: bispitalieri/biolaris-runtime
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -41,11 +87,6 @@ jobs:
         with:
           node-version: 24
           cache: npm
-
-      - name: Verify release version
-        env:
-          RELEASE_VERSION: ${{ github.ref_name }}
-        run: npm run version:check
 
       - name: Install Rust Toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -88,20 +129,6 @@ jobs:
             echo "Apple signing is not configured; building an unsigned macOS application."
           fi
 
-      - name: Validate updater signing configuration
-        env:
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-          RELEASE_PLATFORM: ${{ matrix.platform }}
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-        run: node scripts/validate-updater-config.mjs
-
       - name: Import Apple Developer certificate
         if: startsWith(matrix.platform, 'macOS') && steps.apple-signing.outputs.available == 'true'
         env:
@@ -119,7 +146,15 @@ jobs:
           security find-identity -v -p codesigning build.keychain
           rm certificate.p12
 
-      - name: Build signed updater artifacts
+      - name: Build updater artifacts
+        if: ${{ !startsWith(matrix.platform, 'macOS') || steps.apple-signing.outputs.available != 'true' }}
+        run: npm run tauri:build -- --target ${{ matrix.target }}
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+
+      - name: Build signed and notarized macOS updater artifacts
+        if: startsWith(matrix.platform, 'macOS') && steps.apple-signing.outputs.available == 'true'
         run: npm run tauri:build -- --target ${{ matrix.target }}
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}

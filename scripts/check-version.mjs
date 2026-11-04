@@ -26,9 +26,9 @@ const versions = [
   ["src-tauri/tauri.conf.json", tauriConfig.version],
 ];
 
-const cargoTomlVersion = cargoToml.match(/^\[package\]\n[\s\S]*?^version = "([^"]+)"/m)?.[1];
+const cargoTomlVersion = cargoToml.match(/^\[package\]\r?\n[\s\S]*?^version = "([^"]+)"/m)?.[1];
 const cargoLockVersion = cargoLock.match(
-  /^\[\[package\]\]\nname = "biolaris_media"\nversion = "([^"]+)"/m,
+  /^\[\[package\]\]\r?\nname = "biolaris_media"\r?\nversion = "([^"]+)"/m,
 )?.[1];
 versions.push(
   ["src-tauri/Cargo.toml", cargoTomlVersion],

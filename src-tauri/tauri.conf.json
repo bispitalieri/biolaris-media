@@ -47,7 +47,7 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDdGQjhEMzQxMEI0QjgyN0QKUldSOWdrc0xRZE80ZjI3WkU5Y2xJdW5naE5XNzYwRlhCejFuTXRKWEcrV05la245NFh0UUlCaUIK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDdDQTNDMkZDODhGOEFGMTkKUldRWnIvaUkvTUtqZklhYU9PbUNmRzJ6YmNTQkR2S3NvOWNsdENTWCtVM2E1K3J3Z2FzNW9mbnIK",
       "endpoints": [
         "https://github.com/bispitalieri/biolaris-media/releases/latest/download/latest.json"
       ],
