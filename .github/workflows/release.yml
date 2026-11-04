@@ -1,0 +1,57 @@
+name: Release to GitHub
+
+on:
+  workflow_run:
+    workflows: ["Build and deploy"]
+    types: [completed]
+
+concurrency:
+  group: biolaris-release-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  release:
+    name: Publish GitHub release
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_repository.full_name == github.repository &&
+      startsWith(github.event.workflow_run.head_branch, 'v')
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - uses: actions/download-artifact@v8
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+          pattern: biolaris-*
+          path: release-artifacts
+
+      - name: Create release and upload packages
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_VERSION: ${{ github.event.workflow_run.head_branch }}
+        run: |
+          if ! gh release view "$RELEASE_VERSION" >/dev/null 2>&1; then
+            gh release create "$RELEASE_VERSION" \
+              --verify-tag \
+              --draft \
+              --generate-notes
+          fi
+
+          node scripts/create-updater-manifest.mjs
+
+          while IFS= read -r -d '' asset; do
+            gh release upload "$RELEASE_VERSION" "$asset" --clobber
+          done < <(find release-artifacts -type f -print0)
+
+          gh release edit "$RELEASE_VERSION" --draft=false
