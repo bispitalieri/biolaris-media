@@ -14,7 +14,7 @@ permissions:
 jobs:
   validate:
     name: Validate release configuration
-    runs-on: ubuntu-26
+    runs-on: ubuntu-latest
     timeout-minutes: 10
 
     steps:
