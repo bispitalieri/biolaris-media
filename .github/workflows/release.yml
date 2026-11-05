@@ -2,7 +2,7 @@ name: Release
 
 on:
   push:
-    tags: ["v*"]
+    tags: [ "v*" ]
 
 concurrency:
   group: biolaris-release-${{ github.ref }}
@@ -271,36 +271,108 @@ jobs:
           RELEASE_METADATA_FILE=release-metadata.json node scripts/create-updater-manifest.mjs
 
           mkdir release-assets
+          VERSION="${RELEASE_VERSION#v}"
+
           while IFS= read -r -d '' asset; do
             relative_asset="${asset#release-artifacts/}"
             artifact_name="${relative_asset%%/*}"
             asset_name="${relative_asset##*/}"
-
-            if [[ "$artifact_name" == biolaris-* ]]; then
-              platform="${artifact_name#biolaris-}"
-              asset_name="${platform// /-}--${asset_name}"
+          
+            # Updater: utilizza esclusivamente i file generati dal manifest script.
+            if [[ "$artifact_name" == "updater-assets" ]]; then
+              destination_name="$asset_name"
+          
+              # Manifest Tauri.
+            elif [[ "$relative_asset" == "latest.json" ]]; then
+              destination_name="latest.json"
+          
+            else
+              # Identifica la piattaforma.
+              case "$artifact_name" in
+                "biolaris-macOS ARM64")
+                  platform="darwin-aarch64"
+                  ;;
+                "biolaris-macOS x64")
+                  platform="darwin-x86_64"
+                  ;;
+                "biolaris-Linux x64")
+                  platform="linux-x86_64"
+                  ;;
+                "biolaris-Windows x64")
+                  platform="windows-x86_64"
+                ;;
+                *)
+                  echo "::error::Unknown artifact directory: $artifact_name"
+                  exit 1
+                ;;
+              esac
+          
+              # Gli updater sono già presenti in updater-assets.
+              # Non pubblicare nuovamente gli originali.
+              case "$platform:$asset_name" in
+                darwin-*:*\.app.tar.gz|darwin-*:*\.app.tar.gz.sig|darwin-*:*\.app.zip.gz|darwin-*:*\.app.zip.gz.sig)
+                  continue
+                  ;;
+                linux-*:*\.AppImage|linux-*:*\.AppImage.sig)
+                  continue
+                  ;;
+                windows-*:*\.exe|windows-*:*\.exe.sig)
+                  continue
+                  ;;
+              esac
+              
+              # Rinomina gli installer manuali.
+              case "$platform:$asset_name" in
+                darwin-aarch64:*.dmg)
+                  destination_name="Biolaris-Media_${VERSION}_darwin-aarch64.dmg"
+                  ;;
+                darwin-x86_64:*.dmg)
+                  destination_name="Biolaris-Media_${VERSION}_darwin-x86_64.dmg"
+                  ;;
+                linux-x86_64:*.deb)
+                  destination_name="Biolaris-Media_${VERSION}_linux-x86_64.deb"
+                  ;;
+                linux-x86_64:*.rpm)
+                  destination_name="Biolaris-Media_${VERSION}_linux-x86_64.rpm"
+                  ;;
+                windows-x86_64:*.msi)
+                  destination_name="Biolaris-Media_${VERSION}_windows-x86_64-en-US.msi"
+                  ;;
+                windows-x86_64:*.msi.sig)
+                  destination_name="Biolaris-Media_${VERSION}_windows-x86_64-en-US.msi.sig"
+                  ;;
+                *)
+                  echo "::error::Unexpected release asset: $relative_asset"
+                  exit 1
+                  ;;
+              esac
             fi
-
-            destination="release-assets/$asset_name"
+          
+            destination="release-assets/$destination_name"
+          
             if [ -e "$destination" ]; then
-              echo "::error::Multiple build artifacts map to the same release asset: $asset_name"
+              echo "::error::Duplicate release asset: $destination_name"
               exit 1
             fi
+          
             cp -- "$asset" "$destination"
+            echo "Prepared: $destination_name"
           done < <(find release-artifacts -type f -print0)
-
+          
           mapfile -d '' assets < <(
             find release-assets -type f -print0
           )
-
+          
           if [ "${#assets[@]}" -eq 0 ]; then
             echo "::error::No release assets found."
             exit 1
           fi
+          
+          echo "Prepared ${#assets[@]} release assets."
 
           gh release upload \
-            "$RELEASE_VERSION" \
-            "${assets[@]}" \
-            --clobber
-
+          "$RELEASE_VERSION" \
+          "${assets[@]}" \
+          --clobber
+          
           gh release edit "$RELEASE_VERSION" --draft=false
