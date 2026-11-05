@@ -245,14 +245,28 @@ jobs:
           RELEASE_VERSION: ${{ github.ref_name }}
         shell: bash
         run: |
-          if ! gh release view "$RELEASE_VERSION" >/dev/null 2>&1; then
+          gh api --paginate "repos/{owner}/{repo}/releases?per_page=100" \
+            --jq ".[] | select(.tag_name == \"$RELEASE_VERSION\")" \
+            > release-metadata.json
+
+          if [ ! -s release-metadata.json ]; then
+            gh api "repos/{owner}/{repo}/releases/generate-notes" \
+              -f tag_name="$RELEASE_VERSION" \
+              > generated-release-notes.json
+
             gh release create "$RELEASE_VERSION" \
               --verify-tag \
               --draft \
-              --generate-notes
+              --title "$(jq -r '.name' generated-release-notes.json)" \
+              --notes-file <(jq -r '.body' generated-release-notes.json)
+
+            jq --arg tag "$RELEASE_VERSION" \
+              '{tag_name: $tag, prerelease: false, body: .body}' \
+              generated-release-notes.json \
+              > release-metadata.json
           fi
 
-          node scripts/create-updater-manifest.mjs
+          RELEASE_METADATA_FILE=release-metadata.json node scripts/create-updater-manifest.mjs
 
           mapfile -d '' assets < <(
             find release-artifacts -type f -print0
