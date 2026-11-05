@@ -100,6 +100,12 @@ jobs:
       - name: Install Node dependencies
         run: npm ci --prefer-offline
 
+      - name: Prepare temporary runtime placeholder
+        shell: bash
+        run: |
+          mkdir -p src-tauri/binaries/runtime-current
+          touch src-tauri/binaries/runtime-current/.cache-placeholder
+
       - name: Warm Rust release dependencies
         working-directory: src-tauri
         run: cargo build --release --locked --target ${{ matrix.target }}

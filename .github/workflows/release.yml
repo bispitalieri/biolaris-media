@@ -115,6 +115,7 @@ jobs:
           shared-key: ${{ matrix.target }}
           cache-targets: true
           cache-on-failure: true
+          save-if: ${{ github.ref == 'refs/heads/main' }}
 
       - name: Set Default Windows Toolchain (MSVC)
         if: runner.os == 'Windows'
