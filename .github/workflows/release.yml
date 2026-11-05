@@ -1,4 +1,4 @@
-name: Release (version tags)
+name: Release
 
 on:
   push:
@@ -14,7 +14,9 @@ permissions:
 jobs:
   validate:
     name: Validate release configuration
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26
+    timeout-minutes: 10
+
     steps:
       - uses: actions/checkout@v7
 
@@ -23,7 +25,8 @@ jobs:
           node-version: 24
           cache: npm
 
-      - run: npm ci
+      - name: Install dependencies
+        run: npm ci --prefer-offline
 
       - name: Verify release version
         env:
@@ -51,7 +54,9 @@ jobs:
         run: |
           test_file="$(mktemp)"
           trap 'rm -f "$test_file" "$test_file.sig"' EXIT
+
           printf 'Tauri updater signing preflight\n' > "$test_file"
+
           ./node_modules/.bin/tauri signer sign \
             --private-key "$TAURI_SIGNING_PRIVATE_KEY" \
             --password "$TAURI_SIGNING_PRIVATE_KEY_PASSWORD" \
@@ -60,9 +65,15 @@ jobs:
   build:
     name: Release build (${{ matrix.platform }})
     needs: validate
+
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+
     env:
       BIOLARIS_RUNTIME_REPOSITORY: bispitalieri/biolaris-runtime
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      CARGO_TERM_COLOR: always
+
     strategy:
       fail-fast: false
       matrix:
@@ -70,20 +81,24 @@ jobs:
           - platform: Linux x64
             os: ubuntu-24.04
             target: x86_64-unknown-linux-gnu
+
           - platform: Windows x64
             os: windows-latest
             target: x86_64-pc-windows-msvc
+
           - platform: macOS ARM64
             os: macos-26
             target: aarch64-apple-darwin
+
           - platform: macOS x64
             os: macos-15-intel
             target: x86_64-apple-darwin
-    runs-on: ${{ matrix.os }}
+
     steps:
       - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v7
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
@@ -93,6 +108,12 @@ jobs:
         with:
           targets: ${{ matrix.target }}
 
+      - name: Cache Rust dependencies and build artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> src-tauri/target
+          shared-key: ${{ matrix.target }}
+
       - name: Set Default Windows Toolchain (MSVC)
         if: runner.os == 'Windows'
         run: rustup default stable-x86_64-pc-windows-msvc
@@ -101,7 +122,8 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install --yes \
+
+          sudo apt-get install --yes --no-install-recommends \
             libwebkit2gtk-4.1-dev \
             build-essential \
             curl \
@@ -114,7 +136,8 @@ jobs:
             libgtk-3-dev \
             patchelf
 
-      - run: npm ci
+      - name: Install Node dependencies
+        run: npm ci --prefer-offline
 
       - name: Check optional Apple signing configuration
         id: apple-signing
@@ -137,13 +160,24 @@ jobs:
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
         run: |
           echo -n "$APPLE_CERTIFICATE" | base64 --decode > certificate.p12
+
           security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
           security default-keychain -s build.keychain
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
           security set-keychain-settings -t 3600 -u build.keychain
-          security import certificate.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" build.keychain
+
+          security import certificate.p12 \
+            -k build.keychain \
+            -P "$APPLE_CERTIFICATE_PASSWORD" \
+            -T /usr/bin/codesign
+
+          security set-key-partition-list \
+            -S apple-tool:,apple:,codesign: \
+            -s -k "$KEYCHAIN_PASSWORD" \
+            build.keychain
+
           security find-identity -v -p codesigning build.keychain
+
           rm certificate.p12
 
       - name: Build updater artifacts
@@ -164,9 +198,13 @@ jobs:
           APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
-      - uses: actions/upload-artifact@v7
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v7
         with:
           name: biolaris-${{ matrix.platform }}
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 30
           path: |
             src-tauri/target/**/release/bundle/**/*.AppImage
             src-tauri/target/**/release/bundle/**/*.AppImage.sig
@@ -181,20 +219,21 @@ jobs:
             src-tauri/target/**/release/bundle/**/*.app.tar.gz.sig
             src-tauri/target/**/release/bundle/**/*.app.zip.gz
             src-tauri/target/**/release/bundle/**/*.app.zip.gz.sig
-          if-no-files-found: error
-          retention-days: 30
 
   publish:
     name: Publish GitHub release
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+
     permissions:
       contents: write
 
     steps:
       - uses: actions/checkout@v7
 
-      - uses: actions/download-artifact@v8
+      - name: Download build artifacts
+        uses: actions/download-artifact@v8
         with:
           pattern: biolaris-*
           path: release-artifacts
@@ -204,6 +243,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_VERSION: ${{ github.ref_name }}
+        shell: bash
         run: |
           if ! gh release view "$RELEASE_VERSION" >/dev/null 2>&1; then
             gh release create "$RELEASE_VERSION" \
@@ -214,8 +254,18 @@ jobs:
 
           node scripts/create-updater-manifest.mjs
 
-          while IFS= read -r -d '' asset; do
-            gh release upload "$RELEASE_VERSION" "$asset" --clobber
-          done < <(find release-artifacts -type f -print0)
+          mapfile -d '' assets < <(
+            find release-artifacts -type f -print0
+          )
+
+          if [ "${#assets[@]}" -eq 0 ]; then
+            echo "::error::No release assets found."
+            exit 1
+          fi
+
+          gh release upload \
+            "$RELEASE_VERSION" \
+            "${assets[@]}" \
+            --clobber
 
           gh release edit "$RELEASE_VERSION" --draft=false
