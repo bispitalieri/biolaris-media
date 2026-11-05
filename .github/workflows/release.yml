@@ -111,8 +111,10 @@ jobs:
       - name: Cache Rust dependencies and build artifacts
         uses: Swatinem/rust-cache@v2
         with:
-          workspaces: src-tauri -> src-tauri/target
+          workspaces: src-tauri -> target
           shared-key: ${{ matrix.target }}
+          cache-targets: true
+          cache-on-failure: true
 
       - name: Set Default Windows Toolchain (MSVC)
         if: runner.os == 'Windows'
@@ -268,8 +270,27 @@ jobs:
 
           RELEASE_METADATA_FILE=release-metadata.json node scripts/create-updater-manifest.mjs
 
+          mkdir release-assets
+          while IFS= read -r -d '' asset; do
+            relative_asset="${asset#release-artifacts/}"
+            artifact_name="${relative_asset%%/*}"
+            asset_name="${relative_asset##*/}"
+
+            if [[ "$artifact_name" == biolaris-* ]]; then
+              platform="${artifact_name#biolaris-}"
+              asset_name="${platform// /-}--${asset_name}"
+            fi
+
+            destination="release-assets/$asset_name"
+            if [ -e "$destination" ]; then
+              echo "::error::Multiple build artifacts map to the same release asset: $asset_name"
+              exit 1
+            fi
+            cp -- "$asset" "$destination"
+          done < <(find release-artifacts -type f -print0)
+
           mapfile -d '' assets < <(
-            find release-artifacts -type f -print0
+            find release-assets -type f -print0
           )
 
           if [ "${#assets[@]}" -eq 0 ]; then
