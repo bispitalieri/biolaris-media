@@ -108,4 +108,4 @@ jobs:
 
       - name: Warm Rust release dependencies
         working-directory: src-tauri
-        run: cargo build --release --locked --target ${{ matrix.target }} --features tauri/custom-protocol
+        run: cargo build --release --locked --target ${{ matrix.target }}
