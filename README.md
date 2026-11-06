@@ -1,70 +1,159 @@
-# Biolaris Media
+<div align="center">
+  <img src="src-tauri/icons/icon.png" alt="Biolaris Media app icon" width="112">
+  <h1>Biolaris Media</h1>
+  <p><strong>Media tools, kept on your desktop.</strong></p>
+  <p>A local-first desktop toolbox for converting, compressing, and working with media files, images, and PDFs.</p>
+  <p><a href="README.it.md">🇮🇹 Italiano</a> · <strong>🇬🇧 English</strong></p>
+  <p>
+    <a href="https://github.com/bispitalieri/biolaris-media/releases">
+      <img alt="Latest release" src="https://img.shields.io/github/v/release/bispitalieri/biolaris-media?display_name=tag">
+    </a>
+    <a href="https://github.com/bispitalieri/biolaris-media/releases">
+      <img alt="GitHub release downloads" src="https://img.shields.io/github/downloads/bispitalieri/biolaris-media/total">
+    </a>
+    <a href="LICENSE">
+      <img alt="License: AGPL-3.0-only" src="https://img.shields.io/github/license/bispitalieri/biolaris-media">
+    </a>
+    <a href="https://github.com/bispitalieri/biolaris-media/actions/workflows/ci.yml">
+      <img alt="CI status" src="https://img.shields.io/github/actions/workflow/status/bispitalieri/biolaris-media/ci.yml?branch=main&label=CI">
+    </a>
+    <a href="https://github.com/bispitalieri/biolaris-media/issues">
+      <img alt="Open issues" src="https://img.shields.io/github/issues/bispitalieri/biolaris-media">
+    </a>
+  </p>
+  <p>
+    <a href="https://github.com/bispitalieri/biolaris-media/releases">
+      <img alt="Windows supported" src="https://img.shields.io/badge/Windows-supported-0078D4?logo=windows&logoColor=white">
+    </a>
+    <a href="https://github.com/bispitalieri/biolaris-media/releases">
+      <img alt="macOS supported" src="https://img.shields.io/badge/macOS-supported-000000?logo=apple&logoColor=white">
+    </a>
+    <a href="https://github.com/bispitalieri/biolaris-media/releases">
+      <img alt="Linux supported" src="https://img.shields.io/badge/Linux-supported-FCC624?logo=linux&logoColor=black">
+    </a>
+  </p>
+  <p>
+    <a href="#preview">Preview</a> ·
+    <a href="#features">Features</a> ·
+    <a href="#why-biolaris">Why Biolaris?</a> ·
+    <a href="#download">Download</a> ·
+    <a href="#build-from-source">Build from source</a> ·
+    <a href="#documentation">Documentation</a> ·
+    <a href="#contributing">Contributing</a>
+  </p>
+</div>
 
-🇬🇧 English | [🇮🇹 Italiano](README.it.md)
+Biolaris brings everyday media and file utilities into one desktop app. Choose a tool, add files, adjust its options, and follow the job as it runs. Conversion and processing happen on your computer; files are not sent to a hosted conversion service.
 
-Biolaris Media is an open-source desktop app for converting and compressing media files on your computer. It is built with Tauri 2, React, TypeScript, and Rust, and includes the tools it needs to work with your files.
+> **Project status:** Biolaris is under active development. Format support varies by tool and bundled codecs. No formal roadmap is published.
 
-> **Project status:** Biolaris Media is still in development. You can convert and compress audio and video files. Image and PDF tools, resizing, and PDF extraction and merging are still being connected. The audio quality setting does not change codec settings yet.
+## Preview
 
-## Requirements
+The screenshots below show the current app: the main conversion workspace and PDF page organizer.
 
-- Node.js and npm
-- Rust and Cargo
-- The Tauri 2 development prerequisites for your platform
-- An internet connection for the first download of the media tool binaries
+<table>
+  <tr>
+    <td align="center">
+      <img src=".github/docs/images/ScreenShot_1.png" alt="Biolaris Media conversion screen with tool navigation and local file queue" width="100%">
+      <br><strong>Convert media in the local desktop workspace</strong>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src=".github/docs/images/ScreenShot_4.png" alt="Biolaris Media PDF page organizer with page previews and reorder controls" width="100%">
+      <br><strong>Preview, reorder, and organize PDF pages</strong>
+    </td>
+  </tr>
+</table>
 
-See the [Tauri prerequisites guide](https://v2.tauri.app/start/prerequisites/) for your operating system.
+## Features
 
-## Run in development
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>Convert and compress</h3>
+      <p>Convert supported image, audio, and video files. Available output formats depend on the input and codecs in the bundled tools. Compress supported images, selected video formats, and MP3/OGG audio with adjustable quality.</p>
+    </td>
+    <td width="50%" valign="top">
+      <h3>Image tools</h3>
+      <p>Crop images, remove backgrounds from JPG/PNG/WebP images, trace raster artwork into SVG paths, and generate icon packages for Windows, macOS, iOS, Android, and web projects.</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>Audio and video</h3>
+      <p>Create MP4 slideshows, combine videos, join audio tracks (with optional M4B chapter markers), split chapter-marked media, and download videos from supported links.</p>
+    </td>
+    <td width="50%" valign="top">
+      <h3>PDF utilities</h3>
+      <p>Combine PDFs, split by page ranges, reorder or remove pages in a new copy, and create PDFs from images. Password-protected PDFs must be unlocked before processing.</p>
+    </td>
+  </tr>
+</table>
 
-1. Clone the repository and install dependencies:
+See the [feature and format reference](.github/docs/FEATURES.md) for per-tool input/output formats and known limitations.
 
-   ```sh
-   git clone https://github.com/bispitalieri/biolaris-media.git
-   cd biolaris-media
-   npm ci
-   ```
+## Why Biolaris?
 
-2. Download the binaries for the current system:
+Biolaris brings media conversion, image work, and PDF utilities together in a native desktop interface. Processing stays on your computer, while Rust and Tauri power the desktop app across the currently released Windows, macOS, and Linux builds. The project is open source under AGPL-3.0-only.
 
-   ```sh
-   npm run binaries:download
-   ```
+### Local processing
 
-   The script first downloads and verifies the matching platform bundle from the `runtime-latest` release in [bispitalieri/biolaris-runtime](https://github.com/bispitalieri/biolaris-runtime/releases). If that platform bundle is not published, it downloads the tools from their distributors: FFmpeg/FFprobe and Poppler from the public [unpins](https://unpins.org/) catalog, ImageMagick from its platform distributor, and libvips from its upstream archive on Windows. It saves the files in `src-tauri/binaries/<target-triple>/`. Add `-- --force` to fetch and replace the runtime again. Build on the same kind of system as your target platform.
+Biolaris is a native desktop app built with Tauri 2, Rust, React, and TypeScript. Its bundled media tools process selected files locally. Background removal downloads its model on first use (about 183 MB), then runs it locally on the CPU; video downloading needs an internet connection. See [installation and first-use notes](.github/docs/INSTALLATION.md).
 
-3. Start the desktop app:
+## Download
 
-   ```sh
-   npm run dev:tauri
-   ```
+Download from the [official GitHub Releases page](https://github.com/bispitalieri/biolaris-media/releases). Releases currently provide packages for Windows x64, macOS (Apple silicon and Intel), and Linux x64. Choose the package for your system; exact filenames vary by release.
 
-To build only the web frontend, run `npm run build`. The `dev:tauri` and `tauri:build` commands download the tools automatically if they are not already on your system.
+| Platform | Release packages |
+| --- | --- |
+| Windows x64 | `.msi` or `.exe` installer |
+| macOS Apple silicon or Intel | `.dmg` |
+| Linux x64 | `.AppImage`, `.deb`, or `.rpm` |
 
-## Runtime binaries and distribution
+See [installation instructions](.github/docs/INSTALLATION.md) for package notes and troubleshooting.
 
-Before Tauri starts, `binaries:stage` puts the tools for your system in `src-tauri/binaries/runtime-current/`. Tauri packages that folder, which keeps binaries for other platforms out of your build. The folder contains FFmpeg/FFprobe, ImageMagick (`magick`/`convert`), and Poppler (`pdftoppm`/`pdfunite`). Aliases that share an executable are created in the per-user cache at startup rather than bundled as duplicate files. Windows builds also include libvips. There are no official standalone libvips builds for macOS or Linux, and the app does not currently use the `vips` command, so those builds leave it out.
+## Build from source
 
-The `dev:tauri` and `tauri:build` commands download and prepare the tools automatically. The independent [biolaris-runtime](https://github.com/bispitalieri/biolaris-runtime) GitHub Actions workflow generates native Windows, macOS, and Linux runtime bundles and publishes them to its `runtime-latest` prerelease, so app builds can reuse the verified bundles instead of downloading each tool separately. The runtime workflow runs weekly, on runtime-project changes, and can be started manually from that repository's Actions tab. The Linux build uses an x86_64 ImageMagick AppImage. The standalone macOS package comes from an external distributor and needs macOS Sonoma or later. You can find download sources, versions, and checksums in `runtime-manifest.json`.
+Install Node.js, Rust stable/Cargo, and the native prerequisites for Tauri on your operating system. Then:
 
-Before publishing a release, update every checked-in app-version location locally with `npm run version:update -- 1.2.3`, then commit and push those changes with the matching stable semantic version tag `v1.2.3`. GitHub Actions does not change the app version; it checks that the tag matches the committed version before building signed updater packages, staging the release as a draft, and publishing it after the Windows, macOS, and Linux packages and `latest.json` are uploaded.
+```sh
+git clone https://github.com/bispitalieri/biolaris-media.git
+cd biolaris-media
+npm ci
+npm run dev:tauri
+```
 
-The updater public key is configured in `src-tauri/tauri.conf.json`; the matching private key and password must be available to GitHub Actions as `TAURI_SIGNING_PRIVATE_KEY` and `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`. Keep the private key out of the repository and do not replace the key pair casually: existing installations trust the configured public key. If preparing a new repository, generate a key with `npm run tauri -- signer generate -w ~/.tauri/biolaris.key`, configure its public key and store its private key/password as Actions secrets. Tagged builds fail early if the signing configuration is missing.
+Create a desktop build with `npm run tauri:build`; build only the frontend with `npm run build`. Desktop setup downloads the matching media-tool runtime. See [development and build instructions](.github/docs/DEVELOPMENT.md).
 
-Apple signing and notarization are optional. Without Apple secrets, tagged releases include unsigned macOS builds; macOS may show a security warning, and users may need to Control-click the app and choose **Open**. Later, add `APPLE_CERTIFICATE` (base64-encoded Developer ID `.p12`), `APPLE_CERTIFICATE_PASSWORD`, `APPLE_SIGNING_IDENTITY`, `KEYCHAIN_PASSWORD`, `APPLE_ID`, `APPLE_PASSWORD` (an app-specific password), and `APPLE_TEAM_ID` as GitHub Actions secrets. Once `APPLE_CERTIFICATE` is present, the release workflow requires the full set, imports the certificate, and signs and notarizes the macOS app.
+## Documentation
 
-The published `v0.1.0` predates the updater. Users on that version must manually install the first updater-enabled release once; later updater-enabled versions can update through the app.
+- [Features and supported formats](.github/docs/FEATURES.md)
+- [Installation and first use](.github/docs/INSTALLATION.md)
+- [Development and builds](.github/docs/DEVELOPMENT.md)
+- [Contributing guide](.github/CONTRIBUTING.md)
+- [Security policy](.github/SECURITY.md)
+- [Code of Conduct](.github/CODE_OF_CONDUCT.md)
+- [Third-party model notice](.github/THIRD_PARTY_NOTICES.md)
 
-Before sharing or distributing the app, check the licenses for FFmpeg and its codecs, ImageMagick, libvips, Poppler, and the libraries they include. The AGPL license for this repository does not cover those separate programs.
+Documentation is maintained in this repository; Biolaris has no separate website or documentation portal.
 
 ## Contributing
 
-Found a bug or have an idea? Let us know through [GitHub Issues](https://github.com/bispitalieri/biolaris-media/issues). For a larger change, open an issue first so we can discuss the approach. See the [contribution guide](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md) before getting started.
+Report bugs and suggest improvements through [GitHub Issues](https://github.com/bispitalieri/biolaris-media/issues). For larger changes, open an issue to discuss the approach, then submit a focused pull request. Read the [contributing guide](.github/CONTRIBUTING.md) and follow the [Code of Conduct](.github/CODE_OF_CONDUCT.md). Report security vulnerabilities privately according to the [security policy](.github/SECURITY.md).
 
-## Security
+## Support Biolaris
 
-If you find a security vulnerability, follow the instructions in [SECURITY.md](SECURITY.md). Please do not post details that could be used to exploit it in a public issue.
+If Biolaris Media is useful to you, consider supporting development:
+
+
+<div align="center">
+
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/bspitalieri)
+[![GitHub Sponsors](https://img.shields.io/badge/GitHub%20Sponsors-EA4AAA?style=for-the-badge&logo=github-sponsors&logoColor=white)](https://github.com/sponsors/tranvuongquocdat)
+
+</div>
 
 ## License
 
-Biolaris Media's code is available under the [GNU Affero General Public License v3.0](LICENSE).
+Biolaris Media is licensed under **AGPL-3.0-only**. See [LICENSE](LICENSE).
