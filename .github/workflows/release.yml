@@ -23,7 +23,17 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 24
-          cache: npm
+
+      - name: Get npm cache directory
+        id: npm-cache-dir
+        shell: bash
+        run: echo "dir=$(npm config get cache)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore npm cache
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ steps.npm-cache-dir.outputs.dir }}
+          key: npm-${{ runner.os }}-${{ runner.arch }}-node24-${{ hashFiles('package-lock.json') }}
 
       - name: Install dependencies
         run: npm ci --prefer-offline
@@ -101,7 +111,17 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: 24
-          cache: npm
+
+      - name: Get npm cache directory
+        id: npm-cache-dir
+        shell: bash
+        run: echo "dir=$(npm config get cache)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore npm cache
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ steps.npm-cache-dir.outputs.dir }}
+          key: npm-${{ runner.os }}-${{ runner.arch }}-node24-${{ hashFiles('package-lock.json') }}
 
       - name: Install Rust Toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -115,7 +135,7 @@ jobs:
           shared-key: ${{ matrix.target }}
           cache-targets: true
           cache-on-failure: true
-          save-if: ${{ github.ref == 'refs/heads/main' }}
+          save-if: false
 
       - name: Set Default Windows Toolchain (MSVC)
         if: runner.os == 'Windows'
@@ -207,7 +227,7 @@ jobs:
           name: biolaris-${{ matrix.platform }}
           compression-level: 0
           if-no-files-found: error
-          retention-days: 30
+          retention-days: 10
           path: |
             src-tauri/target/**/release/bundle/**/*.AppImage
             src-tauri/target/**/release/bundle/**/*.AppImage.sig
@@ -234,6 +254,43 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Install git-cliff
+        uses: taiki-e/install-action@git-cliff
+
+      - name: Generate release notes
+        env:
+          GITHUB_REPO: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git-cliff \
+            --latest \
+            --strip header \
+            --config <(cat <<'EOF'
+          [git]
+          conventional_commits = true
+          filter_unconventional = true
+          commit_parsers = [
+            { message = "^feat", group = "Features" },
+            { message = "^fix", group = "Bug Fixes" },
+            { message = "^perf", group = "Performance" },
+            { message = "^refactor", group = "Refactoring" },
+            { message = "^ci", group = "CI/CD" },
+            { message = "^build", group = "Build System" },
+            { message = "^chore", group = "Maintenance" },
+          ]
+          EOF
+          ) > release-notes.md
+
+          if [ ! -s release-notes.md ]; then
+            echo "::error::git-cliff generated empty release notes."
+            exit 1
+          fi
+
+          echo "Generated release notes:"
+          cat release-notes.md
 
       - name: Download build artifacts
         uses: actions/download-artifact@v8
@@ -253,19 +310,16 @@ jobs:
             > release-metadata.json
 
           if [ ! -s release-metadata.json ]; then
-            gh api "repos/{owner}/{repo}/releases/generate-notes" \
-              -f tag_name="$RELEASE_VERSION" \
-              > generated-release-notes.json
-
             gh release create "$RELEASE_VERSION" \
               --verify-tag \
               --draft \
-              --title "$(jq -r '.name' generated-release-notes.json)" \
-              --notes-file <(jq -r '.body' generated-release-notes.json)
+              --title "Biolaris $RELEASE_VERSION" \
+              --notes-file release-notes.md
 
-            jq --arg tag "$RELEASE_VERSION" \
-              '{tag_name: $tag, prerelease: false, body: .body}' \
-              generated-release-notes.json \
+            jq -n \
+              --arg tag "$RELEASE_VERSION" \
+              --rawfile body release-notes.md \
+              '{tag_name: $tag, prerelease: false, body: $body}' \
               > release-metadata.json
           fi
 
@@ -278,15 +332,15 @@ jobs:
             relative_asset="${asset#release-artifacts/}"
             artifact_name="${relative_asset%%/*}"
             asset_name="${relative_asset##*/}"
-          
+
             # Updater: utilizza esclusivamente i file generati dal manifest script.
             if [[ "$artifact_name" == "updater-assets" ]]; then
               destination_name="$asset_name"
-          
+
               # Manifest Tauri.
             elif [[ "$relative_asset" == "latest.json" ]]; then
               destination_name="latest.json"
-          
+
             else
               # Identifica la piattaforma.
               case "$artifact_name" in
@@ -301,13 +355,13 @@ jobs:
                   ;;
                 "biolaris-Windows x64")
                   platform="windows-x86_64"
-                ;;
+                  ;;
                 *)
                   echo "::error::Unknown artifact directory: $artifact_name"
                   exit 1
-                ;;
+                  ;;
               esac
-          
+
               # Gli updater sono già presenti in updater-assets.
               # Non pubblicare nuovamente gli originali.
               case "$platform:$asset_name" in
@@ -321,7 +375,7 @@ jobs:
                   continue
                   ;;
               esac
-              
+
               # Rinomina gli installer manuali.
               case "$platform:$asset_name" in
                 darwin-aarch64:*.dmg)
@@ -348,32 +402,32 @@ jobs:
                   ;;
               esac
             fi
-          
+
             destination="release-assets/$destination_name"
-          
+
             if [ -e "$destination" ]; then
               echo "::error::Duplicate release asset: $destination_name"
               exit 1
             fi
-          
+
             cp -- "$asset" "$destination"
             echo "Prepared: $destination_name"
           done < <(find release-artifacts -type f -print0)
-          
+
           mapfile -d '' assets < <(
             find release-assets -type f -print0
           )
-          
+
           if [ "${#assets[@]}" -eq 0 ]; then
             echo "::error::No release assets found."
             exit 1
           fi
-          
+
           echo "Prepared ${#assets[@]} release assets."
 
           gh release upload \
-          "$RELEASE_VERSION" \
-          "${assets[@]}" \
-          --clobber
-          
+            "$RELEASE_VERSION" \
+            "${assets[@]}" \
+            --clobber
+
           gh release edit "$RELEASE_VERSION" --draft=false
