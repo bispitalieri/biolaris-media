@@ -20,6 +20,18 @@
     <a href="https://github.com/bispitalieri/biolaris-media/issues">
       <img alt="Open issues" src="https://img.shields.io/github/issues/bispitalieri/biolaris-media">
     </a>
+    <a href="https://github.com/bispitalieri/biolaris-media/graphs/contributors">
+      <img alt="Contributors" src="https://img.shields.io/github/contributors/bispitalieri/biolaris-media">
+    </a>
+    <a href="https://github.com/bispitalieri/biolaris-media">
+      <img alt="Repo size" src="https://img.shields.io/github/repo-size/bispitalieri/biolaris-media">
+    </a>
+    <a href="https://github.com/bispitalieri/biolaris-media/commits/main">
+      <img alt="Last commit" src="https://img.shields.io/github/last-commit/bispitalieri/biolaris-media">
+    </a>
+    <a href="https://deps.rs/repo/github/bispitalieri/biolaris-media">
+      <img alt="Rust dependencies" src="https://deps.rs/repo/github/bispitalieri/biolaris-media/status.svg">
+    </a>
   </p>
   <p>
     <a href="https://github.com/bispitalieri/biolaris-media/releases">
@@ -35,7 +47,9 @@
   <p>
     <a href="#preview">Preview</a> ·
     <a href="#features">Features</a> ·
+    <a href="#tech-stack">Tech Stack</a> ·
     <a href="#why-biolaris">Why Biolaris?</a> ·
+    <a href="#alternatives">Alternatives</a> ·
     <a href="#download">Download</a> ·
     <a href="#build-from-source">Build from source</a> ·
     <a href="#documentation">Documentation</a> ·
@@ -93,6 +107,18 @@ The screenshots below show the current app: the main conversion workspace and PD
 
 See the [feature and format reference](.github/docs/FEATURES.md) for per-tool input/output formats and known limitations.
 
+## Tech Stack
+
+| Layer | Technology |
+| --- | --- |
+| Desktop Framework | Tauri 2 |
+| Backend | Rust (Tokio, Image crate, vTracer, LoPDF) |
+| Frontend | React 19, TypeScript, TailwindCSS 4 |
+| Media Engine | FFmpeg, ImageMagick, yt-dlp, BiRefNet (ONNX) |
+| Build | Vite 8, Cargo |
+| i18n | i18next + react-i18next |
+| CI/CD | GitHub Actions (4 piattaforme) |
+
 ## Why Biolaris?
 
 Biolaris brings media conversion, image work, and PDF utilities together in a native desktop interface. Processing stays on your computer, while Rust and Tauri power the desktop app across the currently released Windows, macOS, and Linux builds. The project is open source under AGPL-3.0-only.
@@ -100,6 +126,18 @@ Biolaris brings media conversion, image work, and PDF utilities together in a na
 ### Local processing
 
 Biolaris is a native desktop app built with Tauri 2, Rust, React, and TypeScript. Its bundled media tools process selected files locally. Background removal downloads its model on first use (about 183 MB), then runs it locally on the CPU; video downloading needs an internet connection. See [installation and first-use notes](.github/docs/INSTALLATION.md).
+
+## Alternatives
+
+| Feature | Biolaris | CloudConvert | HandBrake |
+| --- | --- | --- | --- |
+| Local processing | ✅ | ❌ | ✅ |
+| Image + Video + Audio + PDF | ✅ | ✅ | ❌ |
+| Background removal | ✅ | ❌ | ❌ |
+| No account required | ✅ | ❌ | ✅ |
+| Open source (AGPL) | ✅ | ❌ | ✅ |
+| Cross-platform desktop | ✅ | Web only | ✅ |
+| Video downloader | ✅ | ❌ | ❌ |
 
 ## Download
 
@@ -140,6 +178,9 @@ Documentation is maintained in this repository; Biolaris has no separate website
 
 ## Contributing
 
+[![Good first issues](https://img.shields.io/github/issues/bispitalieri/biolaris-media/good%20first%20issue)](https://github.com/bispitalieri/biolaris-media/labels/good%20first%20issue)
+[![Help wanted](https://img.shields.io/github/issues/bispitalieri/biolaris-media/help%20wanted)](https://github.com/bispitalieri/biolaris-media/labels/help%20wanted)
+
 Report bugs and suggest improvements through [GitHub Issues](https://github.com/bispitalieri/biolaris-media/issues). For larger changes, open an issue to discuss the approach, then submit a focused pull request. Read the [contributing guide](.github/CONTRIBUTING.md) and follow the [Code of Conduct](.github/CODE_OF_CONDUCT.md). Report security vulnerabilities privately according to the [security policy](.github/SECURITY.md).
 
 ## Support Biolaris
@@ -150,9 +191,13 @@ If Biolaris Media is useful to you, consider supporting development:
 <div align="center">
 
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/bspitalieri)
-[![GitHub Sponsors](https://img.shields.io/badge/GitHub%20Sponsors-EA4AAA?style=for-the-badge&logo=github-sponsors&logoColor=white)](https://github.com/sponsors/tranvuongquocdat)
+[![GitHub Sponsors](https://img.shields.io/badge/GitHub%20Sponsors-EA4AAA?style=for-the-badge&logo=github-sponsors&logoColor=white)](https://github.com/sponsors/bispitalieri)
 
 </div>
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=bispitalieri/biolaris-media&type=Date)](https://star-history.com/#bispitalieri/biolaris-media&Date)
 
 ## License
 

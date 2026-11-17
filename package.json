@@ -4,14 +4,6 @@
   "private": false,
   "description": "Open-source desktop app for local media conversion and compression",
   "license": "AGPL-3.0-only",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/bispitalieri/biolaris-media.git"
-  },
-  "bugs": {
-    "url": "https://github.com/bispitalieri/biolaris-media/issues"
-  },
-  "homepage": "https://github.com/bispitalieri/biolaris-media#readme",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -55,5 +47,18 @@
     "tailwindcss": "^4.3.3",
     "typescript": "~7.0.2",
     "vite": "^8.3.5"
-  }
+  },
+  "author": {
+    "email": "biagio.spitalieri@gmail.com",
+    "name": "bspitalieri",
+    "url": "https://github.com/bispitalieri/biolaris-media"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bispitalieri/biolaris-media.git"
+  },
+  "bugs": {
+    "url": "https://github.com/bispitalieri/biolaris-media/issues"
+  },
+  "homepage": "https://github.com/bispitalieri/biolaris-media#readme"
 }
