@@ -13,6 +13,16 @@ permissions:
   contents: read
 
 jobs:
+  setup:
+    name: Load shared matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v7
+      - id: set-matrix
+        run: echo 'matrix=$(cat .github/matrix.json)' >> "$GITHUB_OUTPUT"
+
   validate:
     name: Frontend validation
     runs-on: ubuntu-latest
@@ -47,28 +57,12 @@ jobs:
 
   rust-cache:
     name: Warm Rust cache (${{ matrix.platform }})
-    needs: validate
+    needs: [setup, validate]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - platform: Linux x64
-            os: ubuntu-24.04
-            target: x86_64-unknown-linux-gnu
-
-          - platform: Windows x64
-            os: windows-latest
-            target: x86_64-pc-windows-msvc
-
-          - platform: macOS ARM64
-            os: macos-26
-            target: aarch64-apple-darwin
-
-          - platform: macOS x64
-            os: macos-15-intel
-            target: x86_64-apple-darwin
+      matrix: ${{ fromJSON(needs.setup.outputs.matrix) }}
 
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30

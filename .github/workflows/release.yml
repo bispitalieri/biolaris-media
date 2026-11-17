@@ -12,8 +12,19 @@ permissions:
   contents: read
 
 jobs:
+  setup:
+    name: Load shared matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v7
+      - id: set-matrix
+        run: echo 'matrix=$(cat .github/matrix.json)' >> "$GITHUB_OUTPUT"
+
   validate:
     name: Validate release configuration
+    needs: setup
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -74,10 +85,12 @@ jobs:
 
   build:
     name: Release build (${{ matrix.platform }})
-    needs: validate
-
+    needs: [setup, validate]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 90
+
+    permissions:
+      contents: write
 
     env:
       BIOLARIS_RUNTIME_REPOSITORY: bispitalieri/biolaris-runtime
@@ -86,23 +99,7 @@ jobs:
 
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - platform: Linux x64
-            os: ubuntu-24.04
-            target: x86_64-unknown-linux-gnu
-
-          - platform: Windows x64
-            os: windows-latest
-            target: x86_64-pc-windows-msvc
-
-          - platform: macOS ARM64
-            os: macos-26
-            target: aarch64-apple-darwin
-
-          - platform: macOS x64
-            os: macos-15-intel
-            target: x86_64-apple-darwin
+      matrix: ${{ fromJSON(needs.setup.outputs.matrix) }}
 
     steps:
       - uses: actions/checkout@v7
@@ -112,136 +109,29 @@ jobs:
         with:
           node-version: 24
 
-      - name: Get npm cache directory
-        id: npm-cache-dir
-        shell: bash
-        run: echo "dir=$(npm config get cache)" >> "$GITHUB_OUTPUT"
-
-      - name: Restore npm cache
-        uses: actions/cache/restore@v6
-        with:
-          path: ${{ steps.npm-cache-dir.outputs.dir }}
-          key: npm-${{ runner.os }}-${{ runner.arch }}-node24-${{ hashFiles('package-lock.json') }}
-
-      - name: Install Rust Toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.target }}
-
-      - name: Cache Rust dependencies and build artifacts
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: src-tauri -> target
-          shared-key: ${{ matrix.target }}
-          cache-targets: true
-          cache-on-failure: true
-          save-if: false
-
-      - name: Set Default Windows Toolchain (MSVC)
-        if: runner.os == 'Windows'
-        run: rustup default stable-x86_64-pc-windows-msvc
-
-      - name: Install Linux dependencies
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-
-          sudo apt-get install --yes --no-install-recommends \
-            libwebkit2gtk-4.1-dev \
-            build-essential \
-            curl \
-            wget \
-            file \
-            libxdo-dev \
-            libssl-dev \
-            libayatana-appindicator3-dev \
-            librsvg2-dev \
-            libgtk-3-dev \
-            patchelf
-
       - name: Install Node dependencies
         run: npm ci --prefer-offline
 
-      - name: Check optional Apple signing configuration
-        id: apple-signing
-        if: startsWith(matrix.platform, 'macOS')
-        env:
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-        run: |
-          if [ -n "$APPLE_CERTIFICATE" ]; then
-            echo "available=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "available=false" >> "$GITHUB_OUTPUT"
-            echo "Apple signing is not configured; building an unsigned macOS application."
-          fi
+      - name: Download and stage runtime binaries
+        run: npm run binaries:download && npm run binaries:stage
 
-      - name: Import Apple Developer certificate
-        if: startsWith(matrix.platform, 'macOS') && steps.apple-signing.outputs.available == 'true'
+      - name: Build and release
+        uses: tauri-apps/tauri-action@v1
         env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-        run: |
-          echo -n "$APPLE_CERTIFICATE" | base64 --decode > certificate.p12
-
-          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-          security default-keychain -s build.keychain
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-          security set-keychain-settings -t 3600 -u build.keychain
-
-          security import certificate.p12 \
-            -k build.keychain \
-            -P "$APPLE_CERTIFICATE_PASSWORD" \
-            -T /usr/bin/codesign
-
-          security set-key-partition-list \
-            -S apple-tool:,apple:,codesign: \
-            -s -k "$KEYCHAIN_PASSWORD" \
-            build.keychain
-
-          security find-identity -v -p codesigning build.keychain
-
-          rm certificate.p12
-
-      - name: Build updater artifacts
-        if: ${{ !startsWith(matrix.platform, 'macOS') || steps.apple-signing.outputs.available != 'true' }}
-        run: npm run tauri:build -- --target ${{ matrix.target }}
-        env:
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-
-      - name: Build signed and notarized macOS updater artifacts
-        if: startsWith(matrix.platform, 'macOS') && steps.apple-signing.outputs.available == 'true'
-        run: npm run tauri:build -- --target ${{ matrix.target }}
-        env:
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
           APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-
-      - name: Upload release artifacts
-        uses: actions/upload-artifact@v7
         with:
-          name: biolaris-${{ matrix.platform }}
-          compression-level: 0
-          if-no-files-found: error
-          retention-days: 10
-          path: |
-            src-tauri/target/**/release/bundle/**/*.AppImage
-            src-tauri/target/**/release/bundle/**/*.AppImage.sig
-            src-tauri/target/**/release/bundle/**/*.deb
-            src-tauri/target/**/release/bundle/**/*.rpm
-            src-tauri/target/**/release/bundle/**/*.exe
-            src-tauri/target/**/release/bundle/**/*.exe.sig
-            src-tauri/target/**/release/bundle/**/*.msi
-            src-tauri/target/**/release/bundle/**/*.msi.sig
-            src-tauri/target/**/release/bundle/**/*.dmg
-            src-tauri/target/**/release/bundle/**/*.app.tar.gz
-            src-tauri/target/**/release/bundle/**/*.app.tar.gz.sig
-            src-tauri/target/**/release/bundle/**/*.app.zip.gz
-            src-tauri/target/**/release/bundle/**/*.app.zip.gz.sig
+          tagName: v__VERSION__
+          releaseName: "Biolaris Media v__VERSION__"
+          releaseDraft: true
+          args: --target ${{ matrix.target }}
+          releaseAssetNamePattern: "[name]_[version]_[platform]-[arch].[ext]"
 
   publish:
     name: Publish GitHub release
@@ -254,169 +144,27 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
 
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 24
-
-      - run: npm ci --prefer-offline
-
-      - name: Generate release notes
+      - name: Extract release notes from CHANGELOG
         env:
-          GITHUB_REPO: ${{ github.repository }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_VERSION: ${{ github.ref_name }}
         run: |
-          npx git-cliff \
-            --latest \
-            --strip header \
-            --output release-notes.md
+          VERSION="${RELEASE_VERSION#v}"
+          sed -n "/^## \[${VERSION}\]/,/^## /p" CHANGELOG.md | sed '$d' > release-notes.md
 
           if [ ! -s release-notes.md ]; then
-            echo "::error::git-cliff generated empty release notes."
+            echo "::error::No release notes found for version $VERSION in CHANGELOG.md."
             exit 1
           fi
 
-          echo "Generated release notes:"
+          echo "Extracted release notes for $VERSION:"
           cat release-notes.md
 
-      - name: Download build artifacts
-        uses: actions/download-artifact@v8
-        with:
-          pattern: biolaris-*
-          path: release-artifacts
-
-      - name: Create release and upload packages
+      - name: Update release with CHANGELOG notes
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_VERSION: ${{ github.ref_name }}
-        shell: bash
         run: |
-          gh api --paginate "repos/{owner}/{repo}/releases?per_page=100" \
-            --jq ".[] | select(.tag_name == \"$RELEASE_VERSION\")" \
-            > release-metadata.json
-
-          if [ ! -s release-metadata.json ]; then
-            gh release create "$RELEASE_VERSION" \
-              --verify-tag \
-              --draft \
-              --title "Biolaris $RELEASE_VERSION" \
-              --notes-file release-notes.md
-
-            jq -n \
-              --arg tag "$RELEASE_VERSION" \
-              --rawfile body release-notes.md \
-              '{tag_name: $tag, prerelease: false, body: $body}' \
-              > release-metadata.json
-          fi
-
-          RELEASE_METADATA_FILE=release-metadata.json node scripts/create-updater-manifest.mjs
-
-          mkdir release-assets
-          VERSION="${RELEASE_VERSION#v}"
-
-          while IFS= read -r -d '' asset; do
-            relative_asset="${asset#release-artifacts/}"
-            artifact_name="${relative_asset%%/*}"
-            asset_name="${relative_asset##*/}"
-
-            # Updater: utilizza esclusivamente i file generati dal manifest script.
-            if [[ "$artifact_name" == "updater-assets" ]]; then
-              destination_name="$asset_name"
-
-              # Manifest Tauri.
-            elif [[ "$relative_asset" == "latest.json" ]]; then
-              destination_name="latest.json"
-
-            else
-              # Identifica la piattaforma.
-              case "$artifact_name" in
-                "biolaris-macOS ARM64")
-                  platform="darwin-aarch64"
-                  ;;
-                "biolaris-macOS x64")
-                  platform="darwin-x86_64"
-                  ;;
-                "biolaris-Linux x64")
-                  platform="linux-x86_64"
-                  ;;
-                "biolaris-Windows x64")
-                  platform="windows-x86_64"
-                  ;;
-                *)
-                  echo "::error::Unknown artifact directory: $artifact_name"
-                  exit 1
-                  ;;
-              esac
-
-              # Gli updater sono già presenti in updater-assets.
-              # Non pubblicare nuovamente gli originali.
-              case "$platform:$asset_name" in
-                darwin-*:*\.app.tar.gz|darwin-*:*\.app.tar.gz.sig|darwin-*:*\.app.zip.gz|darwin-*:*\.app.zip.gz.sig)
-                  continue
-                  ;;
-                linux-*:*\.AppImage|linux-*:*\.AppImage.sig)
-                  continue
-                  ;;
-                windows-*:*\.exe|windows-*:*\.exe.sig)
-                  continue
-                  ;;
-              esac
-
-              # Rinomina gli installer manuali.
-              case "$platform:$asset_name" in
-                darwin-aarch64:*.dmg)
-                  destination_name="Biolaris-Media_${VERSION}_darwin-aarch64.dmg"
-                  ;;
-                darwin-x86_64:*.dmg)
-                  destination_name="Biolaris-Media_${VERSION}_darwin-x86_64.dmg"
-                  ;;
-                linux-x86_64:*.deb)
-                  destination_name="Biolaris-Media_${VERSION}_linux-x86_64.deb"
-                  ;;
-                linux-x86_64:*.rpm)
-                  destination_name="Biolaris-Media_${VERSION}_linux-x86_64.rpm"
-                  ;;
-                windows-x86_64:*.msi)
-                  destination_name="Biolaris-Media_${VERSION}_windows-x86_64-en-US.msi"
-                  ;;
-                windows-x86_64:*.msi.sig)
-                  destination_name="Biolaris-Media_${VERSION}_windows-x86_64-en-US.msi.sig"
-                  ;;
-                *)
-                  echo "::error::Unexpected release asset: $relative_asset"
-                  exit 1
-                  ;;
-              esac
-            fi
-
-            destination="release-assets/$destination_name"
-
-            if [ -e "$destination" ]; then
-              echo "::error::Duplicate release asset: $destination_name"
-              exit 1
-            fi
-
-            cp -- "$asset" "$destination"
-            echo "Prepared: $destination_name"
-          done < <(find release-artifacts -type f -print0)
-
-          mapfile -d '' assets < <(
-            find release-assets -type f -print0
-          )
-
-          if [ "${#assets[@]}" -eq 0 ]; then
-            echo "::error::No release assets found."
-            exit 1
-          fi
-
-          echo "Prepared ${#assets[@]} release assets."
-
-          gh release upload \
-            "$RELEASE_VERSION" \
-            "${assets[@]}" \
-            --clobber
-
-          gh release edit "$RELEASE_VERSION" --draft=false
+          gh release edit "$RELEASE_VERSION" \
+            --draft=false \
+            --notes-file release-notes.md
