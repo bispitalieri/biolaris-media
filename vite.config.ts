@@ -22,5 +22,10 @@ export default defineConfig({
   },
   build: {
     target: process.env.TAURI_ENV_PLATFORM === 'windows' ? 'chrome105' : 'safari13'
-  }
+  },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: ['src/tests/setup.ts'],
+  },
 });
