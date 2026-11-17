@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Biolaris Media — Local-First Desktop Media Tools</title>
+  <meta name="description" content="Open-source desktop app for converting, compressing, and working with media files, images, and PDFs — all processed locally on your computer.">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="assets/icon.png" type="image/png">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="container nav-inner">
+      <a href="#" class="nav-brand">
+        <img src="assets/icon.png" alt="Biolaris Media" width="32" height="32">
+        <span>Biolaris Media</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#tools">Tools</a></li>
+        <li><a href="#tech">Tech Stack</a></li>
+        <li><a href="#download">Download</a></li>
+        <li><a href="https://github.com/bispitalieri/biolaris-media" class="btn btn-sm btn-outline" target="_blank" rel="noopener">GitHub</a></li>
+      </ul>
+      <button class="nav-toggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <header class="hero">
+    <div class="container hero-inner">
+      <div class="hero-content">
+        <img src="assets/icon.png" alt="Biolaris Media" width="96" height="96" class="hero-icon">
+        <h1>Media tools, kept on your desktop.</h1>
+        <p class="hero-subtitle">A local-first desktop toolbox for converting, compressing, and working with media files, images, and PDFs. No cloud, no account — everything runs on your machine.</p>
+        <div class="hero-actions">
+          <a href="#download" class="btn btn-primary">Download Free</a>
+          <a href="https://github.com/bispitalieri/biolaris-media" class="btn btn-outline" target="_blank" rel="noopener">View on GitHub</a>
+        </div>
+        <div class="hero-badges">
+          <a href="https://github.com/bispitalieri/biolaris-media/releases" target="_blank" rel="noopener">
+            <img src="https://img.shields.io/github/v/release/bispitalieri/biolaris-media?display_name=tag&style=flat-square" alt="Latest release">
+          </a>
+          <a href="https://github.com/bispitalieri/biolaris-media/releases" target="_blank" rel="noopener">
+            <img src="https://img.shields.io/github/downloads/bispitalieri/biolaris-media/total?style=flat-square" alt="Total downloads">
+          </a>
+          <a href="https://github.com/bispitalieri/biolaris-media/blob/main/LICENSE" target="_blank" rel="noopener">
+            <img src="https://img.shields.io/github/license/bispitalieri/biolaris-media?style=flat-square" alt="AGPL-3.0 License">
+          </a>
+        </div>
+      </div>
+      <div class="hero-image">
+        <img src="assets/screenshot-1.png" alt="Biolaris Media conversion workspace" loading="lazy">
+      </div>
+    </div>
+  </header>
+
+  <!-- Platform badges -->
+  <section class="platforms">
+    <div class="container">
+      <div class="platform-badges">
+        <span class="platform-badge">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M3 12V6.75l6-1.32v6.48L3 12zm17-9v9H7V1h13zM3 13l6 1.07V20l-6-1.32V13zm8 9V13h11a1 1 0 0 1 1 1v5.67a1 1 0 0 1-1 1H11z"/></svg>
+          Windows
+        </span>
+        <span class="platform-badge">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+          macOS
+        </span>
+        <span class="platform-badge">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12.5 2c-1.4 0-2.5 1.1-2.5 2.5 0 .7.3 1.3.7 1.8L6.1 10.5c-.4-.2-.8-.3-1.3-.3C3.1 10.2 2 11.3 2 12.7s1.1 2.5 2.5 2.5c.5 0 .9-.1 1.3-.3l4.6 4.2c-.4.5-.7 1.1-.7 1.8 0 1.4 1.1 2.5 2.5 2.5s2.5-1.1 2.5-2.5c0-.7-.3-1.3-.7-1.8l4.6-4.2c.4.2.8.3 1.3.3 1.4 0 2.5-1.1 2.5-2.5s-1.1-2.5-2.5-2.5c-.5 0-.9.1-1.3.3l-4.6-4.2c.4-.5.7-1.1.7-1.8C15 3.1 13.9 2 12.5 2z"/></svg>
+          Linux
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="features" class="features">
+    <div class="container">
+      <h2 class="section-title">Everything you need, nothing you don't</h2>
+      <p class="section-subtitle">Biolaris brings everyday media and file utilities into one native desktop app. Choose a tool, add files, adjust options, and follow the job as it runs.</p>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          </div>
+          <h3>Convert &amp; Compress</h3>
+          <p>Convert images, audio, and video files between dozens of formats. Compress with adjustable quality — from 30 to 70 — to balance size and fidelity.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </div>
+          <h3>Image Tools</h3>
+          <p>Crop images, remove backgrounds with AI, trace raster artwork into SVG, and generate icon packages for every platform.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+          </div>
+          <h3>Audio &amp; Video</h3>
+          <p>Create slideshows, combine videos, merge audio tracks with chapter markers, split by chapters, and download videos from supported links.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          </div>
+          <h3>PDF Utilities</h3>
+          <p>Combine, split, and organize PDF pages. Create PDFs from images with adjustable page sizes and quality. Preview pages before saving.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <h3>100% Local Processing</h3>
+          <p>Your files never leave your computer. No cloud uploads, no accounts, no hosted services. Conversion and processing happen entirely on your machine.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          </div>
+          <h3>Open Source</h3>
+          <p>Licensed under AGPL-3.0-only. Contribute, fork, and improve. The project is community-driven and transparent.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tools -->
+  <section id="tools" class="tools">
+    <div class="container">
+      <h2 class="section-title">All the tools, at a glance</h2>
+      <div class="tools-grid">
+        <div class="tool-group">
+          <h3>🔄 Conversion</h3>
+          <p>Convert between <strong>17 image formats</strong> (JPG, PNG, WebP, AVIF, HEIC, JXL, TIFF, GIF, BMP, SVG, PSD, RAW &amp; more), <strong>17 audio formats</strong> (MP3, WAV, FLAC, OGG, AAC, Opus &amp; more), and <strong>15+ video formats</strong> (MP4, WebM, MKV, AVI, MOV &amp; more).</p>
+        </div>
+        <div class="tool-group">
+          <h3>🖼️ Image Tools</h3>
+          <ul>
+            <li><strong>Crop</strong> — select and save a region</li>
+            <li><strong>Remove Background</strong> — AI-powered, runs locally (BiRefNet)</li>
+            <li><strong>Vectorize</strong> — trace raster to SVG (logo, photo, B&amp;W)</li>
+            <li><strong>Create App Icons</strong> — generate for Windows, macOS, iOS, Android, Web</li>
+          </ul>
+        </div>
+        <div class="tool-group">
+          <h3>🎬 Audio &amp; Video</h3>
+          <ul>
+            <li><strong>Slideshow</strong> — images to MP4 (720p / 1080p / 4K)</li>
+            <li><strong>Combine Videos</strong> — merge multiple clips</li>
+            <li><strong>Merge Audio</strong> — join tracks with optional M4B chapters</li>
+            <li><strong>Split by Chapter</strong> — export each chapter separately</li>
+            <li><strong>Download Video</strong> — via bundled yt-dlp</li>
+          </ul>
+        </div>
+        <div class="tool-group">
+          <h3>📄 PDF Tools</h3>
+          <ul>
+            <li><strong>Combine PDFs</strong> — merge in chosen order</li>
+            <li><strong>Split PDF</strong> — by page numbers or ranges</li>
+            <li><strong>Organize Pages</strong> — preview, reorder, remove</li>
+            <li><strong>Images to PDF</strong> — fit-to-image, A4, US Letter, custom</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screenshots -->
+  <section class="screenshots">
+    <div class="container">
+      <h2 class="section-title">See it in action</h2>
+      <div class="screenshot-grid">
+        <div class="screenshot-item">
+          <img src="assets/screenshot-1.png" alt="Biolaris Media conversion screen with tool navigation and local file queue" loading="lazy">
+          <p>Convert media in the local desktop workspace</p>
+        </div>
+        <div class="screenshot-item">
+          <img src="assets/screenshot-4.png" alt="Biolaris Media PDF page organizer with page previews and reorder controls" loading="lazy">
+          <p>Preview, reorder, and organize PDF pages</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tech Stack -->
+  <section id="tech" class="tech">
+    <div class="container">
+      <h2 class="section-title">Built with modern tools</h2>
+      <div class="tech-grid">
+        <div class="tech-item">
+          <h4>Desktop Framework</h4>
+          <p>Tauri 2</p>
+        </div>
+        <div class="tech-item">
+          <h4>Backend</h4>
+          <p>Rust (Tokio, Image, vTracer, LoPDF)</p>
+        </div>
+        <div class="tech-item">
+          <h4>Frontend</h4>
+          <p>React 19, TypeScript, TailwindCSS 4</p>
+        </div>
+        <div class="tech-item">
+          <h4>Media Engine</h4>
+          <p>FFmpeg, ImageMagick, yt-dlp, BiRefNet (ONNX)</p>
+        </div>
+        <div class="tech-item">
+          <h4>Build</h4>
+          <p>Vite 8, Cargo</p>
+        </div>
+        <div class="tech-item">
+          <h4>CI/CD</h4>
+          <p>GitHub Actions (4 platforms)</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Why Biolaris -->
+  <section class="why">
+    <div class="container">
+      <h2 class="section-title">Why Biolaris?</h2>
+      <div class="why-grid">
+        <div class="why-content">
+          <h3>Privacy-first media tools</h3>
+          <p>Biolaris brings media conversion, image work, and PDF utilities together in a native desktop interface. Processing stays on your computer — your files are never sent to a hosted conversion service.</p>
+          <ul class="why-list">
+            <li>✅ No account required</li>
+            <li>✅ No file uploads to the cloud</li>
+            <li>✅ No usage limits or paywalls</li>
+            <li>✅ Open source under AGPL-3.0</li>
+            <li>✅ Cross-platform: Windows, macOS, Linux</li>
+          </ul>
+        </div>
+        <div class="why-comparison">
+          <h4>How Biolaris compares</h4>
+          <table>
+            <thead>
+              <tr>
+                <th>Feature</th>
+                <th>Biolaris</th>
+                <th>CloudConvert</th>
+                <th>HandBrake</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Local processing</td>
+                <td>✅</td>
+                <td>❌</td>
+                <td>✅</td>
+              </tr>
+              <tr>
+                <td>Image + Video + Audio + PDF</td>
+                <td>✅</td>
+                <td>✅</td>
+                <td>❌</td>
+              </tr>
+              <tr>
+                <td>Background removal</td>
+                <td>✅</td>
+                <td>❌</td>
+                <td>❌</td>
+              </tr>
+              <tr>
+                <td>No account required</td>
+                <td>✅</td>
+                <td>❌</td>
+                <td>✅</td>
+              </tr>
+              <tr>
+                <td>Open source</td>
+                <td>✅</td>
+                <td>❌</td>
+                <td>✅</td>
+              </tr>
+              <tr>
+                <td>Video downloader</td>
+                <td>✅</td>
+                <td>❌</td>
+                <td>❌</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Download -->
+  <section id="download" class="download">
+    <div class="container">
+      <h2 class="section-title">Download Biolaris Media</h2>
+      <p class="section-subtitle">Available for Windows, macOS (Apple Silicon &amp; Intel), and Linux. Choose the package for your system.</p>
+      <div class="download-cards">
+        <a href="https://github.com/bispitalieri/biolaris-media/releases" class="download-card" target="_blank" rel="noopener">
+          <div class="download-card-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><path d="M3 12V6.75l6-1.32v6.48L3 12zm17-9v9H7V1h13zM3 13l6 1.07V20l-6-1.32V13zm8 9V13h11a1 1 0 0 1 1 1v5.67a1 1 0 0 1-1 1H11z"/></svg>
+          </div>
+          <h3>Windows x64</h3>
+          <p>.msi or .exe installer</p>
+        </a>
+        <a href="https://github.com/bispitalieri/biolaris-media/releases" class="download-card" target="_blank" rel="noopener">
+          <div class="download-card-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+          </div>
+          <h3>macOS</h3>
+          <p>.dmg (Apple Silicon &amp; Intel)</p>
+        </a>
+        <a href="https://github.com/bispitalieri/biolaris-media/releases" class="download-card" target="_blank" rel="noopener">
+          <div class="download-card-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><path d="M12.5 2c-1.4 0-2.5 1.1-2.5 2.5 0 .7.3 1.3.7 1.8L6.1 10.5c-.4-.2-.8-.3-1.3-.3C3.1 10.2 2 11.3 2 12.7s1.1 2.5 2.5 2.5c.5 0 .9-.1 1.3-.3l4.6 4.2c-.4.5-.7 1.1-.7 1.8 0 1.4 1.1 2.5 2.5 2.5s2.5-1.1 2.5-2.5c0-.7-.3-1.3-.7-1.8l4.6-4.2c.4.2.8.3 1.3.3 1.4 0 2.5-1.1 2.5-2.5s-1.1-2.5-2.5-2.5c-.5 0-.9.1-1.3.3l-4.6-4.2c.4-.5.7-1.1.7-1.8C15 3.1 13.9 2 12.5 2z"/></svg>
+          </div>
+          <h3>Linux x64</h3>
+          <p>.AppImage, .deb, or .rpm</p>
+        </a>
+      </div>
+      <p class="download-note">📖 See the <a href="https://github.com/bispitalieri/biolaris-media/blob/main/.github/docs/INSTALLATION.md" target="_blank" rel="noopener">installation guide</a> for package notes and troubleshooting.</p>
+    </div>
+  </section>
+
+  <!-- Build from source -->
+  <section class="source">
+    <div class="container">
+      <h2 class="section-title">Build from source</h2>
+      <p class="section-subtitle">Install Node.js, Rust stable/Cargo, and the native prerequisites for Tauri on your operating system.</p>
+      <div class="code-block">
+        <pre><code><span class="comment"># Clone the repository</span>
+git clone https://github.com/bispitalieri/biolaris-media.git
+cd biolaris-media
+
+<span class="comment"># Install dependencies</span>
+npm ci
+
+<span class="comment"># Run in development mode</span>
+npm run dev:tauri
+
+<span class="comment"># Build a desktop package</span>
+npm run tauri:build</code></pre>
+      </div>
+      <p class="source-note">📖 Read the <a href="https://github.com/bispitalieri/biolaris-media/blob/main/.github/docs/DEVELOPMENT.md" target="_blank" rel="noopener">development guide</a> for full instructions.</p>
+    </div>
+  </section>
+
+  <!-- Contributing -->
+  <section class="contributing">
+    <div class="container">
+      <h2 class="section-title">Contributing</h2>
+      <p class="section-subtitle">Report bugs, suggest improvements, or submit pull requests. We welcome contributions from the community.</p>
+      <div class="contrib-links">
+        <a href="https://github.com/bispitalieri/biolaris-media/issues" class="btn btn-outline" target="_blank" rel="noopener">Report an Issue</a>
+        <a href="https://github.com/bispitalieri/biolaris-media/blob/main/.github/CONTRIBUTING.md" class="btn btn-outline" target="_blank" rel="noopener">Contributing Guide</a>
+        <a href="https://github.com/bispitalieri/biolaris-media/labels/good%20first%20issue" class="btn btn-outline" target="_blank" rel="noopener">Good First Issues</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Support -->
+  <section class="support">
+    <div class="container">
+      <h2 class="section-title">Support Biolaris</h2>
+      <p class="section-subtitle">If Biolaris Media is useful to you, consider supporting development.</p>
+      <div class="support-buttons">
+        <a href="https://buymeacoffee.com/bspitalieri" class="btn btn-coffee" target="_blank" rel="noopener">
+          ☕ Buy Me a Coffee
+        </a>
+        <a href="https://github.com/sponsors/tranvuongquocdat" class="btn btn-sponsor" target="_blank" rel="noopener">
+          ❤️ GitHub Sponsors
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <img src="assets/icon.png" alt="Biolaris Media" width="24" height="24">
+        <span>Biolaris Media</span>
+      </div>
+      <p class="footer-copy">
+        &copy; 2025 Biolaris Media. Licensed under <a href="https://github.com/bispitalieri/biolaris-media/blob/main/LICENSE" target="_blank" rel="noopener">AGPL-3.0-only</a>.
+      </p>
+      <div class="footer-links">
+        <a href="https://github.com/bispitalieri/biolaris-media" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/bispitalieri/biolaris-media/releases" target="_blank" rel="noopener">Releases</a>
+        <a href="https://github.com/bispitalieri/biolaris-media/issues" target="_blank" rel="noopener">Issues</a>
+        <a href="https://github.com/bispitalieri/biolaris-media/blob/main/.github/SECURITY.md" target="_blank" rel="noopener">Security</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Mobile nav toggle
+    document.querySelector('.nav-toggle').addEventListener('click', function () {
+      document.querySelector('.nav-links').classList.toggle('open');
+    });
+    // Close mobile nav on link click
+    document.querySelectorAll('.nav-links a').forEach(link => {
+      link.addEventListener('click', () => {
+        document.querySelector('.nav-links').classList.remove('open');
+      });
+    });
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          e.preventDefault();
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+  </script>
+</body>
+</html>
