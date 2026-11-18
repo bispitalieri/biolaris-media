@@ -55,42 +55,39 @@ async fn probe(app: &tauri::AppHandle, path: &Path) -> Result<AudioFileInfo, Str
     .arg(path.as_os_str())
     .output()
     .await
-    .map_err(|error| format!("Avvio ffprobe non riuscito: {error}"))?;
+    .map_err(|error| crate::t!("merge.probe_start_failed", error = error.to_string()))?;
 
   if !result.status.success() {
-    return Err(format!(
-      "Impossibile leggere l'audio di {}",
-      path.file_name().and_then(|name| name.to_str()).unwrap_or("file")
-    ));
+    return Err(crate::t!("merge.cannot_read_audio", name = path.file_name().and_then(|name| name.to_str()).unwrap_or("file").to_string()));
   }
   let probe: ProbeOutput = serde_json::from_slice(&result.stdout)
-    .map_err(|_| "Impossibile leggere i dati audio del file selezionato".to_owned())?;
+    .map_err(|_| crate::t!("merge.cannot_read_audio_data"))?;
   let stream = probe
     .streams
     .first()
-    .ok_or("Il file selezionato non contiene una traccia audio")?;
+    .ok_or(crate::t!("merge.no_audio_track"))?;
   let codec_name = stream
     .codec_name
     .clone()
     .filter(|value| !value.is_empty())
-    .ok_or("Codec audio non riconosciuto")?;
+    .ok_or(crate::t!("merge.codec_unrecognized"))?;
   let sample_rate = stream
     .sample_rate
     .as_deref()
     .and_then(|value| value.parse::<u32>().ok())
     .filter(|value| (1..=768_000).contains(value))
-    .ok_or("Frequenza di campionamento audio non valida")?;
+    .ok_or(crate::t!("merge.sample_rate_invalid"))?;
   let channels = stream
     .channels
     .filter(|value| (1..=64).contains(value))
-    .ok_or("Numero di canali audio non valido")?;
+    .ok_or(crate::t!("merge.channels_invalid"))?;
   let duration = stream
     .duration
     .as_deref()
     .or(probe.format.duration.as_deref())
     .and_then(|value| value.parse::<f64>().ok())
     .filter(|value| value.is_finite() && *value > 0.0)
-    .ok_or("Durata audio non valida")?;
+    .ok_or(crate::t!("merge.duration_invalid"))?;
 
   Ok(AudioFileInfo {
     codec_name,
@@ -109,7 +106,7 @@ pub(crate) async fn probe_audio_file(
 ) -> Result<AudioFileInfo, String> {
   let input = canonical_existing_file(&path)?;
   if !is_audio_ext(&get_file_ext(&input)) {
-    return Err("Il file selezionato non è un formato audio supportato".into());
+    return Err(crate::t!("merge.audio_format_unsupported"));
   }
   probe(&app, &input).await
 }
@@ -125,7 +122,7 @@ fn normalized_format(ext: &str) -> &str {
 }
 
 fn output_path(first: &Path, requested: &str, format: &str) -> Result<PathBuf, String> {
-  let parent = first.parent().ok_or("Cartella audio non valida")?;
+  let parent = first.parent().ok_or(crate::t!("merge.audio_folder_invalid"))?;
   let default = format!(
     "{} (merged)",
     first.file_stem().and_then(|stem| stem.to_str()).unwrap_or("audio")
@@ -147,13 +144,13 @@ fn output_path(first: &Path, requested: &str, format: &str) -> Result<PathBuf, S
       .chars()
       .any(|character| character.is_control() || matches!(character, '/' | '\\' | ':' | '*' | '?' | '"' | '<' | '>' | '|'))
   {
-    return Err("Inserisci un nome audio valido (massimo 240 byte)".into());
+    return Err(crate::t!("merge.invalid_audio_name"));
   }
   let device = stem.split('.').next().unwrap_or(stem).to_ascii_uppercase();
   if matches!(device.as_str(), "CON" | "PRN" | "AUX" | "NUL")
     || (1..=9).any(|number| device == format!("COM{number}") || device == format!("LPT{number}"))
   {
-    return Err("Questo nome non può essere usato come file audio".into());
+    return Err(crate::t!("merge.reserved_audio_name"));
   }
   Ok(parent.join(format!("{stem}.{format}")))
 }
@@ -166,16 +163,16 @@ pub(crate) fn prepare_audio_preview(
   let input = canonical_existing_file(&path)?;
   let extension = get_file_ext(&input);
   if !is_audio_ext(&extension) && !is_video_ext(&extension) {
-    return Err("Il file selezionato non è un formato audio o video supportato".into());
+    return Err(crate::t!("merge.audio_video_format_unsupported"));
   }
   app
     .asset_protocol_scope()
     .allow_file(&input)
-    .map_err(|error| format!("Preparazione dell'anteprima non riuscita: {error}"))?;
+    .map_err(|error| crate::t!("merge.preview_failed", error = error.to_string()))?;
   input
     .to_str()
     .map(str::to_owned)
-    .ok_or_else(|| "Il percorso audio non è rappresentabile come testo".into())
+    .ok_or_else(|| crate::t!("merge.audio_path_not_text"))
 }
 
 #[tauri::command]
@@ -185,13 +182,13 @@ pub(crate) async fn enqueue_merge_audio(
   request: MergeAudioRequest,
 ) -> Result<String, String> {
   if request.audio_paths.len() < 2 {
-    return Err("Seleziona almeno due file audio da unire".into());
+    return Err(crate::t!("merge.select_two_audio"));
   }
   if !OUTPUT_FORMATS.contains(&request.format.as_str()) {
-    return Err("Formato audio di output non valido".into());
+    return Err(crate::t!("merge.invalid_output_format"));
   }
   if request.add_chapter_markers && request.format != "m4b" {
-    return Err("I capitoli sono disponibili solo per il formato M4B".into());
+    return Err(crate::t!("merge.chapters_m4b_only"));
   }
 
   let inputs = request
@@ -202,10 +199,7 @@ pub(crate) async fn enqueue_merge_audio(
   let mut infos = Vec::with_capacity(inputs.len());
   for input in &inputs {
     if !is_audio_ext(&get_file_ext(input)) {
-      return Err(format!(
-        "Il file selezionato non è un formato audio supportato: {}",
-        input.file_name().and_then(|name| name.to_str()).unwrap_or("file")
-      ));
+      return Err(crate::t!("merge.audio_file_not_supported", name = input.file_name().and_then(|name| name.to_str()).unwrap_or("file").to_string()));
     }
     infos.push(probe(&app, input).await?);
   }
@@ -217,7 +211,7 @@ pub(crate) async fn enqueue_merge_audio(
     request.auto_rename_outputs,
   )?;
   let _queue_permit = state.queue_limit.clone().try_acquire_owned().map_err(|_| {
-    format!("Coda piena: sono presenti già {} job in attesa o in esecuzione. Riprova tra poco.", crate::constants::MAX_QUEUE_SIZE)
+    crate::t!("conversion.queue_full", count = crate::constants::MAX_QUEUE_SIZE.to_string())
   })?;
   let id = Uuid::new_v4().to_string();
   let task_id = id.clone();
@@ -284,15 +278,15 @@ impl TemporaryFile {
         Ok(mut file) => {
           if let Err(error) = file.write_all(contents) {
             let _ = fs::remove_file(&path);
-            return Err(format!("Impossibile preparare la fusione audio: {error}"));
+            return Err(crate::t!("merge.prepare_merge_failed", error = error.to_string()));
           }
           return Ok(Self(path));
         }
         Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => continue,
-        Err(error) => return Err(format!("Impossibile preparare la fusione audio: {error}")),
+        Err(error) => return Err(crate::t!("merge.prepare_merge_failed", error = error.to_string())),
       }
     }
-    Err("Impossibile creare i file temporanei per la fusione audio".into())
+    Err(crate::t!("merge.temp_files_failed"))
   }
 }
 
@@ -343,7 +337,7 @@ fn chapter_metadata(inputs: &[PathBuf], infos: &[AudioFileInfo]) -> Result<Vec<u
     let title = input
       .file_stem()
       .and_then(|stem| stem.to_str())
-      .ok_or("Nome di un capitolo audio non valido")?;
+      .ok_or(crate::t!("merge.chapter_name_invalid"))?;
     metadata.push_str(&format!(
       "[CHAPTER]\nTIMEBASE=1/1000\nSTART={start}\nEND={end}\ntitle={}\n",
       metadata_escape(title)
@@ -416,7 +410,7 @@ async fn run(
   if copy_streams {
     let manifest = manifest
       .as_ref()
-      .ok_or("Impossibile preparare la lista dei file audio")?;
+      .ok_or(crate::t!("merge.manifest_failed"))?;
     args.extend([
       "-f".into(),
       "concat".into(),
@@ -520,7 +514,7 @@ async fn run(
   let (mut events, _child) = tool_command(app, "ffmpeg")
     .args(args)
     .spawn()
-    .map_err(|error| format!("Avvio ffmpeg non riuscito: {error}"))?;
+    .map_err(|error| crate::t!("merge.ffmpeg_start_failed", error = error.to_string()))?;
   let mut exit = None;
   let mut stderr = Vec::new();
   let mut pending = Vec::new();

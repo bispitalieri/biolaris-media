@@ -14,10 +14,10 @@ pub(crate) struct DownloadVideoRequest {
 fn destination(app: &tauri::AppHandle, requested: Option<String>) -> Result<PathBuf, String> {
   let path = match requested {
     Some(value) if !value.trim().is_empty() => PathBuf::from(value),
-    _ => app.path().download_dir().map_err(|error| format!("Cartella Download non disponibile: {error}"))?,
+    _ => app.path().download_dir().map_err(|error| crate::t!("download.folder_unavailable", error = error.to_string()))?,
   };
-  let path = path.canonicalize().map_err(|error| format!("Cartella di destinazione non valida: {error}"))?;
-  if !path.is_dir() { return Err("La destinazione deve essere una cartella".into()); }
+  let path = path.canonicalize().map_err(|error| crate::t!("download.invalid_destination", error = error.to_string()))?;
+  if !path.is_dir() { return Err(crate::t!("download.must_be_folder")); }
   Ok(path)
 }
 
@@ -33,12 +33,12 @@ fn valid_url(value: &str) -> bool {
 #[tauri::command]
 pub(crate) async fn enqueue_video_download(app: tauri::AppHandle, state: State<'_, QueueState>, request: DownloadVideoRequest) -> Result<String, String> {
   let urls = request.urls.into_iter().map(|url| url.trim().to_owned()).filter(|url| !url.is_empty()).collect::<Vec<_>>();
-  if urls.is_empty() { return Err("Incolla almeno un link video".into()); }
-  if urls.len() > 100 { return Err("Puoi scaricare al massimo 100 link per volta".into()); }
-  if let Some(url) = urls.iter().find(|url| !valid_url(url)) { return Err(format!("Link non valido: {url}")); }
+  if urls.is_empty() { return Err(crate::t!("download.no_urls")); }
+  if urls.len() > 100 { return Err(crate::t!("download.too_many_urls")); }
+  if let Some(url) = urls.iter().find(|url| !valid_url(url)) { return Err(crate::t!("download.invalid_url", url = url.to_string())); }
   let directory = destination(&app, request.output_directory)?;
   let _queue_permit = state.queue_limit.clone().try_acquire_owned().map_err(|_| {
-    format!("Coda piena: sono presenti già {} job in attesa o in esecuzione. Riprova tra poco.", crate::constants::MAX_QUEUE_SIZE)
+    crate::t!("conversion.queue_full", count = crate::constants::MAX_QUEUE_SIZE.to_string())
   })?;
   let id = Uuid::new_v4().to_string(); let task_id = id.clone(); let slots = state.slots.clone();
   tauri::async_runtime::spawn(async move {
@@ -60,7 +60,7 @@ async fn run(app: &tauri::AppHandle, id: &str, urls: &[String], directory: &Path
     let (mut events, _child) = tool_command(app, "yt-dlp")
       .args(["--newline", "--no-overwrites", "--no-playlist", "--progress", "--extractor-args", "generic:impersonate", "--output"])
       .arg(output.as_os_str()).args(["--", url]).spawn()
-      .map_err(|error| format!("Avvio yt-dlp non riuscito. Installa yt-dlp e riprova: {error}"))?;
+      .map_err(|error| crate::t!("download.yt_dlp_start_failed", error = error.to_string()))?;
     let mut exit = None; let mut stderr = Vec::new(); let mut pending = Vec::new(); let mut pending_error = Vec::new(); let mut last = 0;
     while let Some(event) = events.recv().await {
       match event {
@@ -92,7 +92,8 @@ async fn run(app: &tauri::AppHandle, id: &str, urls: &[String], directory: &Path
     }
     if exit != Some(0) {
       let details = String::from_utf8_lossy(&stderr).trim().to_owned();
-      return Err(if details.is_empty() { format!("Download del link {} non riuscito. Verifica che yt-dlp sia installato e aggiornato.", index + 1) } else { format!("Download del link {} non riuscito: {details}", index + 1) });
+      let idx = (index + 1).to_string();
+      return Err(if details.is_empty() { crate::t!("download.failed", index = idx) } else { crate::t!("download.failed_details", index = idx, details = details) });
     }
     let progress = (((index as u32 + 1) * 100) / urls.len() as u32).min(99) as u8;
     let _ = app.emit(CONVERSION_PROGRESS_EVENT, JobUpdate { id: id.into(), status: "running".into(), progress, output_path: None, error: None });

@@ -44,12 +44,12 @@ fn aliased_tool(name: &str) -> Option<&'static str> {
 
 fn runtime_alias_dir(app: &tauri::AppHandle) -> Result<PathBuf, String> {
   let target =
-    binary_target_triple().ok_or("Piattaforma non supportata per gli strumenti inclusi")?;
+    binary_target_triple().ok_or(crate::t!("tools.platform_unsupported"))?;
   app
     .path()
     .app_cache_dir()
     .map(|path| path.join("runtime-aliases").join(target).join("bin"))
-    .map_err(|error| format!("Impossibile individuare la cache degli alias runtime: {error}"))
+    .map_err(|error| crate::t!("tools.cache_not_found", error = error.to_string()))
 }
 
 fn ensure_runtime_alias(source: &Path, alias: &Path) -> Result<(), String> {
@@ -71,21 +71,15 @@ fn ensure_runtime_alias(source: &Path, alias: &Path) -> Result<(), String> {
     Ok(()) => {}
     Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
     Err(error) => {
-      return Err(format!(
-        "Impossibile sostituire l'alias runtime {}: {error}",
-        alias.display()
-      ))
+      return Err(crate::t!("tools.alias_replace_failed", alias = alias.display().to_string(), error = error.to_string()))
     }
   }
-  fs::create_dir_all(alias.parent().ok_or("Percorso alias runtime non valido")?)
-    .map_err(|error| format!("Impossibile creare la cartella degli alias runtime: {error}"))?;
+  fs::create_dir_all(alias.parent().ok_or(crate::t!("tools.alias_path_invalid"))?)
+    .map_err(|error| crate::t!("tools.alias_dir_create_failed", error = error.to_string()))?;
 
   #[cfg(unix)]
   std::os::unix::fs::symlink(source, alias).map_err(|error| {
-    format!(
-      "Impossibile creare l'alias runtime {}: {error}",
-      alias.display()
-    )
+    crate::t!("tools.alias_create_failed", alias = alias.display().to_string(), error = error.to_string())
   })?;
 
   #[cfg(windows)]
@@ -94,10 +88,7 @@ fn ensure_runtime_alias(source: &Path, alias: &Path) -> Result<(), String> {
       fs::hard_link(source, alias)
         .or_else(|_| fs::copy(source, alias).map(|_| ()))
         .map_err(|error| {
-          format!(
-            "Impossibile creare l'alias runtime {}: {error}",
-            alias.display()
-          )
+          crate::t!("tools.alias_create_failed", alias = alias.display().to_string(), error = error.to_string())
         })?;
     }
   }
@@ -231,12 +222,12 @@ pub(crate) fn append_stderr_tail(stderr: &mut Vec<u8>, chunk: &[u8]) {
 pub(crate) fn ffmpeg_failure_message(exit_code: Option<i32>, stderr: &[u8]) -> String {
   let code = exit_code
     .map(|code| code.to_string())
-    .unwrap_or_else(|| "sconosciuto".into());
+    .unwrap_or_else(|| crate::t!("tools.ffmpeg_unknown_code"));
   let details = String::from_utf8_lossy(stderr).trim().to_owned();
   if details.is_empty() {
-    format!("ffmpeg è terminato con codice {code}")
+    crate::t!("tools.ffmpeg_exit_code", code = code)
   } else {
-    format!("ffmpeg è terminato con codice {code}: {details}")
+    crate::t!("tools.ffmpeg_exit_code_details", code = code, details = details)
   }
 }
 

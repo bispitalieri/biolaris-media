@@ -222,8 +222,8 @@ pub fn emit_job_update(app: &tauri::AppHandle, event: &str, update: JobUpdate) {
     use tauri_plugin_notification::NotificationExt;
     let _ = app.notification()
       .builder()
-      .title("Operazione completata")
-      .body("Il file è stato elaborato con successo.")
+      .title(crate::t!("app.notification_title"))
+      .body(crate::t!("app.notification_body"))
       .show();
   }
 }

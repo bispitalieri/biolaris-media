@@ -8,25 +8,25 @@ use tauri_plugin_shell::process::CommandEvent;
 pub(crate) fn save_background_png(output: &Path, bytes: &[u8]) -> Result<(), String> {
   let png_signature = b"\x89PNG\r\n\x1a\n";
   if bytes.get(..8) != Some(png_signature) || bytes.get(12..16) != Some(b"IHDR") || bytes.len() < 24 {
-    return Err("Il risultato non è un PNG valido".into());
+    return Err(crate::t!("images.invalid_png"));
   }
   let width = u32::from_be_bytes([bytes[16], bytes[17], bytes[18], bytes[19]]);
   let height = u32::from_be_bytes([bytes[20], bytes[21], bytes[22], bytes[23]]);
   let pixels = u64::from(width) * u64::from(height);
   if width == 0 || height == 0 || pixels > 100_000_000 {
-    return Err("Le dimensioni del PNG non sono valide o superano il limite supportato".into());
+    return Err(crate::t!("images.png_dimensions_invalid"));
   }
 
   if output.file_name().is_none() {
-    return Err("Nome file output non valido".into());
+    return Err(crate::t!("paths.invalid_output_filename"));
   }
   let temporary = output.with_file_name(format!(".biolaris-{}.tmp", uuid::Uuid::new_v4()));
   let result = (|| {
     let mut file = OpenOptions::new().write(true).create_new(true).open(&temporary)
-      .map_err(|error| format!("Impossibile creare il PNG temporaneo: {error}"))?;
-    file.write_all(bytes).map_err(|error| format!("Impossibile scrivere il PNG: {error}"))?;
-    file.sync_all().map_err(|error| format!("Impossibile completare il PNG: {error}"))?;
-    std::fs::rename(&temporary, output).map_err(|error| format!("Impossibile salvare il PNG: {error}"))
+      .map_err(|error| crate::t!("images.png_temp_create_failed", error = error.to_string()))?;
+    file.write_all(bytes).map_err(|error| crate::t!("images.png_write_failed", error = error.to_string()))?;
+    file.sync_all().map_err(|error| crate::t!("images.png_sync_failed", error = error.to_string()))?;
+    std::fs::rename(&temporary, output).map_err(|error| crate::t!("images.png_save_failed", error = error.to_string()))
   })();
   if result.is_err() { let _ = std::fs::remove_file(&temporary); }
   result
@@ -52,7 +52,7 @@ pub(crate) async fn run_crop_image_magick(
   if try_run_magick(app, args).await? {
     Ok(())
   } else {
-    Err("Nessun convertitore immagine disponibile (magick/convert)".into())
+    Err(crate::t!("images.no_converter"))
   }
 }
 
@@ -90,10 +90,7 @@ async fn try_run_magick(app: &tauri::AppHandle, args: Vec<String>) -> Result<boo
   if diagnostics.is_empty() {
     Ok(false)
   } else {
-    Err(format!(
-      "Conversione ImageMagick non riuscita: {}",
-      diagnostics.join("; ")
-    ))
+    Err(crate::t!("images.convert_failed", diagnostics = diagnostics.join("; ")))
   }
 }
 
@@ -133,5 +130,5 @@ pub(crate) async fn run_convert_image_magick(
   if try_run_magick(app, args).await? {
     return Ok(());
   }
-  Err("Nessun convertitore immagine disponibile (magick/convert)".into())
+  Err(crate::t!("images.no_converter"))
 }

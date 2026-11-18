@@ -56,10 +56,10 @@ fn build_native_menu<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> tauri::Res
 fn open_settings_window<R: tauri::Runtime>(app: &tauri::AppHandle<R>) {
   if let Some(window) = app.get_webview_window("settings") {
     if let Err(error) = window.show() {
-      tracing::error!("Impossibile mostrare la finestra Impostazioni: {error}");
+      tracing::error!("{}", crate::t!("app.error.show_settings", error = error.to_string()));
     }
     if let Err(error) = window.set_focus() {
-      tracing::error!("Impossibile attivare la finestra Impostazioni: {error}");
+      tracing::error!("{}", crate::t!("app.error.focus_settings", error = error.to_string()));
     }
     return;
   }
@@ -73,7 +73,7 @@ fn open_settings_window<R: tauri::Runtime>(app: &tauri::AppHandle<R>) {
       .center()
       .build()
   {
-    tracing::error!("Impossibile aprire la finestra Impostazioni: {error}");
+    tracing::error!("{}", crate::t!("app.error.open_settings", error = error.to_string()));
   }
 }
 
@@ -133,6 +133,6 @@ pub fn run() {
     ])
     .run(tauri::generate_context!())
     .unwrap_or_else(|error| {
-      tracing::error!("errore durante l'avvio di Biolaris: {error}");
+      tracing::error!("{}", crate::t!("app.error.startup", error = error.to_string()));
     });
 }

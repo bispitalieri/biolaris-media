@@ -22,17 +22,17 @@ pub(crate) async fn enqueue_conversion(
   request: ConversionRequest,
 ) -> Result<String, String> {
   if request.quality > 100 {
-    return Err("La qualità deve essere valida".into());
+    return Err(crate::t!("conversion.quality_invalid"));
   }
   let input = canonical_existing_file(&request.input_path)?;
   let format = request.format.to_lowercase();
   if !valid_conversion_pair(&get_file_ext(&input), &format) {
-    return Err("Conversione non supportata per questo formato di input e output".into());
+    return Err(crate::t!("conversion.unsupported_pair"));
   }
   let output = validate_output(&request.output_path, &format, request.auto_rename_outputs)?;
   // Acquire a queue slot immediately to enforce backpressure.
   let _queue_permit = state.queue_limit.clone().try_acquire_owned().map_err(|_| {
-    format!("Coda piena: sono presenti già {} job in attesa o in esecuzione. Riprova tra poco.", crate::constants::MAX_QUEUE_SIZE)
+    crate::t!("conversion.queue_full", count = crate::constants::MAX_QUEUE_SIZE.to_string())
   })?;
   let id = Uuid::new_v4().to_string();
   let semaphore = state.slots.clone();
@@ -199,7 +199,7 @@ async fn run_convert(
     let (mut rx, _child) = tool_command(app, "ffmpeg")
       .args(args)
       .spawn()
-      .map_err(|e| format!("Avvio ffmpeg non riuscito: {e}"))?;
+      .map_err(|e| crate::t!("conversion.ffmpeg_start_failed", error = e.to_string()))?;
     let mut exit_code = None;
     let mut stderr_tail = Vec::new();
     while let Some(event) = rx.recv().await {
@@ -230,7 +230,7 @@ async fn run_convert(
         CommandEvent::Stderr(bytes) => append_stderr_tail(&mut stderr_tail, &bytes),
         CommandEvent::Terminated(payload) => exit_code = payload.code,
         CommandEvent::Error(error) => {
-          return Err(format!("Errore del processo ffmpeg: {error}"))
+          return Err(crate::t!("conversion.ffmpeg_process_error", error = error.to_string()))
         }
         _ => {}
       }
@@ -242,5 +242,5 @@ async fn run_convert(
     }
   }
 
-  Err("Formato non supportato o nessun convertitore disponibile".into())
+  Err(crate::t!("conversion.no_converter"))
 }

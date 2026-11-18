@@ -15,22 +15,22 @@ pub(crate) async fn enqueue_crop(
   request: CropRequest,
 ) -> Result<String, String> {
   if request.width == 0 || request.height == 0 {
-    return Err("L'area di ritaglio deve avere dimensioni maggiori di zero".into());
+    return Err(crate::t!("crop.zero_dimensions"));
   }
   if request.x.checked_add(request.width).is_none()
     || request.y.checked_add(request.height).is_none()
   {
-    return Err("Le coordinate di ritaglio non sono valide".into());
+    return Err(crate::t!("crop.invalid_coordinates"));
   }
 
   let input = canonical_existing_file(&request.input_path)?;
   let ext = get_file_ext(&input);
   if !is_image_ext(&ext) {
-    return Err("Il ritaglio è disponibile solo per le immagini".into());
+    return Err(crate::t!("crop.images_only"));
   }
   let output = validate_output(&request.output_path, &ext, request.auto_rename_outputs)?;
   let _queue_permit = state.queue_limit.clone().try_acquire_owned().map_err(|_| {
-    format!("Coda piena: sono presenti già {} job in attesa o in esecuzione. Riprova tra poco.", crate::constants::MAX_QUEUE_SIZE)
+    crate::t!("conversion.queue_full", count = crate::constants::MAX_QUEUE_SIZE.to_string())
   })?;
   let id = Uuid::new_v4().to_string();
   let semaphore = state.slots.clone();
