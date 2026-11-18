@@ -37,6 +37,9 @@ pub(crate) async fn enqueue_video_download(app: tauri::AppHandle, state: State<'
   if urls.len() > 100 { return Err("Puoi scaricare al massimo 100 link per volta".into()); }
   if let Some(url) = urls.iter().find(|url| !valid_url(url)) { return Err(format!("Link non valido: {url}")); }
   let directory = destination(&app, request.output_directory)?;
+  let _queue_permit = state.queue_limit.clone().try_acquire_owned().map_err(|_| {
+    format!("Coda piena: sono presenti già {} job in attesa o in esecuzione. Riprova tra poco.", crate::constants::MAX_QUEUE_SIZE)
+  })?;
   let id = Uuid::new_v4().to_string(); let task_id = id.clone(); let slots = state.slots.clone();
   tauri::async_runtime::spawn(async move {
     let Ok(_permit) = slots.acquire_owned().await else { return; };

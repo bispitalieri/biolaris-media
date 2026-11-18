@@ -29,6 +29,9 @@ pub(crate) async fn enqueue_crop(
     return Err("Il ritaglio è disponibile solo per le immagini".into());
   }
   let output = validate_output(&request.output_path, &ext, request.auto_rename_outputs)?;
+  let _queue_permit = state.queue_limit.clone().try_acquire_owned().map_err(|_| {
+    format!("Coda piena: sono presenti già {} job in attesa o in esecuzione. Riprova tra poco.", crate::constants::MAX_QUEUE_SIZE)
+  })?;
   let id = Uuid::new_v4().to_string();
   let semaphore = state.slots.clone();
   let task_id = id.clone();

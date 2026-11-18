@@ -3,13 +3,18 @@ use std::sync::Arc;
 use tokio::sync::Semaphore;
 
 /// Number of simultaneous encoders is capped to avoid saturating the machine.
+/// A second semaphore limits the total number of queued + running jobs to prevent
+/// unbounded queue growth (backpressure).
 pub struct QueueState {
   pub(crate) slots: Arc<Semaphore>,
+  pub(crate) queue_limit: Arc<Semaphore>,
 }
 impl Default for QueueState {
   fn default() -> Self {
+    let max_queue = crate::constants::MAX_QUEUE_SIZE;
     Self {
       slots: Arc::new(Semaphore::new(num_cpus::get().max(1))),
+      queue_limit: Arc::new(Semaphore::new(max_queue)),
     }
   }
 }

@@ -46,6 +46,9 @@ pub(crate) async fn enqueue_combine_videos(app: tauri::AppHandle, state: State<'
   for input in &inputs { infos.push(probe(&app, input).await?); }
   let requested = output_path(&inputs[0], &request.output_name, &request.format)?;
   let output = validate_output(&requested.to_string_lossy(), &request.format, request.auto_rename_outputs)?;
+  let _queue_permit = state.queue_limit.clone().try_acquire_owned().map_err(|_| {
+    format!("Coda piena: sono presenti già {} job in attesa o in esecuzione. Riprova tra poco.", crate::constants::MAX_QUEUE_SIZE)
+  })?;
   let id = Uuid::new_v4().to_string(); let task_id = id.clone(); let semaphore = state.slots.clone(); let format = request.format;
   tauri::async_runtime::spawn(async move {
     let Ok(_permit) = semaphore.acquire_owned().await else { return; };
