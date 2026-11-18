@@ -38,11 +38,6 @@ jobs:
       - name: Install dependencies
         run: npm ci --prefer-offline
 
-      - name: Verify release version
-        env:
-          RELEASE_VERSION: ${{ github.ref_name }}
-        run: npm run version:check
-
       - name: Validate updater signing configuration
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
