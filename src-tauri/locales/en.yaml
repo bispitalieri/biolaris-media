@@ -4,6 +4,9 @@ app:
     focus_settings: "Unable to focus Settings window: %{error}"
     open_settings: "Unable to open Settings window: %{error}"
     startup: "error starting Biolaris: %{error}"
+  crash:
+    title: "Biolaris Media has crashed"
+    message: "An unexpected error occurred.\n\nDetails:\n%{details}"
   notification_title: "Operation completed"
   notification_body: "The file has been processed successfully."
 

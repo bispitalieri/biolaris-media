@@ -4,6 +4,9 @@ app:
     focus_settings: "Impossibile attivare la finestra Impostazioni: %{error}"
     open_settings: "Impossibile aprire la finestra Impostazioni: %{error}"
     startup: "errore durante l'avvio di Biolaris: %{error}"
+  crash:
+    title: "Biolaris Media è crashato"
+    message: "Si è verificato un errore imprevisto.\n\nDettagli:\n%{details}"
   notification_title: "Operazione completata"
   notification_body: "Il file è stato elaborato con successo."
 

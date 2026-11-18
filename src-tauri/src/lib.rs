@@ -1,6 +1,7 @@
 mod app;
 mod commands;
 mod constants;
+mod crash_handler;
 mod formats;
 mod images;
 mod models;

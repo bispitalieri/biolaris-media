@@ -87,6 +87,7 @@ pub fn run() {
   tauri::Builder::default()
     .setup(|app| {
       crate::tools::prepare_runtime_aliases(app.handle()).map_err(std::io::Error::other)?;
+      crate::crash_handler::install(app.handle());
       Ok(())
     })
     .plugin(tauri_plugin_fs::init())
