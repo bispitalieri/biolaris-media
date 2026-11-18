@@ -55,7 +55,7 @@
     "combineVideosMoveDown": "{{name}} nach unten bewegen",
     "combinePdfs": "PDFs kombinieren",
     "combinePdfsTitle": "PDFs kombinieren",
-    "combinePdfsDescription": "Kombinieren Sie PDFs lokal in Reihenreihenfolge. Das Ergebnis wird neben dem ersten PDF als „<Name> (combined).pdf" gespeichert; vorhandene Namen werden nummeriert, anstatt überschrieben zu werden.",
+    "combinePdfsDescription": "Kombinieren Sie PDFs lokal in Reihenreihenfolge. Das Ergebnis wird neben dem ersten PDF als „<Name> (combined).pdf\" gespeichert; vorhandene Namen werden nummeriert, anstatt überschrieben zu werden.",
     "combinePdfsDropTitle": "PDFs hier ablegen",
     "combinePdfsDropDescription": "Fügen Sie PDFs hinzu und ziehen Sie sie zur Sortierung · lokale Verarbeitung",
     "combinePdfsList": "Zu kombinierende PDFs",
