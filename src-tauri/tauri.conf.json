@@ -17,8 +17,6 @@
         "height": 760,
         "minWidth": 800,
         "minHeight": 600,
-        "maxWidth": 1100,
-        "maxHeight": 760,
         "resizable": true
       }
     ],

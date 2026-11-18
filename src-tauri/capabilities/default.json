@@ -9,6 +9,16 @@
     "dialog:default",
     "dialog:allow-open",
     "fs:default",
-    "fs:read-all"
+    "fs:read-dirs",
+    "fs:allow-read-file",
+    "fs:allow-read-dir",
+    "fs:allow-read",
+    "fs:allow-write-file",
+    "fs:allow-write",
+    "fs:allow-copy-file",
+    "fs:allow-mkdir",
+    "fs:allow-remove",
+    "fs:allow-rename",
+    "fs:allow-exists"
   ]
 }

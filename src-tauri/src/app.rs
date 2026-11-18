@@ -1,4 +1,5 @@
 use crate::{commands, models::QueueState};
+use tracing_subscriber::{layer::SubscriberExt, EnvFilter};
 use tauri::{
   menu::{Menu, MenuItem, PredefinedMenuItem},
   Manager, WebviewUrl, WebviewWindowBuilder,
@@ -55,10 +56,10 @@ fn build_native_menu<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> tauri::Res
 fn open_settings_window<R: tauri::Runtime>(app: &tauri::AppHandle<R>) {
   if let Some(window) = app.get_webview_window("settings") {
     if let Err(error) = window.show() {
-      eprintln!("Impossibile mostrare la finestra Impostazioni: {error}");
+      tracing::error!("Impossibile mostrare la finestra Impostazioni: {error}");
     }
     if let Err(error) = window.set_focus() {
-      eprintln!("Impossibile attivare la finestra Impostazioni: {error}");
+      tracing::error!("Impossibile attivare la finestra Impostazioni: {error}");
     }
     return;
   }
@@ -72,11 +73,17 @@ fn open_settings_window<R: tauri::Runtime>(app: &tauri::AppHandle<R>) {
       .center()
       .build()
   {
-    eprintln!("Impossibile aprire la finestra Impostazioni: {error}");
+    tracing::error!("Impossibile aprire la finestra Impostazioni: {error}");
   }
 }
 
 pub fn run() {
+  let subscriber = tracing_subscriber::registry()
+    .with(tracing_subscriber::fmt::layer())
+    .with(EnvFilter::from_default_env());
+  tracing::subscriber::set_global_default(subscriber)
+    .expect("il logger è inizializzato una sola volta");
+
   tauri::Builder::default()
     .setup(|app| {
       crate::tools::prepare_runtime_aliases(app.handle()).map_err(std::io::Error::other)?;
@@ -124,5 +131,7 @@ pub fn run() {
       available_parallelism
     ])
     .run(tauri::generate_context!())
-    .expect("errore durante l'avvio di Biolaris");
+    .unwrap_or_else(|error| {
+      tracing::error!("errore durante l'avvio di Biolaris: {error}");
+    });
 }
