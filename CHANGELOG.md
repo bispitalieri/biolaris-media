@@ -1,5 +1,17 @@
 ## [unreleased]
 
+### 🚀 Features
+
+- Aggiungi script release e bump-version
+- *(locales)* Add German, Spanish, and French translations
+- *(app)* Add onboarding flow and job completion notifications
+- *(queue)* Enforce maximum job queue size
+- *(tauri)* Add backend localization with rust-i18n
+
+### 🐛 Bug Fixes
+
+- *(locales)* Escape quote in German combinePdfsDescription
+
 ### 📚 Documentation
 
 - Move documentation into .github and restructure READMEs
@@ -10,6 +22,13 @@
 - Drop tauri/custom-protocol feature from Rust warm build
 - *(workflows)* Use explicit npm cache and git-cliff release notes
 - Mark package as private
+- *(release)* Refactor release pipeline with shared matrix and tauri-action
+- *(workflows)* Inline build matrix and remove shared matrix file
+- *(release)* Remove version check step from release workflow
+
+### 💼 Other
+
+- *(tauri)* Add Linux desktop integration and bundle metadata
 ## [0.1.2] - 2026-11-05
 
 ### 🚀 Features

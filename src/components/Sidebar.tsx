@@ -7,10 +7,15 @@ import {openSettingsWindow} from '../lib/windows';
 import {useUpdater} from '../lib/updater';
 import packageJson from '../../package.json';
 
+const MOD_KEY = navigator.userAgent.includes('Mac') ? '⌘' : 'Ctrl';
+
+const ShortcutBadge = ({key}: {key: string}) => (
+  <kbd className="rounded border border-zinc-700 px-1.5 py-0.5 text-[10px] text-zinc-500">{MOD_KEY}{key}</kbd>
+);
+
 const Sidebar = () => {
   const {t} = useTranslation();
   const {update, stage, progress, showUpdate} = useUpdater();
-  const settingsShortcut = navigator.userAgent.includes('Mac') ? '⌘,' : 'Ctrl+,';
 
   return (
     <aside className="sticky top-0 flex h-screen min-h-0 w-64 shrink-0 flex-col overflow-hidden border-r border-zinc-800 bg-zinc-950">
@@ -25,74 +30,83 @@ const Sidebar = () => {
         <div className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">{t('media')}</div>
         <NavLink
           to="/convert"
-          className={({isActive}) => `mb-1 flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}
+          className={({isActive}) => `mb-1 flex items-center justify-between gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}
         >
-          <FontAwesomeIcon icon={faArrowRightArrowLeft} className="w-4"/>
-          <span>{t('convert')}</span>
+          <span className="flex items-center gap-2"><FontAwesomeIcon icon={faArrowRightArrowLeft} className="w-4"/><span>{t('convert')}</span></span>
+          <ShortcutBadge key="1" />
         </NavLink>
         <NavLink
           to="/compress"
-          className={({isActive}) => `flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}
+          className={({isActive}) => `flex items-center justify-between gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}
         >
-          <FontAwesomeIcon icon={faCompressAlt} className="w-4"/>
-          <span>{t('compress')}</span>
+          <span className="flex items-center gap-2"><FontAwesomeIcon icon={faCompressAlt} className="w-4"/><span>{t('compress')}</span></span>
+          <ShortcutBadge key="2" />
         </NavLink>
         <NavLink
           to="/crop"
-          className={({isActive}) => `mb-1 flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}
+          className={({isActive}) => `mb-1 flex items-center justify-between gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}
         >
-          <FontAwesomeIcon icon={faCropSimple} className="w-4"/>
-          <span>{t('crop')}</span>
+          <span className="flex items-center gap-2"><FontAwesomeIcon icon={faCropSimple} className="w-4"/><span>{t('crop')}</span></span>
+          <ShortcutBadge key="3" />
         </NavLink>
-        <NavLink to="/combine-videos" className={({isActive}) => `mb-1 flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}>
-          <FontAwesomeIcon icon={faLayerGroup} className="w-4"/><span>{t('combineVideos')}</span>
+        <NavLink to="/combine-videos" className={({isActive}) => `mb-1 flex items-center justify-between gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}>
+          <span className="flex items-center gap-2"><FontAwesomeIcon icon={faLayerGroup} className="w-4"/><span>{t('combineVideos')}</span></span>
+          <ShortcutBadge key="4" />
         </NavLink>
         <NavLink
           to="/slideshow"
-          className={({isActive}) => `mb-1 flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}
+          className={({isActive}) => `mb-1 flex items-center justify-between gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}
         >
-          <FontAwesomeIcon icon={faImages} className="w-4"/>
-          <span>{t('slideshow')}</span>
+          <span className="flex items-center gap-2"><FontAwesomeIcon icon={faImages} className="w-4"/><span>{t('slideshow')}</span></span>
+          <ShortcutBadge key="5" />
         </NavLink>
         <NavLink
           to="/app-icon"
-          className={({isActive}) => `mb-1 flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}
+          className={({isActive}) => `mb-1 flex items-center justify-between gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}
         >
-          <FontAwesomeIcon icon={faIcons} className="w-4" />
-          <span>{t('appIcon')}</span>
+          <span className="flex items-center gap-2"><FontAwesomeIcon icon={faIcons} className="w-4" /><span>{t('appIcon')}</span></span>
+          <ShortcutBadge key="6" />
         </NavLink>
         <NavLink
           to="/remove-background"
-          className={({isActive}) => `mb-1 flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}
+          className={({isActive}) => `mb-1 flex items-center justify-between gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}
         >
-          <FontAwesomeIcon icon={faEraser} className="w-4"/>
-          <span>{t('removeBackground')}</span>
+          <span className="flex items-center gap-2"><FontAwesomeIcon icon={faEraser} className="w-4"/><span>{t('removeBackground')}</span></span>
+          <ShortcutBadge key="7" />
         </NavLink>
-        <NavLink to="/vectorize" className={({isActive}) => `mb-1 flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}>
-          <FontAwesomeIcon icon={faBezierCurve} className="w-4"/><span>{t('vectorize')}</span>
+        <NavLink to="/vectorize" className={({isActive}) => `mb-1 flex items-center justify-between gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}>
+          <span className="flex items-center gap-2"><FontAwesomeIcon icon={faBezierCurve} className="w-4"/><span>{t('vectorize')}</span></span>
+          <ShortcutBadge key="8" />
         </NavLink>
-        <NavLink to="/download-video" className={({isActive}) => `mb-1 flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}>
-          <FontAwesomeIcon icon={faDownload} className="w-4"/><span>{t('downloadVideo')}</span>
+        <NavLink to="/download-video" className={({isActive}) => `mb-1 flex items-center justify-between gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}>
+          <span className="flex items-center gap-2"><FontAwesomeIcon icon={faDownload} className="w-4"/><span>{t('downloadVideo')}</span></span>
+          <ShortcutBadge key="9" />
         </NavLink>
         <div className="mb-2 mt-4 px-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">{t('audio')}</div>
-        <NavLink to="/merge-audio" className={({isActive}) => `mb-1 flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}>
-          <FontAwesomeIcon icon={faWaveSquare} className="w-4"/><span>{t('mergeAudio')}</span>
+        <NavLink to="/merge-audio" className={({isActive}) => `mb-1 flex items-center justify-between gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}>
+          <span className="flex items-center gap-2"><FontAwesomeIcon icon={faWaveSquare} className="w-4"/><span>{t('mergeAudio')}</span></span>
+          <ShortcutBadge key="0" />
         </NavLink>
-        <NavLink to="/split-by-chapter" className={({isActive}) => `mb-1 flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}>
-          <FontAwesomeIcon icon={faBookOpen} className="w-4"/><span>{t('splitByChapter')}</span>
+        <NavLink to="/split-by-chapter" className={({isActive}) => `mb-1 flex items-center justify-between gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}>
+          <span className="flex items-center gap-2"><FontAwesomeIcon icon={faBookOpen} className="w-4"/><span>{t('splitByChapter')}</span></span>
+          <ShortcutBadge key="-" />
         </NavLink>
         <div className="mb-2 mt-4 px-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">{t('pdf')}</div>
-        <NavLink to="/combine-pdfs" className={({isActive}) => `mb-1 flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}>
-          <FontAwesomeIcon icon={faObjectGroup} className="w-4"/><span>{t('combinePdfs')}</span>
+        <NavLink to="/combine-pdfs" className={({isActive}) => `mb-1 flex items-center justify-between gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}>
+          <span className="flex items-center gap-2"><FontAwesomeIcon icon={faObjectGroup} className="w-4"/><span>{t('combinePdfs')}</span></span>
+          <ShortcutBadge key="!" />
         </NavLink>
-        <NavLink to="/images-to-pdf" className={({isActive}) => `mb-1 flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}>
-          <FontAwesomeIcon icon={faImage} className="w-4"/><span>{t('imagesToPdf')}</span>
+        <NavLink to="/images-to-pdf" className={({isActive}) => `mb-1 flex items-center justify-between gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}>
+          <span className="flex items-center gap-2"><FontAwesomeIcon icon={faImage} className="w-4"/><span>{t('imagesToPdf')}</span></span>
+          <ShortcutBadge key="@" />
         </NavLink>
-        <NavLink to="/split-pdfs" className={({isActive}) => `mb-1 flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}>
-          <FontAwesomeIcon icon={faScissors} className="w-4"/><span>{t('splitPdfs')}</span>
+        <NavLink to="/split-pdfs" className={({isActive}) => `mb-1 flex items-center justify-between gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}>
+          <span className="flex items-center gap-2"><FontAwesomeIcon icon={faScissors} className="w-4"/><span>{t('splitPdfs')}</span></span>
+          <ShortcutBadge key="#" />
         </NavLink>
-        {isTauri() && <NavLink to="/organize-pages" className={({isActive}) => `mb-1 flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}>
-          <FontAwesomeIcon icon={faTableList} className="w-4"/><span>{t('organizePages')}</span>
+        {isTauri() && <NavLink to="/organize-pages" className={({isActive}) => `mb-1 flex items-center justify-between gap-2 w-full rounded-lg px-3 py-2 text-left text-sm transition ${isActive ? 'bg-violet-600 text-white' : 'text-zinc-300 hover:bg-zinc-900'}`}>
+          <span className="flex items-center gap-2"><FontAwesomeIcon icon={faTableList} className="w-4"/><span>{t('organizePages')}</span></span>
+          <ShortcutBadge key="$" />
         </NavLink>}
       </nav>
       <div className="mt-auto shrink-0 space-y-3 px-3 py-4">
@@ -102,7 +116,7 @@ const Sidebar = () => {
           className="flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm text-zinc-300 transition hover:bg-zinc-900 hover:text-white"
         >
           <span className="flex items-center gap-2"><FontAwesomeIcon icon={faGear} className="w-4" /><span>{t('settings')}</span></span>
-          <kbd className="rounded border border-zinc-700 px-1.5 py-0.5 text-[10px] text-zinc-500">{settingsShortcut}</kbd>
+          <kbd className="rounded border border-zinc-700 px-1.5 py-0.5 text-[10px] text-zinc-500">{MOD_KEY},</kbd>
         </button>
         <div className="flex items-center justify-between gap-2 px-3">
           <span className="inline-block rounded-full border border-zinc-800 px-3 py-1 text-xs text-zinc-400">{t('offline')}</span>

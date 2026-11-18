@@ -21,6 +21,7 @@ import Sidebar from "./components/Sidebar.tsx";
 import {OnboardingScreen, isOnboardingComplete} from './components/OnboardingScreen';
 import {useTranslation} from 'react-i18next';
 import {openSettingsWindow} from './lib/windows';
+import {useKeyboardShortcuts} from './lib/keyboardShortcuts';
 
 export default function App() {
   const {t} = useTranslation();
@@ -28,6 +29,7 @@ export default function App() {
   const isSettingsWindow = new URLSearchParams(location.search).get('window') === 'settings';
   const forceOnboarding = new URLSearchParams(location.search).get('onboarding') === '1';
   const [showOnboarding, setShowOnboarding] = useState(forceOnboarding || !isOnboardingComplete());
+  useKeyboardShortcuts();
 
   useEffect(() => {
     if (forceOnboarding && showOnboarding) {
