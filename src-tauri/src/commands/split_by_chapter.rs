@@ -1,7 +1,7 @@
 use crate::{
   constants::CONVERSION_PROGRESS_EVENT,
   formats::{get_file_ext, is_audio_ext, is_video_ext},
-  models::{ChapterFileInfo, ChapterInfo, JobUpdate, QueueState, SplitByChapterRequest},
+  models::{self, ChapterFileInfo, ChapterInfo, JobUpdate, QueueState, SplitByChapterRequest},
   paths::canonical_existing_file,
   tools::{append_stderr_tail, ffmpeg_failure_message, tool_command},
 };
@@ -184,7 +184,7 @@ pub(crate) async fn enqueue_split_by_chapter(
         error: Some(error),
       },
     };
-    let _ = app.emit(CONVERSION_PROGRESS_EVENT, update);
+    models::emit_job_update(&app, CONVERSION_PROGRESS_EVENT, update);
   });
   Ok(id)
 }

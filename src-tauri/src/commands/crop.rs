@@ -2,7 +2,7 @@ use crate::{
   constants::CONVERSION_PROGRESS_EVENT,
   formats::{get_file_ext, is_image_ext},
   images::run_crop_image_magick,
-  models::{CropRequest, JobUpdate, QueueState},
+  models::{self, CropRequest, JobUpdate, QueueState},
   paths::{canonical_existing_file, validate_output},
 };
 use tauri::{Emitter, State};
@@ -48,32 +48,23 @@ pub(crate) async fn enqueue_crop(
       },
     );
     let result = run_crop_image_magick(&app, &input, &output, &request).await;
-    match result {
-      Ok(()) => {
-        let _ = app.emit(
-          CONVERSION_PROGRESS_EVENT,
-          JobUpdate {
-            id: task_id,
-            status: "completed".into(),
-            progress: 100,
-            output_path: Some(output.to_string_lossy().into_owned()),
-            error: None,
-          },
-        );
-      }
-      Err(error) => {
-        let _ = app.emit(
-          CONVERSION_PROGRESS_EVENT,
-          JobUpdate {
-            id: task_id,
-            status: "failed".into(),
-            progress: 0,
-            output_path: None,
-            error: Some(error),
-          },
-        );
-      }
-    }
+    let update = match result {
+      Ok(()) => JobUpdate {
+        id: task_id,
+        status: "completed".into(),
+        progress: 100,
+        output_path: Some(output.to_string_lossy().into_owned()),
+        error: None,
+      },
+      Err(error) => JobUpdate {
+        id: task_id,
+        status: "failed".into(),
+        progress: 0,
+        output_path: None,
+        error: Some(error),
+      },
+    };
+    models::emit_job_update(&app, CONVERSION_PROGRESS_EVENT, update);
   });
   Ok(id)
 }

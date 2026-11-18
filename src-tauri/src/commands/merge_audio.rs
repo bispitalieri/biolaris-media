@@ -1,7 +1,7 @@
 use crate::{
   constants::CONVERSION_PROGRESS_EVENT,
   formats::{get_file_ext, is_audio_ext, is_video_ext},
-  models::{AudioFileInfo, JobUpdate, MergeAudioRequest, QueueState},
+  models::{self, AudioFileInfo, JobUpdate, MergeAudioRequest, QueueState},
   paths::{canonical_existing_file, validate_output},
   tools::{append_stderr_tail, ffmpeg_failure_message, tool_command},
 };
@@ -262,7 +262,7 @@ pub(crate) async fn enqueue_merge_audio(
         error: Some(error),
       },
     };
-    let _ = app.emit(CONVERSION_PROGRESS_EVENT, update);
+    models::emit_job_update(&app, CONVERSION_PROGRESS_EVENT, update);
   });
   Ok(id)
 }

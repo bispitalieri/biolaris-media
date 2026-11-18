@@ -281,6 +281,9 @@
     "settingsQualityByFormatDescription": "Valor predeterminado aplicado cuando eliges el formato correspondiente.",
     "settingsQualityForFormat": "Calidad predeterminada para {{format}}",
     "settingsSavedAutomatically": "Los cambios se guardan automáticamente",
+    "settingsOnboarding": "Guía de bienvenida",
+    "settingsOnboardingDescription": "Reproduce el recorrido de introducción.",
+    "settingsRestartOnboarding": "Reiniciar guía",
     "licenseNoticeCopyright": "Copyright © 2026 Colaboradores de Biolaris.",
     "licenseNoticeTerms": "Este programa se proporciona sin garantía y está licenciado bajo la GNU AGPL v3. Puedes redistribuirlo y modificarlo bajo esos términos.",
     "licenseNoticeLink": "Ver la licencia",
@@ -391,6 +394,48 @@
     "vectorizeRemoveCompleted": "Eliminar completados",
     "vectorizeRunning": "Trazando rutas vectoriales…",
     "vectorizeCompleted": "SVG creado",
-    "vectorizeFailed": "Vectorización fallida"
+    "vectorizeFailed": "Vectorización fallida",
+    "onboarding": {
+      "step": "Paso {{current}} de {{total}}",
+      "skip": "Omitir",
+      "back": "Atrás",
+      "next": "Siguiente",
+      "getStarted": "Comenzar",
+      "welcome": {
+        "title": "Bienvenido a Biolaris Media",
+        "description": "Tu convertidor multimedia todo en uno — rápido, privado y completamente local.",
+        "feature1": "Convierte imágenes, audio, video y archivos PDF",
+        "feature2": "Todo el procesamiento es local — tus archivos nunca salen de tu dispositivo",
+        "feature3": "No se requiere conexión a internet para las conversiones"
+      },
+      "convert": {
+        "title": "Convierte cualquier archivo",
+        "description": "Transforma tus archivos al formato que necesites con un solo clic.",
+        "feature1": "Imágenes: JPG, PNG, WebP, AVIF, HEIC, SVG y más",
+        "feature2": "Comprime archivos sin perder calidad",
+        "feature3": "Recorta, vectoriza y elimina fondos"
+      },
+      "audio": {
+        "title": "Herramientas de audio",
+        "description": "Une, divide y convierte archivos de audio con precisión.",
+        "feature1": "Une varias pistas de audio en un solo archivo",
+        "feature2": "Divide el audio por capítulos automáticamente",
+        "feature3": "Convierte entre MP3, WAV, FLAC, OGG y más"
+      },
+      "video": {
+        "title": "Video y PDF",
+        "description": "Combina, convierte y organiza archivos de video y PDF.",
+        "feature1": "Combina varios videos en uno solo",
+        "feature2": "Crea presentaciones a partir de imágenes",
+        "feature3": "Une y divide archivos PDF"
+      },
+      "ready": {
+        "title": "¡Estás listo!",
+        "description": "Empieza a convertir tus archivos ahora. Siempre puedes omitir esta introducción.",
+        "feature1": "Arrastra y suelta archivos para comenzar",
+        "feature2": "Personaliza la configuración para cada tipo de archivo",
+        "feature3": "Monitorea el progreso en tiempo real"
+      }
+    }
   }
 }

@@ -281,6 +281,9 @@
     "settingsQualityByFormatDescription": "Default value applied when you choose the matching format.",
     "settingsQualityForFormat": "Default quality for {{format}}",
     "settingsSavedAutomatically": "Changes are saved automatically",
+    "settingsOnboarding": "Welcome guide",
+    "settingsOnboardingDescription": "Replay the introduction tour.",
+    "settingsRestartOnboarding": "Restart guide",
     "licenseNoticeCopyright": "Copyright © 2026 Biolaris contributors.",
     "licenseNoticeTerms": "This program is provided without warranty and is licensed under the GNU AGPL v3. You may redistribute and modify it under those terms.",
     "licenseNoticeLink": "View the license",
@@ -391,6 +394,48 @@
     "vectorizeRemoveCompleted": "Remove completed",
     "vectorizeRunning": "Tracing vector paths…",
     "vectorizeCompleted": "SVG created",
-    "vectorizeFailed": "Vectorization failed"
+    "vectorizeFailed": "Vectorization failed",
+    "onboarding": {
+      "step": "Step {{current}} of {{total}}",
+      "skip": "Skip",
+      "back": "Back",
+      "next": "Next",
+      "getStarted": "Get started",
+      "welcome": {
+        "title": "Welcome to Biolaris Media",
+        "description": "Your all-in-one multimedia converter — fast, private, and running entirely on your device.",
+        "feature1": "Convert images, audio, video, and PDF files",
+        "feature2": "All processing happens locally — your files never leave your device",
+        "feature3": "No internet connection required for conversions"
+      },
+      "convert": {
+        "title": "Convert anything",
+        "description": "Transform your files into the format you need with a single click.",
+        "feature1": "Images: JPG, PNG, WebP, AVIF, HEIC, SVG and more",
+        "feature2": "Compress files without losing quality",
+        "feature3": "Crop, vectorize, and remove backgrounds"
+      },
+      "audio": {
+        "title": "Audio tools",
+        "description": "Merge, split, and convert audio files with precision.",
+        "feature1": "Merge multiple audio tracks into one file",
+        "feature2": "Split audio by chapters automatically",
+        "feature3": "Convert between MP3, WAV, FLAC, OGG, and more"
+      },
+      "video": {
+        "title": "Video & PDF",
+        "description": "Combine, convert, and organize video and PDF files.",
+        "feature1": "Combine multiple videos into one",
+        "feature2": "Create slideshows from images",
+        "feature3": "Merge and split PDF files"
+      },
+      "ready": {
+        "title": "You're all set!",
+        "description": "Start converting your files right away. You can always skip this intro later.",
+        "feature1": "Drag and drop files to get started",
+        "feature2": "Customize settings for each file type",
+        "feature3": "Track progress in real time"
+      }
+    }
   }
 }

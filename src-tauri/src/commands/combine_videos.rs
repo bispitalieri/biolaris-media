@@ -1,4 +1,4 @@
-use crate::{constants::CONVERSION_PROGRESS_EVENT, formats::{get_file_ext, is_video_ext}, models::{CombineVideosRequest, JobUpdate, QueueState}, paths::{canonical_existing_file, validate_output}, tools::{append_stderr_tail, ffmpeg_failure_message, tool_command}};
+use crate::{constants::CONVERSION_PROGRESS_EVENT, formats::{get_file_ext, is_video_ext}, models::{self, CombineVideosRequest, JobUpdate, QueueState}, paths::{canonical_existing_file, validate_output}, tools::{append_stderr_tail, ffmpeg_failure_message, tool_command}};
 use std::path::{Path, PathBuf};
 use tauri::{Emitter, State};
 use tauri_plugin_shell::process::CommandEvent;
@@ -52,7 +52,7 @@ pub(crate) async fn enqueue_combine_videos(app: tauri::AppHandle, state: State<'
     let _ = app.emit(CONVERSION_PROGRESS_EVENT, JobUpdate { id: task_id.clone(), status: "running".into(), progress: 0, output_path: None, error: None });
     let result = run(&app, &task_id, &inputs, &infos, &output, &format).await;
     let update = match result { Ok(()) => JobUpdate { id: task_id, status: "completed".into(), progress: 100, output_path: Some(output.to_string_lossy().into_owned()), error: None }, Err(error) => JobUpdate { id: task_id, status: "failed".into(), progress: 0, output_path: None, error: Some(error) } };
-    let _ = app.emit(CONVERSION_PROGRESS_EVENT, update);
+    models::emit_job_update(&app, CONVERSION_PROGRESS_EVENT, update);
   });
   Ok(id)
 }

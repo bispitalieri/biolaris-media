@@ -1,7 +1,7 @@
 use crate::{
   constants::CONVERSION_PROGRESS_EVENT,
   formats::get_file_ext,
-  models::{JobUpdate, QueueState, SplitPdfsRequest},
+  models::{self, JobUpdate, QueueState, SplitPdfsRequest},
   paths::canonical_existing_file,
 };
 use lopdf::Document;
@@ -304,7 +304,7 @@ pub(crate) async fn enqueue_split_pdfs(
       },
       Err(error) => failed_update(task_id, error),
     };
-    let _ = app.emit(CONVERSION_PROGRESS_EVENT, update);
+    models::emit_job_update(&app, CONVERSION_PROGRESS_EVENT, update);
   });
   Ok(id)
 }

@@ -6,7 +6,7 @@ use crate::{
     video_crf,
   },
   images::run_convert_image_magick,
-  models::{ConversionRequest, JobUpdate, QueueState},
+  models::{self, ConversionRequest, JobUpdate, QueueState},
   paths::{canonical_existing_file, validate_output},
   tools::{append_stderr_tail, ffmpeg_failure_message, tool_command},
 };
@@ -49,32 +49,23 @@ pub(crate) async fn enqueue_conversion(
       },
     );
     let result = run_convert(&app, &task_id, &input, &output, request).await;
-    match result {
-      Ok(()) => {
-        let _ = app.emit(
-          CONVERSION_PROGRESS_EVENT,
-          JobUpdate {
-            id: task_id,
-            status: "completed".into(),
-            progress: 100,
-            output_path: Some(output.to_string_lossy().into_owned()),
-            error: None,
-          },
-        );
-      }
-      Err(error) => {
-        let _ = app.emit(
-          CONVERSION_PROGRESS_EVENT,
-          JobUpdate {
-            id: task_id,
-            status: "failed".into(),
-            progress: 0,
-            output_path: None,
-            error: Some(error),
-          },
-        );
-      }
-    }
+    let update = match result {
+      Ok(()) => JobUpdate {
+        id: task_id,
+        status: "completed".into(),
+        progress: 100,
+        output_path: Some(output.to_string_lossy().into_owned()),
+        error: None,
+      },
+      Err(error) => JobUpdate {
+        id: task_id,
+        status: "failed".into(),
+        progress: 0,
+        output_path: None,
+        error: Some(error),
+      },
+    };
+    models::emit_job_update(&app, CONVERSION_PROGRESS_EVENT, update);
   });
   Ok(id)
 }

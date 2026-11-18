@@ -208,3 +208,17 @@ pub struct ChapterFileInfo {
   pub has_video: bool,
   pub original_format: String,
 }
+
+/// Emit a job update and, if the job completed successfully, show a desktop notification.
+pub fn emit_job_update(app: &tauri::AppHandle, event: &str, update: JobUpdate) {
+  use tauri::Emitter;
+  let _ = app.emit(event, update.clone());
+  if update.status == "completed" {
+    use tauri_plugin_notification::NotificationExt;
+    let _ = app.notification()
+      .builder()
+      .title("Operazione completata")
+      .body("Il file è stato elaborato con successo.")
+      .show();
+  }
+}

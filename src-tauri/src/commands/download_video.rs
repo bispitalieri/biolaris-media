@@ -1,4 +1,4 @@
-use crate::{constants::CONVERSION_PROGRESS_EVENT, models::{JobUpdate, QueueState}, tools::{append_stderr_tail, tool_command}};
+use crate::{constants::CONVERSION_PROGRESS_EVENT, models::{self, JobUpdate, QueueState}, tools::{append_stderr_tail, tool_command}};
 use std::path::PathBuf;
 use tauri::{Emitter, Manager, State};
 use tauri_plugin_shell::process::CommandEvent;
@@ -46,7 +46,7 @@ pub(crate) async fn enqueue_video_download(app: tauri::AppHandle, state: State<'
       Ok(()) => JobUpdate { id: task_id, status: "completed".into(), progress: 100, output_path: Some(directory.to_string_lossy().into_owned()), error: None },
       Err(error) => JobUpdate { id: task_id, status: "failed".into(), progress: 0, output_path: None, error: Some(error) },
     };
-    let _ = app.emit(CONVERSION_PROGRESS_EVENT, update);
+    models::emit_job_update(&app, CONVERSION_PROGRESS_EVENT, update);
   });
   Ok(id)
 }

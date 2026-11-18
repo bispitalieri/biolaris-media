@@ -1,7 +1,7 @@
 use crate::{
     constants::CONVERSION_PROGRESS_EVENT,
     formats::get_file_ext,
-    models::{ImageToPdfPreview, ImagesToPdfRequest, JobUpdate, QueueState},
+    models::{self, ImageToPdfPreview, ImagesToPdfRequest, JobUpdate, QueueState},
     paths::{canonical_existing_file, validate_output},
 };
 use base64::{engine::general_purpose::STANDARD, Engine as _};
@@ -433,7 +433,7 @@ pub(crate) async fn enqueue_images_to_pdf(
             },
             Err(error) => failed_update(task_id, error),
         };
-        let _ = app.emit(CONVERSION_PROGRESS_EVENT, update);
+        models::emit_job_update(&app, CONVERSION_PROGRESS_EVENT, update);
     });
     Ok(id)
 }

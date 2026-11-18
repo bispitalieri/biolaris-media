@@ -1,7 +1,7 @@
 use crate::{
   constants::CONVERSION_PROGRESS_EVENT,
   formats::get_file_ext,
-  models::{CombinePdfsRequest, JobUpdate, PdfFileInfo, QueueState},
+  models::{self, CombinePdfsRequest, JobUpdate, PdfFileInfo, QueueState},
   paths::canonical_existing_file,
 };
 use lopdf::{Dictionary, Document, Object, ObjectId};
@@ -148,7 +148,7 @@ pub(crate) async fn enqueue_combine_pdfs(
       },
       Err(error) => failed_update(task_id, error),
     };
-    let _ = app.emit(CONVERSION_PROGRESS_EVENT, update);
+    models::emit_job_update(&app, CONVERSION_PROGRESS_EVENT, update);
   });
   Ok(id)
 }

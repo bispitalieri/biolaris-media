@@ -281,6 +281,9 @@
     "settingsQualityByFormatDescription": "Standardwert, der beim Auswählen des entsprechenden Formats angewendet wird.",
     "settingsQualityForFormat": "Standardqualität für {{format}}",
     "settingsSavedAutomatically": "Änderungen werden automatisch gespeichert",
+    "settingsOnboarding": "Willkommensführung",
+    "settingsOnboardingDescription": "Die Einführungsanleitung erneut ansehen.",
+    "settingsRestartOnboarding": "Führung neu starten",
     "licenseNoticeCopyright": "Copyright © 2026 Biolaris-Mitwirkende.",
     "licenseNoticeTerms": "Dieses Programm wird ohne Garantie bereitgestellt und unter der GNU AGPL v3 lizenziert. Sie dürfen es unter diesen Bedingungen weiterverteilen und ändern.",
     "licenseNoticeLink": "Lizenz anzeigen",
@@ -391,6 +394,48 @@
     "vectorizeRemoveCompleted": "Abgeschlossene entfernen",
     "vectorizeRunning": "Vektorpfade werden nachgezeichnet…",
     "vectorizeCompleted": "SVG erstellt",
-    "vectorizeFailed": "Vektorisierung fehlgeschlagen"
+    "vectorizeFailed": "Vektorisierung fehlgeschlagen",
+    "onboarding": {
+      "step": "Schritt {{current}} von {{total}}",
+      "skip": "Überspringen",
+      "back": "Zurück",
+      "next": "Weiter",
+      "getStarted": "Loslegen",
+      "welcome": {
+        "title": "Willkommen bei Biolaris Media",
+        "description": "Ihr All-in-One-Multimedia-Konverter — schnell, privat und vollständig lokal.",
+        "feature1": "Konvertieren Sie Bilder, Audio, Video und PDF-Dateien",
+        "feature2": "Alle Verarbeitung erfolgt lokal — Ihre Dateien verlassen niemals Ihr Gerät",
+        "feature3": "Keine Internetverbindung für Konvertierungen erforderlich"
+      },
+      "convert": {
+        "title": "Konvertieren Sie alles",
+        "description": "Transformieren Sie Ihre Dateien mit einem Klick in das gewünschte Format.",
+        "feature1": "Bilder: JPG, PNG, WebP, AVIF, HEIC, SVG und mehr",
+        "feature2": "Komprimieren Sie Dateien ohne Qualitätsverlust",
+        "feature3": "Zuschneiden, Vektorisieren und Hintergründe entfernen"
+      },
+      "audio": {
+        "title": "Audio-Tools",
+        "description": "Audio-Dateien präzise zusammenführen, aufteilen und konvertieren.",
+        "feature1": "Mehrere Audio-Spuren in einer Datei zusammenführen",
+        "feature2": "Audio automatisch nach Kapiteln aufteilen",
+        "feature3": "Konvertieren zwischen MP3, WAV, FLAC, OGG und mehr"
+      },
+      "video": {
+        "title": "Video & PDF",
+        "description": "Video- und PDF-Dateien kombinieren, konvertieren und organisieren.",
+        "feature1": "Mehrere Videos zu einem zusammenführen",
+        "feature2": "Diashows aus Bildern erstellen",
+        "feature3": "PDF-Dateien zusammenführen und aufteilen"
+      },
+      "ready": {
+        "title": "Alles bereit!",
+        "description": "Starten Sie jetzt mit der Konvertierung Ihrer Dateien. Sie können diese Einführung jederzeit überspringen.",
+        "feature1": "Ziehen Sie Dateien per Drag & Drop, um zu beginnen",
+        "feature2": "Passen Sie die Einstellungen für jeden Dateityp an",
+        "feature3": "Verfolgen Sie den Fortschritt in Echtzeit"
+      }
+    }
   }
 }

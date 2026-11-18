@@ -1,4 +1,4 @@
-import {useEffect} from 'react';
+import {useEffect, useState} from 'react';
 import {Route, Routes, Navigate, useLocation} from 'react-router-dom';
 import {isTauri} from '@tauri-apps/api/core';
 import {ConvertScreen} from './screens/ConvertScreen';
@@ -18,6 +18,7 @@ import {RemoveBackgroundScreen} from './screens/RemoveBackgroundScreen';
 import {DownloadVideoScreen} from './screens/DownloadVideoScreen';
 import {SettingsScreen} from './screens/SettingsScreen';
 import Sidebar from "./components/Sidebar.tsx";
+import {OnboardingScreen, isOnboardingComplete} from './components/OnboardingScreen';
 import {useTranslation} from 'react-i18next';
 import {openSettingsWindow} from './lib/windows';
 
@@ -25,6 +26,17 @@ export default function App() {
   const {t} = useTranslation();
   const location = useLocation();
   const isSettingsWindow = new URLSearchParams(location.search).get('window') === 'settings';
+  const forceOnboarding = new URLSearchParams(location.search).get('onboarding') === '1';
+  const [showOnboarding, setShowOnboarding] = useState(forceOnboarding || !isOnboardingComplete());
+
+  useEffect(() => {
+    if (forceOnboarding && showOnboarding) {
+      // Clear the flag so it doesn't persist on reload
+      const url = new URL(window.location.href);
+      url.searchParams.delete('onboarding');
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, [forceOnboarding, showOnboarding]);
 
   useEffect(() => {
     if (isSettingsWindow || isTauri()) return;
@@ -43,6 +55,10 @@ export default function App() {
     window.addEventListener('keydown', openSettingsOnShortcut);
     return () => window.removeEventListener('keydown', openSettingsOnShortcut);
   }, [isSettingsWindow]);
+
+  if (showOnboarding) {
+    return <OnboardingScreen onComplete={() => setShowOnboarding(false)} />;
+  }
 
   if (isSettingsWindow) {
     return <SettingsScreen />;

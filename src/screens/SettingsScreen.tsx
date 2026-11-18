@@ -1,6 +1,6 @@
 import {useCallback, useEffect, useState} from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faCheck, faFilePdf, faGear, faImage, faLanguage, faMoon, faMusic, faRocket, faVideo, faXmark} from '@fortawesome/free-solid-svg-icons';
+import {faCheck, faFilePdf, faGear, faImage, faLanguage, faMoon, faMusic, faPlayCircle, faRocket, faVideo, faXmark} from '@fortawesome/free-solid-svg-icons';
 import {disable, enable, isEnabled} from '@tauri-apps/plugin-autostart';
 import {getCurrentWindow} from '@tauri-apps/api/window';
 import {isTauri} from '@tauri-apps/api/core';
@@ -286,6 +286,23 @@ function GeneralSettings({settings, autostartAvailable, autostartBusy, autostart
           {autostartError && <p className="mt-3 text-xs text-red-400">{t('settingsAutostartError', {error: autostartError})}</p>}
         </section>
 
+        <section className={cardClass}>
+          <div className="mb-3 flex items-center gap-3">
+            <span className="grid h-9 w-9 place-items-center rounded-xl bg-zinc-800 text-violet-300"><FontAwesomeIcon icon={faPlayCircle} /></span>
+            <div><h3 className="text-sm font-semibold">{t('settingsOnboarding')}</h3><p className="text-xs text-zinc-500">{t('settingsOnboardingDescription')}</p></div>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              try { window.localStorage.removeItem('biolaris-onboarding-complete'); } catch { /* ignore */ }
+              window.location.href = '/?onboarding=1';
+            }}
+            className="rounded-lg border border-zinc-700 px-4 py-2 text-sm font-medium text-zinc-200 transition hover:bg-zinc-800"
+          >
+            {t('settingsRestartOnboarding')}
+          </button>
+        </section>
+
         <section className={`${cardClass} md:col-span-2`}>
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="min-w-0 flex-1">
@@ -360,6 +377,8 @@ function GeneralSettings({settings, autostartAvailable, autostartBusy, autostart
     </div>
   );
 }
+
+const ONBOARDING_PARAM_KEY = 'onboarding';
 
 type MediaSettingsProps = {
   category: MediaCategory;
