@@ -1,0 +1,10 @@
+[Desktop Entry]
+Categories=AudioVideo;Graphics;Viewer;Utility;
+Comment={{{comment}}}
+Exec={{{exec}}}
+Icon={{{icon}}}
+Keywords=media;video;audio;image;pdf;transcription;analysis;ai;
+MimeType=audio/mpeg;audio/wav;audio/ogg;audio/flac;audio/mp4;video/mp4;video/mpeg;video/webm;video/avi;video/x-matroska;image/png;image/jpeg;image/gif;image/bmp;image/webp;application/pdf;
+Name={{{name}}}
+Terminal=false
+Type=Application
