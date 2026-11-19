@@ -1,5 +1,5 @@
-import {useEffect, useState} from 'react';
-import {Route, Routes, Navigate, useLocation} from 'react-router-dom';
+import {useEffect, useRef, useState} from 'react';
+import {Route, Routes, Navigate, useLocation, useNavigate} from 'react-router-dom';
 import {isTauri} from '@tauri-apps/api/core';
 import {ConvertScreen} from './screens/ConvertScreen';
 import {CompressScreen} from './screens/CompressScreen';
@@ -20,6 +20,27 @@ import {SettingsScreen} from './screens/SettingsScreen';
 import Sidebar from "./components/Sidebar.tsx";
 import {OnboardingScreen, isOnboardingComplete} from './components/OnboardingScreen';
 import {useTranslation} from 'react-i18next';
+
+/// Ascolta gli eventi di navigazione dal menu nativo Rust e usa React Router
+/// per navigare senza ricaricare la pagina.
+function NavigationListener() {
+  const navigate = useNavigate();
+  const ref = useRef(navigate);
+  ref.current = navigate;
+
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent).detail as {path: string};
+      if (detail?.path) {
+        ref.current(detail.path, {replace: true});
+      }
+    };
+    window.addEventListener('tauri-navigate', handler);
+    return () => window.removeEventListener('tauri-navigate', handler);
+  }, []);
+
+  return null;
+}
 
 export default function App() {
   const {t} = useTranslation();
@@ -47,6 +68,7 @@ export default function App() {
 
   return (
     <div className="flex h-screen overflow-hidden">
+      <NavigationListener />
       <Sidebar />
       <main className="app-scrollbar min-h-0 min-w-0 flex-1 overflow-y-auto">
         <div className="mx-auto max-w-5xl px-8 py-8">

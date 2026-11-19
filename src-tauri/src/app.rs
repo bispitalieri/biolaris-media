@@ -214,7 +214,7 @@ pub fn run() {
           if let Some(route) = route {
             if let Some(window) = app.get_webview_window("main") {
               let _ = window.eval(&format!(
-                "window.location.href='{}';",
+                r#"window.dispatchEvent(new CustomEvent('tauri-navigate', {{detail: {{path: '{}'}}}}));"#,
                 route
               ));
             }
