@@ -1,8 +1,8 @@
 use crate::{commands, models::QueueState};
 use tracing_subscriber::{layer::SubscriberExt, EnvFilter};
 use tauri::{
-  menu::{Menu, MenuItem, PredefinedMenuItem},
-  Manager, WebviewUrl, WebviewWindowBuilder,
+    menu::{Menu, MenuItemBuilder, SubmenuBuilder},
+    Manager, WebviewUrl, WebviewWindowBuilder,
 };
 
 #[tauri::command]
@@ -10,47 +10,134 @@ fn available_parallelism() -> usize {
   num_cpus::get().max(1)
 }
 
-fn build_native_menu<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> tauri::Result<Menu<R>> {
-  let menu = Menu::default(app)?;
-  let settings_item =
-    MenuItem::with_id(app, "open-settings", "Settings…", true, Some("CmdOrCtrl+,"))?;
+/// Voci del menu File: (label, shortcut, menu_id, route)
+/// Le voci PDF non hanno scorciatoie (Shift+!@#$ non è supportato).
+/// I separatori dividono le categorie: Media, Audio, PDF.
+const FILE_MENU_MEDIA: &[(&str, Option<&str>, &str, &str)] = &[
+    ("Convert", Some("CmdOrCtrl+1"), "nav-convert", "/convert"),
+    ("Compress", Some("CmdOrCtrl+2"), "nav-compress", "/compress"),
+    ("Crop", Some("CmdOrCtrl+3"), "nav-crop", "/crop"),
+    ("Combine Videos", Some("CmdOrCtrl+4"), "nav-combine-videos", "/combine-videos"),
+    ("Slideshow", Some("CmdOrCtrl+5"), "nav-slideshow", "/slideshow"),
+    ("App Icon", Some("CmdOrCtrl+6"), "nav-app-icon", "/app-icon"),
+    ("Remove Background", Some("CmdOrCtrl+7"), "nav-remove-background", "/remove-background"),
+    ("Vectorize", Some("CmdOrCtrl+8"), "nav-vectorize", "/vectorize"),
+    ("Download Video", Some("CmdOrCtrl+9"), "nav-download-video", "/download-video"),
+];
 
+const FILE_MENU_AUDIO: &[(&str, Option<&str>, &str, &str)] = &[
+    ("Merge Audio", Some("CmdOrCtrl+0"), "nav-merge-audio", "/merge-audio"),
+    ("Split by Chapter", Some("CmdOrCtrl+-"), "nav-split-by-chapter", "/split-by-chapter"),
+];
+
+const FILE_MENU_PDF: &[(&str, Option<&str>, &str, &str)] = &[
+    ("Combine PDFs", None, "nav-combine-pdfs", "/combine-pdfs"),
+    ("Images to PDF", None, "nav-images-to-pdf", "/images-to-pdf"),
+    ("Split PDFs", None, "nav-split-pdfs", "/split-pdfs"),
+    ("Organize Pages", None, "nav-organize-pages", "/organize-pages"),
+];
+
+fn build_native_menu<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> tauri::Result<Menu<R>> {
+  // --- Menu App (macOS: About, Services, Hide, Quit) ---
+  #[cfg(target_os = "macos")]
+  let app_menu = SubmenuBuilder::new(app, "Biolaris Media")
+      .about(Some(tauri::menu::AboutMetadata {
+          ..Default::default()
+      }))
+      .separator()
+      .services()
+      .separator()
+      .hide()
+      .hide_others()
+      .show_all()
+      .separator()
+      .quit()
+      .build()?;
+
+  // --- Menu File con categorie separate ---
+  let mut file_menu = SubmenuBuilder::new(app, "File");
+
+  // Sezione Media
+  for (label, shortcut, id, _route) in FILE_MENU_MEDIA {
+      let mut builder = MenuItemBuilder::new(label).id(*id);
+      if let Some(sc) = shortcut {
+          builder = builder.accelerator(*sc);
+      }
+      let item = builder.build(app)?;
+      file_menu = file_menu.item(&item);
+  }
+
+  // Separatore + Sezione Audio
+  file_menu = file_menu.separator();
+  for (label, shortcut, id, _route) in FILE_MENU_AUDIO {
+      let mut builder = MenuItemBuilder::new(label).id(*id);
+      if let Some(sc) = shortcut {
+          builder = builder.accelerator(*sc);
+      }
+      let item = builder.build(app)?;
+      file_menu = file_menu.item(&item);
+  }
+
+  // Separatore + Sezione PDF
+  file_menu = file_menu.separator();
+  for (label, shortcut, id, _route) in FILE_MENU_PDF {
+      let mut builder = MenuItemBuilder::new(label).id(*id);
+      if let Some(sc) = shortcut {
+          builder = builder.accelerator(*sc);
+      }
+      let item = builder.build(app)?;
+      file_menu = file_menu.item(&item);
+  }
+
+  // Separatore + Settings
+  file_menu = file_menu.separator();
+  let settings_item = MenuItemBuilder::new("Settings…")
+      .id("open-settings")
+      .accelerator("CmdOrCtrl+,")
+      .build(app)?;
+  file_menu = file_menu.item(&settings_item);
+  let file_menu = file_menu.build()?;
+
+  // --- Menu Edit ---
+  let edit_menu = SubmenuBuilder::new(app, "Edit")
+      .undo()
+      .redo()
+      .separator()
+      .cut()
+      .copy()
+      .paste()
+      .select_all()
+      .build()?;
+
+  // --- Menu View ---
+  let view_menu = SubmenuBuilder::new(app, "View")
+      .item(&MenuItemBuilder::new("Refresh")
+          .id("refresh")
+          .accelerator("CmdOrCtrl+R")
+          .build(app)?)
+      .separator()
+      .fullscreen()
+      .build()?;
+
+  // --- Assemble menu ---
   #[cfg(target_os = "macos")]
   {
-    if let Some(app_menu) = menu
-      .items()?
-      .into_iter()
-      .find_map(|item| item.as_submenu().cloned())
-    {
-      app_menu.insert(&settings_item, 2)?;
-      let separator = PredefinedMenuItem::separator(app)?;
-      app_menu.insert(&separator, 3)?;
-    }
+    let menu = Menu::new(app)?;
+    menu.append(&app_menu)?;
+    menu.append(&file_menu)?;
+    menu.append(&edit_menu)?;
+    menu.append(&view_menu)?;
+    Ok(menu)
   }
 
   #[cfg(not(target_os = "macos"))]
   {
-    let submenus = menu
-      .items()?
-      .into_iter()
-      .filter_map(|item| item.as_submenu().cloned())
-      .collect::<Vec<_>>();
-    let target_menu = submenus
-      .iter()
-      .find(|submenu| {
-        submenu
-          .text()
-          .is_ok_and(|text| text.eq_ignore_ascii_case("Edit"))
-      })
-      .or_else(|| submenus.first());
-
-    if let Some(target_menu) = target_menu {
-      target_menu.append(&PredefinedMenuItem::separator(app)?)?;
-      target_menu.append(&settings_item)?;
-    }
+    let menu = Menu::new(app)?;
+    menu.append(&file_menu)?;
+    menu.append(&edit_menu)?;
+    menu.append(&view_menu)?;
+    Ok(menu)
   }
-
-  Ok(menu)
 }
 
 fn open_settings_window<R: tauri::Runtime>(app: &tauri::AppHandle<R>) {
@@ -88,6 +175,7 @@ pub fn run() {
     .setup(|app| {
       crate::tools::prepare_runtime_aliases(app.handle()).map_err(std::io::Error::other)?;
       crate::crash_handler::install(app.handle());
+
       Ok(())
     })
     .plugin(tauri_plugin_fs::init())
@@ -99,8 +187,39 @@ pub fn run() {
     .plugin(tauri_plugin_updater::Builder::new().build())
     .menu(|app| build_native_menu(app))
     .on_menu_event(|app, event| {
-      if event.id() == "open-settings" {
-        open_settings_window(app);
+      match event.id().0.as_str() {
+        "open-settings" => {
+          open_settings_window(app);
+        }
+        "refresh" => {
+          if let Some(window) = app.get_webview_window("main") {
+            let _ = window.eval("window.location.reload();");
+          }
+        }
+        _ => {
+          // Navigazione: trova la route associata all'ID del menu
+          let all_items: &[&[(&str, Option<&str>, &str, &str)]] = &[
+              FILE_MENU_MEDIA, FILE_MENU_AUDIO, FILE_MENU_PDF,
+          ];
+          let route = all_items.iter().flat_map(|items| items.iter()).find_map(
+              |(_label, _shortcut, id, route)| {
+                  if event.id().0.as_str() == *id {
+                      Some(*route)
+                  } else {
+                      None
+                  }
+              }
+          );
+
+          if let Some(route) = route {
+            if let Some(window) = app.get_webview_window("main") {
+              let _ = window.eval(&format!(
+                "window.location.href='{}';",
+                route
+              ));
+            }
+          }
+        }
       }
     })
     .manage(QueueState::default())
@@ -137,3 +256,4 @@ pub fn run() {
       tracing::error!("{}", crate::t!("app.error.startup", error = error.to_string()));
     });
 }
+

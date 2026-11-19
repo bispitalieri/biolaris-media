@@ -1,6 +1,6 @@
 import {useCallback, useEffect, useState} from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faCheck, faFilePdf, faGear, faImage, faLanguage, faMoon, faMusic, faPlayCircle, faRocket, faVideo, faXmark} from '@fortawesome/free-solid-svg-icons';
+import {faCheck, faFilePdf, faGear, faImage, faKeyboard, faLanguage, faMoon, faMusic, faPlayCircle, faRocket, faVideo, faXmark} from '@fortawesome/free-solid-svg-icons';
 import {disable, enable, isEnabled} from '@tauri-apps/plugin-autostart';
 import {getCurrentWindow} from '@tauri-apps/api/window';
 import {isTauri} from '@tauri-apps/api/core';
@@ -9,10 +9,11 @@ import {languageNames} from '../lib/i18n';
 import {MEDIA_FORMATS, type AppSettings, type MediaCategory, type ThemePreference, useAppSettings} from '../lib/settings';
 import {useUpdater} from '../lib/updater';
 
-type SettingsTab = 'general' | MediaCategory;
+type SettingsTab = 'general' | 'shortcuts' | MediaCategory;
 
 const tabIcons = {
   general: faGear,
+  shortcuts: faKeyboard,
   images: faImage,
   audio: faMusic,
   videos: faVideo,
@@ -20,8 +21,9 @@ const tabIcons = {
 };
 
 const mediaCategories: MediaCategory[] = ['images', 'audio', 'videos', 'pdf'];
-const tabTranslationKeys: Record<SettingsTab, 'settingsTabGeneral' | 'settingsTabImages' | 'settingsTabAudio' | 'settingsTabVideos' | 'settingsTabPdf'> = {
+const tabTranslationKeys: Record<SettingsTab, 'settingsTabGeneral' | 'settingsTabShortcuts' | 'settingsTabImages' | 'settingsTabAudio' | 'settingsTabVideos' | 'settingsTabPdf'> = {
   general: 'settingsTabGeneral',
+  shortcuts: 'settingsTabShortcuts',
   images: 'settingsTabImages',
   audio: 'settingsTabAudio',
   videos: 'settingsTabVideos',
@@ -133,7 +135,7 @@ export function SettingsScreen() {
         </header>
 
         <nav aria-label={t('settingsCategories')} className="mb-6 flex gap-1 overflow-x-auto rounded-2xl border border-zinc-800 bg-zinc-900/60 p-1.5">
-          {(['general', ...mediaCategories] as SettingsTab[]).map((tab) => (
+          {(['general', 'shortcuts', ...mediaCategories] as SettingsTab[]).map((tab) => (
             <button
               key={tab}
               role="tab"
@@ -160,6 +162,8 @@ export function SettingsScreen() {
               onAutostartChange={(enabled) => void setLaunchAtStartup(enabled)}
               onUpdateSettings={(patch) => updateGeneral(patch)}
             />
+          ) : activeTab === 'shortcuts' ? (
+            <ShortcutsSettings />
           ) : (
             <MediaSettings
               category={activeTab}
@@ -437,6 +441,84 @@ function MediaSettings({category, settings, title, description, onDefaultFormatC
           })}
         </div>
       </section>
+    </div>
+  );
+}
+
+const SHORTCUT_LIST = [
+  { key: '1', label: 'convert' as const },
+  { key: '2', label: 'compress' as const },
+  { key: '3', label: 'crop' as const },
+  { key: '4', label: 'combineVideos' as const },
+  { key: '5', label: 'slideshow' as const },
+  { key: '6', label: 'appIcon' as const },
+  { key: '7', label: 'removeBackground' as const },
+  { key: '8', label: 'vectorize' as const },
+  { key: '9', label: 'downloadVideo' as const },
+  { key: '0', label: 'mergeAudio' as const },
+  { key: '-', label: 'splitByChapter' as const },
+];
+
+function ShortcutsSettings() {
+  const {t} = useTranslation();
+  const modKey = typeof navigator !== 'undefined' && navigator.userAgent.includes('Mac') ? '⌘' : 'Ctrl';
+
+  return (
+    <div>
+      <div className="mb-5">
+        <h2 className="text-lg font-semibold">{t('settingsTabShortcuts')}</h2>
+        <p className="mt-1 text-sm text-zinc-400">{t('settingsShortcutsDescription')}</p>
+      </div>
+
+      <section className={cardClass}>
+        <div className="mb-4">
+          <h3 className="text-sm font-semibold">{t('settingsShortcutsMedia')}</h3>
+        </div>
+        <div className="space-y-2">
+          {SHORTCUT_LIST.slice(0, 9).map((item) => (
+            <div key={item.key} className="flex items-center justify-between rounded-lg bg-zinc-800/50 px-4 py-2.5">
+              <span className="text-sm text-zinc-200">{t(item.label)}</span>
+              <kbd className="rounded-lg border border-zinc-600 bg-zinc-700 px-2.5 py-1 text-xs font-mono text-zinc-200">
+                {modKey} {item.key}
+              </kbd>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className={`${cardClass} mt-4`}>
+        <div className="mb-4">
+          <h3 className="text-sm font-semibold">{t('settingsShortcutsAudio')}</h3>
+        </div>
+        <div className="space-y-2">
+          {SHORTCUT_LIST.slice(9, 11).map((item) => (
+            <div key={item.key} className="flex items-center justify-between rounded-lg bg-zinc-800/50 px-4 py-2.5">
+              <span className="text-sm text-zinc-200">{t(item.label)}</span>
+              <kbd className="rounded-lg border border-zinc-600 bg-zinc-700 px-2.5 py-1 text-xs font-mono text-zinc-200">
+                {modKey} {item.key}
+              </kbd>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className={`${cardClass} mt-4`}>
+        <div className="mb-4">
+          <h3 className="text-sm font-semibold">{t('settingsShortcutsSettings')}</h3>
+        </div>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between rounded-lg bg-zinc-800/50 px-4 py-2.5">
+            <span className="text-sm text-zinc-200">{t('settings')}</span>
+            <kbd className="rounded-lg border border-zinc-600 bg-zinc-700 px-2.5 py-1 text-xs font-mono text-zinc-200">
+              {modKey} ,
+            </kbd>
+          </div>
+        </div>
+      </section>
+
+      {!isTauri() && (
+        <p className="mt-4 text-xs text-amber-300">{t('settingsShortcutsNote')}</p>
+      )}
     </div>
   );
 }
