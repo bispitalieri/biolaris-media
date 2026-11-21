@@ -20,12 +20,38 @@ const basename = (path: string) => path.split(/[\\/]/).pop() || path;
 const outputFor = (path: string) => `${path.replace(/\.[^./\\]*$/, '')}-no-background.png`;
 const mimeFor = (ext: string) => ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' : `image/${ext}`;
 
+async function checkNetwork(): Promise<boolean> {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    await fetch('https://huggingface.co', {method: 'HEAD', signal: controller.signal});
+    clearTimeout(timeout);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function checkModelCache(): Promise<boolean> {
+  try {
+    const {env} = await import('@huggingface/transformers');
+    const cache = env.cacheDir;
+    // Check if the model folder exists in the cache via a simple probe
+    const response = await fetch(`${cache}/${modelId}/refs/${modelRevision}/revision`, {
+      method: 'HEAD',
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
 async function createSegmenter(onProgress: (progress: ProgressInfo) => void) {
   const {pipeline, env} = await import('@huggingface/transformers');
   env.allowRemoteModels = true;
   env.useBrowserCache = true;
   const wasm = env.backends.onnx.wasm;
-  if (!wasm) throw new Error('ONNX Runtime WebAssembly backend is unavailable');
+  if (!wasm) throw new Error('onnxRuntimeUnavailable');
   wasm.wasmPaths = {wasm: wasmUrl, mjs: wasmFactoryUrl};
   return pipeline('background-removal', modelId, {
     revision: modelRevision,
@@ -104,6 +130,12 @@ export function RemoveBackgroundScreen() {
     if (!image) return;
     setStatus('loading-model'); setProgress(0); setError(''); setOpenError(''); setOutputPath(''); setResultUrl('');
     try {
+      // Check network connectivity before attempting to download the model
+      const hasNetwork = await checkNetwork();
+      const hasCache = await checkModelCache();
+      if (!hasNetwork && !hasCache) {
+        throw new Error(t('removeBackgroundNoNetwork'));
+      }
       const updateLoadProgress = (info: ProgressInfo) => {
         if (typeof info.progress === 'number') setProgress(Math.max(0, Math.min(99, Math.round(info.progress))));
       };
@@ -131,8 +163,17 @@ export function RemoveBackgroundScreen() {
       });
       setOutputPath(savedPath); setStatus('completed'); setProgress(100);
     } catch (reason) {
+      const message = String(reason);
       segmenterPromise = null;
-      setStatus('failed'); setError(String(reason));
+      setStatus('failed');
+      // Provide user-friendly error messages for known failure modes
+      if (message === 'onnxRuntimeUnavailable') {
+        setError(t('removeBackgroundOnnxUnavailable'));
+      } else if (message.includes('fetch') || message.includes('network') || message.includes('Failed to fetch')) {
+        setError(t('removeBackgroundNetworkError'));
+      } else {
+        setError(message);
+      }
     }
   };
 

@@ -26,7 +26,7 @@
         { "path": "$APPDATA/**" },
         { "path": "$DOWNLOAD/**" },
         { "path": "$DESKTOP/**" },
-        { "path": "$DOCUMENT/**" },
+        { "path": "$DOCUMENTS/**" },
         { "path": "$PICTURE/**" },
         { "path": "$VIDEO/**" },
         { "path": "$AUDIO/**" },

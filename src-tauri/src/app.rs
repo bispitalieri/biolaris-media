@@ -254,7 +254,47 @@ pub fn run() {
     ])
     .run(tauri::generate_context!())
     .unwrap_or_else(|error| {
-      tracing::error!("{}", crate::t!("app.error.startup", error = error.to_string()));
+      let message = crate::t!("app.error.startup", error = error.to_string());
+      eprintln!("{}", message);
+      // Show a native error dialog before exiting.
+      // We use a minimal dialog via the system dialog API since the Tauri runtime
+      // failed to initialize fully — the plugin may not be available.
+      #[cfg(target_os = "macos")]
+      {
+        let _ = std::process::Command::new("osascript")
+          .args(&[
+            "-e", &format!(
+              "display dialog \"{}\" buttons {{\"OK\"}} default button 1 with icon stop with title \"Biolaris Media\"",
+              message.replace('"', "\\'")
+            ),
+          ])
+          .status();
+      }
+      #[cfg(target_os = "windows")]
+      {
+        use std::os::windows::process::CommandExt;
+        const CREATE_NO_WINDOW: u32 = 0x08000000;
+        let _ = std::process::Command::new("cmd")
+          .creation_flags(CREATE_NO_WINDOW)
+          .args(&[
+            "/c", "powershell", "-Command",
+            &format!(
+              "[System.Windows.MessageBox]::Show('{}', 'Biolaris Media', 'OK', 'Error')",
+              message.replace('"', "'")
+            ),
+          ])
+          .status();
+      }
+      #[cfg(target_os = "linux")]
+      {
+        let _ = std::process::Command::new("zenity")
+          .args(&[
+            "--error",
+            "--title", "Biolaris Media",
+            "--text", &message,
+          ])
+          .status();
+      }
       std::process::exit(1);
     });
 }
