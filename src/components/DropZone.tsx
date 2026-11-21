@@ -41,28 +41,29 @@ export function DropZone({onFiles, imageOnly = false, videoOnly = false, audioOn
 
   const handleFileSelect = async () => {
     try {
+      const ext = allowedExtensions ?? (imageOnly ? imageExtensions : videoOnly ? videoExtensions : audioOnly ? audioExtensions : [
+        // === IMAGES & PHOTOS ===
+        'jpg', 'jpeg', 'png', 'webp', 'webp2', 'heic', 'heif', 'avif', 'jxl', 'bpg', 'gif', 'bmp', 'tiff', 'tif', 'svg',
+        'ico', 'icns', 'jfif', 'pjpeg', 'pjpg', 'ape', 'psd', 'ai', 'xcf', 'tga', 'dds', 'hdr', 'exr', 'wmf', 'emf', 'eps',
+        'pcx', 'dcx', 'pbm', 'pgm', 'ppm', 'pnm', 'pdf',
+        // RAW formats (Photography)
+        'cr2', 'cr3', 'nef', 'arw', 'sr2', 'dng', 'rw2', 'orf', 'pef', 'raf', 'mrw', 'x3f', 'erf', '3fr', 'fff',
+
+        // === VIDEO & ANIMATIONS ===
+        'mp4', 'mkv', 'avi', 'mov', 'webm', 'wmv', 'flv', 'f4v', 'vob', 'ogv', 'ogm', 'qt',
+        'm4v', 'mpg', 'mpeg', 'm2v', '3gp', '3g2', 'ts', 'mts', 'm2ts', 'm2t', 'asf', 'rm', 'rmvb', 'divx', 'xvid', 'dv',
+        'amv', 'mjpeg', 'mjpg', 'roq', 'yuv', 'nut',
+
+        // === AUDIO ===
+        'mp3', 'wav', 'ogg', 'oga', 'mka', 'flac', 'm4a', 'm4r', 'aac', 'adts', 'wma', 'alac', 'aiff', 'aif', 'ape',
+        'pcm', 'opus', 'spx', 'amr', 'gsm', 'mid', 'midi', 'm4b', 'm4p', 'mpc', 'wv', 'dsf', 'dff', 'caf', 'tak', 'tta',
+        'ra', 'ram', 'au', 'snd', 'voc'
+      ]);
       const selected = await open({
         multiple: allowedExtensions || imageOnly || videoOnly || audioOnly ? multiple : true,
         filters: [{
           name: title || t(imageOnly ? 'images' : videoOnly ? 'videos' : audioOnly ? 'audio' : 'mediaAndDocuments'),
-          extensions: allowedExtensions ?? (imageOnly ? imageExtensions : videoOnly ? videoExtensions : audioOnly ? audioExtensions : [
-            // === IMMAGINI & FOTO ===
-            'jpg', 'jpeg', 'png', 'webp', 'webp2', 'heic', 'heif', 'avif', 'jxl', 'bpg', 'gif', 'bmp', 'tiff', 'tif', 'svg',
-            'ico', 'icns', 'jfif', 'pjpeg', 'pjpg', 'ape', 'psd', 'ai', 'xcf', 'tga', 'dds', 'hdr', 'exr', 'wmf', 'emf', 'eps',
-            'pcx', 'dcx', 'pbm', 'pgm', 'ppm', 'pnm', 'pdf',
-            // Formati RAW (Fotografia)
-            'cr2', 'cr3', 'nef', 'arw', 'sr2', 'dng', 'rw2', 'orf', 'pef', 'raf', 'mrw', 'x3f', 'erf', '3fr', 'fff',
-
-            // === VIDEO & ANIMAZIONI ===
-            'mp4', 'mkv', 'avi', 'mov', 'webm', 'wmv', 'flv', 'f4v', 'vob', 'ogv', 'ogm', 'qt',
-            'm4v', 'mpg', 'mpeg', 'm2v', '3gp', '3g2', 'ts', 'mts', 'm2ts', 'm2t', 'asf', 'rm', 'rmvb', 'divx', 'xvid', 'dv',
-            'amv', 'mjpeg', 'mjpg', 'roq', 'yuv', 'nut',
-
-            // === AUDIO ===
-            'mp3', 'wav', 'ogg', 'oga', 'mka', 'flac', 'm4a', 'm4r', 'aac', 'adts', 'wma', 'alac', 'aiff', 'aif', 'ape',
-            'pcm', 'opus', 'spx', 'amr', 'gsm', 'mid', 'midi', 'm4b', 'm4p', 'mpc', 'wv', 'dsf', 'dff', 'caf', 'tak', 'tta',
-            'ra', 'ram', 'au', 'snd', 'voc'
-          ])
+          extensions: ext
         }]
       });
       if (!selected) return;

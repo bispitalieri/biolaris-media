@@ -1,17 +1,16 @@
 {
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "identifier": "io.github.bspitalieri.biolaris-media",
   "bundle": {
     "category": "Utility",
     "shortDescription": "AI-powered media analysis and transcription tool",
     "longDescription": "Biolaris Media is an AI-powered desktop application for analyzing, transcribing, and managing media files including images, videos, audio, and PDF documents. It leverages local AI models to provide intelligent media processing capabilities.",
     "linux": {
-      "appimage": {
-        "desktopTemplate": "linux/Biolaris-Media.desktop"
-      },
       "deb": {
-        "desktopTemplate": "linux/Biolaris-Media.desktop"
+        "desktopTemplate": "packages/linux/Biolaris-Media.desktop"
       },
       "rpm": {
-        "desktopTemplate": "linux/Biolaris-Media.desktop"
+        "desktopTemplate": "packages/linux/Biolaris-Media.desktop"
       }
     }
   }

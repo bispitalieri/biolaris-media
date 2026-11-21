@@ -50,9 +50,9 @@ pub(crate) fn slideshow_output_path(
   if name.chars().any(|character| {
     character.is_control()
       || matches!(
-                character,
-                '/' | '\\' | ':' | '*' | '?' | '"' | '<' | '>' | '|'
-            )
+           character,
+           '/' | '\\' | ':' | '*' | '?' | '"' | '<' | '>' | '|'
+        )
   }) || name.ends_with('.')
   {
     return Err("Il nome del video contiene caratteri non validi".into());

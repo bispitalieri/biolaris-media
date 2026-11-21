@@ -21,8 +21,8 @@ import Sidebar from "./components/Sidebar.tsx";
 import {OnboardingScreen, isOnboardingComplete} from './components/OnboardingScreen';
 import {useTranslation} from 'react-i18next';
 
-/// Ascolta gli eventi di navigazione dal menu nativo Rust e usa React Router
-/// per navigare senza ricaricare la pagina.
+/// Listens for navigation events from the native Rust menu and uses React Router
+/// to navigate without reloading the page.
 function NavigationListener() {
   const navigate = useNavigate();
   const ref = useRef(navigate);

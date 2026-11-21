@@ -152,14 +152,17 @@ async fn run_convert(
       .await;
     let duration_secs: f64 = if let Ok(probe_res) = probe {
       if probe_res.status.success() {
-        String::from_utf8_lossy(&probe_res.stdout)
-          .trim()
-          .parse()
-          .unwrap_or(1.0)
+        let raw = String::from_utf8_lossy(&probe_res.stdout).trim().to_string();
+        raw.parse::<f64>().unwrap_or_else(|_| {
+          tracing::warn!("ffprobe returned invalid duration: '{}', falling back to 1.0", raw);
+          1.0
+        })
       } else {
+        tracing::warn!("ffprobe failed to probe duration for '{}', falling back to 1.0", input_text);
         1.0
       }
     } else {
+      tracing::warn!("ffprobe process failed for '{}', falling back to 1.0", input_text);
       1.0
     };
 
@@ -177,13 +180,13 @@ async fn run_convert(
     if is_ffmpeg_image_ext(&in_ext) && is_ffmpeg_image_ext(&out_ext) {
       let quality_input = request.quality as u32;
 
-      // 2. Limitiamo la qualità in ingresso tra 1 e 100
+      // 2. Clamp input quality between 1 and 100
       let clean_quality = quality_input.clamp(1, 100);
 
-      // 3. Calcoliamo la scala FFmpeg (da 1 a 31)
+      // 3. Calculate FFmpeg scale (1 to 31)
       let ffmpeg_q = ((100 - clean_quality) * 31) / 100;
 
-      // 4. FFmpeg -q:v per le immagini non dovrebbe essere 0, forziamo un minimo di 1
+      // 4. FFmpeg -q:v for images should not be 0, enforce a minimum of 1
       let final_q = ffmpeg_q.max(1);
 
       args.extend(["-q:v".into(), final_q.to_string()]);

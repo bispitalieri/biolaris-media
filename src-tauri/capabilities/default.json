@@ -20,6 +20,19 @@
     "fs:allow-remove",
     "fs:allow-rename",
     "fs:allow-exists",
+    {
+      "identifier": "fs:scope",
+      "allow": [
+        { "path": "$APPDATA/**" },
+        { "path": "$DOWNLOAD/**" },
+        { "path": "$DESKTOP/**" },
+        { "path": "$DOCUMENT/**" },
+        { "path": "$PICTURE/**" },
+        { "path": "$VIDEO/**" },
+        { "path": "$AUDIO/**" },
+        { "path": "$TEMP/**" }
+      ]
+    },
     "notification:default"
   ]
 }

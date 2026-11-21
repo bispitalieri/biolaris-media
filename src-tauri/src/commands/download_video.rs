@@ -24,10 +24,26 @@ fn destination(app: &tauri::AppHandle, requested: Option<String>) -> Result<Path
 fn valid_url(value: &str) -> bool {
   let value = value.trim();
   let Some((scheme, rest)) = value.split_once("://") else { return false; };
-  (scheme.eq_ignore_ascii_case("http") || scheme.eq_ignore_ascii_case("https"))
-    && !rest.is_empty()
-    && !rest.chars().any(|c| c.is_whitespace() || c.is_control())
-    && rest.split('/').next().is_some_and(|host| !host.is_empty() && !host.contains('@'))
+  if !(scheme.eq_ignore_ascii_case("http") || scheme.eq_ignore_ascii_case("https")) {
+    return false;
+  }
+  if rest.is_empty() {
+    return false;
+  }
+  // Reject whitespace, control characters, and shell metacharacters that could enable injection
+  if rest.chars().any(|c| {
+    c.is_whitespace()
+      || c.is_control()
+      || matches!(c, '|' | '&' | ';' | '`' | '$' | '(' | ')' | '{' | '}' | '<' | '>' | '!')
+  }) {
+    return false;
+  }
+  // Reject URLs with '@' in the host part (user:pass@host pattern)
+  let host = rest.split('/').next().unwrap_or("");
+  if host.is_empty() || host.contains('@') {
+    return false;
+  }
+  true
 }
 
 #[tauri::command]

@@ -10,9 +10,9 @@ fn available_parallelism() -> usize {
   num_cpus::get().max(1)
 }
 
-/// Voci del menu File: (label, shortcut, menu_id, route)
-/// Le voci PDF non hanno scorciatoie (Shift+!@#$ non è supportato).
-/// I separatori dividono le categorie: Media, Audio, PDF.
+/// File menu entries: (label, shortcut, menu_id, route)
+/// PDF entries have no shortcuts (Shift+!@#$ is not supported).
+/// Separators divide the categories: Media, Audio, PDF.
 const FILE_MENU_MEDIA: &[(&str, Option<&str>, &str, &str)] = &[
     ("Convert", Some("CmdOrCtrl+1"), "nav-convert", "/convert"),
     ("Compress", Some("CmdOrCtrl+2"), "nav-compress", "/compress"),
@@ -38,7 +38,7 @@ const FILE_MENU_PDF: &[(&str, Option<&str>, &str, &str)] = &[
 ];
 
 fn build_native_menu<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> tauri::Result<Menu<R>> {
-  // --- Menu App (macOS: About, Services, Hide, Quit) ---
+  // --- App menu (macOS: About, Services, Hide, Quit) ---
   #[cfg(target_os = "macos")]
   let app_menu = SubmenuBuilder::new(app, "Biolaris Media")
       .about(Some(tauri::menu::AboutMetadata {
@@ -54,10 +54,10 @@ fn build_native_menu<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> tauri::Res
       .quit()
       .build()?;
 
-  // --- Menu File con categorie separate ---
+  // --- File menu with separate categories ---
   let mut file_menu = SubmenuBuilder::new(app, "File");
 
-  // Sezione Media
+  // Media section
   for (label, shortcut, id, _route) in FILE_MENU_MEDIA {
       let mut builder = MenuItemBuilder::new(label).id(*id);
       if let Some(sc) = shortcut {
@@ -67,7 +67,7 @@ fn build_native_menu<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> tauri::Res
       file_menu = file_menu.item(&item);
   }
 
-  // Separatore + Sezione Audio
+  // Separator + Audio section
   file_menu = file_menu.separator();
   for (label, shortcut, id, _route) in FILE_MENU_AUDIO {
       let mut builder = MenuItemBuilder::new(label).id(*id);
@@ -78,7 +78,7 @@ fn build_native_menu<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> tauri::Res
       file_menu = file_menu.item(&item);
   }
 
-  // Separatore + Sezione PDF
+  // Separator + PDF section
   file_menu = file_menu.separator();
   for (label, shortcut, id, _route) in FILE_MENU_PDF {
       let mut builder = MenuItemBuilder::new(label).id(*id);
@@ -89,7 +89,7 @@ fn build_native_menu<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> tauri::Res
       file_menu = file_menu.item(&item);
   }
 
-  // Separatore + Settings
+  // Separator + Settings
   file_menu = file_menu.separator();
   let settings_item = MenuItemBuilder::new("Settings…")
       .id("open-settings")
@@ -168,8 +168,9 @@ pub fn run() {
   let subscriber = tracing_subscriber::registry()
     .with(tracing_subscriber::fmt::layer())
     .with(EnvFilter::from_default_env());
-  tracing::subscriber::set_global_default(subscriber)
-    .expect("il logger è inizializzato una sola volta");
+  if let Err(error) = tracing::subscriber::set_global_default(subscriber) {
+    eprintln!("Failed to set global tracing subscriber: {error}");
+  }
 
   tauri::Builder::default()
     .setup(|app| {
@@ -197,7 +198,7 @@ pub fn run() {
           }
         }
         _ => {
-          // Navigazione: trova la route associata all'ID del menu
+          // Navigation: find the route associated with the menu ID
           let all_items: &[&[(&str, Option<&str>, &str, &str)]] = &[
               FILE_MENU_MEDIA, FILE_MENU_AUDIO, FILE_MENU_PDF,
           ];
@@ -254,6 +255,7 @@ pub fn run() {
     .run(tauri::generate_context!())
     .unwrap_or_else(|error| {
       tracing::error!("{}", crate::t!("app.error.startup", error = error.to_string()));
+      std::process::exit(1);
     });
 }
 

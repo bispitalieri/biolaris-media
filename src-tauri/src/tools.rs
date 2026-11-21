@@ -199,6 +199,11 @@ pub(crate) fn tool_command(app: &tauri::AppHandle, name: &str) -> Command {
   }
 
   // Keep development convenient when a developer has installed the tools globally.
+  tracing::warn!(
+    "Bundled runtime tool '{}' not found, falling back to global command. \
+     This is expected in development but may fail in production if the tool is not installed.",
+    name
+  );
   app.shell().command(OsStr::new(name))
 }
 

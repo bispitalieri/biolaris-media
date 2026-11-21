@@ -5,15 +5,15 @@ use tauri_plugin_shell::ShellExt;
 pub(crate) fn open_output_file(app: tauri::AppHandle, path: String) -> Result<(), String> {
   let file = std::path::PathBuf::from(path)
     .canonicalize()
-    .map_err(|error| format!("File di output non accessibile: {error}"))?;
+    .map_err(|error| crate::t!("open_output.output_not_accessible", error = error.to_string()))?;
 
   if !file.is_file() {
-    return Err("Il percorso di output non è un file valido".into());
+    return Err(crate::t!("open_output.not_valid_file"));
   }
 
   app.shell()
     .open(file.to_string_lossy().into_owned(), None)
-    .map_err(|error| format!("Impossibile aprire il file: {error}"))
+    .map_err(|error| crate::t!("open_output.cannot_open_file", error = error.to_string()))
 }
 
 #[tauri::command]
@@ -21,32 +21,23 @@ pub(crate) fn open_output_file(app: tauri::AppHandle, path: String) -> Result<()
 pub(crate) fn open_output_directory(app: tauri::AppHandle, path: String) -> Result<(), String> {
   let file = std::path::PathBuf::from(path)
     .canonicalize()
-    .map_err(|error| format!("File di output non accessibile: {error}"))?;
-  let directory = if file.is_dir() { file.as_path() } else { file.parent().ok_or("Cartella di output non valida")? };
+    .map_err(|error| crate::t!("open_output.output_not_accessible", error = error.to_string()))?;
+  let directory = if file.is_dir() { file.as_path() } else { file.parent().ok_or(crate::t!("open_output.invalid_output_dir"))? };
 
-  if !directory.is_dir() { return Err("Il percorso di output non è valido".into()); }
+  if !directory.is_dir() { return Err(crate::t!("open_output.not_valid_path")); }
 
   app.shell()
     .open(directory.to_string_lossy().into_owned(), None)
-    .map_err(|error| format!("Impossibile aprire la cartella: {error}"))
+    .map_err(|error| crate::t!("open_output.cannot_open_folder", error = error.to_string()))
 }
 
 #[tauri::command]
 #[allow(deprecated)]
 pub(crate) fn show_in_finder(app: tauri::AppHandle, path: String) -> Result<(), String> {
   let file = std::path::PathBuf::from(&path);
-  #[cfg(target_os = "macos")]
-  {
-    if file.exists() {
-      let status = std::process::Command::new("open")
-        .arg("-R")
-        .arg(&file)
-        .status()
-        .map_err(|error| format!("Impossibile mostrare nel Finder: {error}"))?;
-      if status.success() {
-        return Ok(());
-      }
-    }
+  if file.exists() {
+    let parent = file.parent().unwrap_or(file.as_path());
+    return open_output_directory(app, parent.to_string_lossy().into_owned());
   }
   open_output_directory(app, path)
 }

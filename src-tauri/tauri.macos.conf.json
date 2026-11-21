@@ -1,0 +1,35 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "Biolaris Media",
+  "identifier": "io.github.bspitalieri.biolaris-media",
+  "bundle": {
+    "targets": ["app", "dmg"],
+    "macOS": {
+      "frameworks": [],
+      "minimumSystemVersion": "11.0",
+      "exceptionDomain": "",
+      "signingIdentity": null,
+      "entitlements": "packages/macos/entitlements.plist",
+      "infoPlist": "packages/macos/info_merge.plist",
+      "dmg": {
+        "background": "icons/dmgcanvas_bg.png",
+        "windowSize": {
+          "height": 400,
+          "width": 660
+        },
+        "appPosition": {
+          "x": 150,
+          "y": 180
+        },
+        "applicationFolderPosition": {
+          "x": 510,
+          "y": 180
+        },
+        "windowPosition": {
+          "x": 200,
+          "y": 180
+        }
+      }
+    }
+  }
+}
