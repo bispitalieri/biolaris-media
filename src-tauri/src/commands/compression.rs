@@ -83,7 +83,7 @@ async fn run_ffmpeg_compress(
   // Try ImageMagick for images
   if is_image_ext(&ext) {
     // Map compression quality 30-70 to 0-100 scale
-    let q = ((request.quality as u32) * 100 / 70).max(10).min(95) as u8;
+    let q = ((request.quality as u32) * 100 / 70).clamp(10, 95) as u8;
     return run_convert_image_magick(app, input, output, &ext, q, request.preserve_metadata)
       .await;
   }
@@ -177,20 +177,14 @@ async fn run_ffmpeg_compress(
       "-c:v".into(),
       "mjpeg".into(),
       "-q:v".into(),
-      ((100 - request.quality as u32) / 2)
-        .max(2)
-        .min(31)
-        .to_string(),
+      ((100 - request.quality as u32) / 2).clamp(2, 31).to_string(),
     ]);
   } else if ["png"].contains(&ext.as_str()) {
     args.extend([
       "-c:v".into(),
       "png".into(),
       "-compression_level".into(),
-      ((70 - request.quality as u32) / 10)
-        .max(0)
-        .min(9)
-        .to_string(),
+      ((70 - request.quality as u32) / 10).clamp(0, 9).to_string(),
     ]);
   } else if ["webp"].contains(&ext.as_str()) {
     args.extend([

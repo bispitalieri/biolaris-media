@@ -27,8 +27,10 @@ export async function openSettingsWindow() {
       alwaysOnTop: true,
       resizable: false,
     });
-    settingsWindow.once('tauri://error', (event) => console.error('Unable to open the settings window', event.payload));
-  } catch (error) {
-    console.error('Unable to open the settings window', error);
+    settingsWindow.once('tauri://error', () => {
+      // Settings window failed to initialize — user will notice the window didn't open.
+    });
+  } catch {
+    // Settings window creation failed — user will notice the window didn't open.
   }
 }

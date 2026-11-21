@@ -1,6 +1,5 @@
 import {useEffect, useRef, useState} from 'react';
 import {Route, Routes, Navigate, useLocation, useNavigate} from 'react-router-dom';
-import {isTauri} from '@tauri-apps/api/core';
 import {ConvertScreen} from './screens/ConvertScreen';
 import {CompressScreen} from './screens/CompressScreen';
 import {CropScreen} from './screens/CropScreen';
@@ -82,7 +81,7 @@ export default function App() {
             <Route path="/combine-pdfs" element={<CombinePdfsScreen/>}/>
             <Route path="/images-to-pdf" element={<ImagesToPdfScreen/>}/>
             <Route path="/split-pdfs" element={<SplitPdfsScreen/>}/>
-            {isTauri() && <Route path="/organize-pages" element={<OrganizePagesScreen/>}/>}
+            <Route path="/organize-pages" element={<OrganizePagesScreen/>}/>
             <Route path="/merge-audio" element={<MergeAudioScreen/>}/>
             <Route path="/split-by-chapter" element={<SplitByChapterScreen/>}/>
             <Route path="/download-video" element={<DownloadVideoScreen/>}/>

@@ -70,7 +70,7 @@ pub(crate) async fn enqueue_video_download(app: tauri::AppHandle, state: State<'
   Ok(id)
 }
 
-async fn run(app: &tauri::AppHandle, id: &str, urls: &[String], directory: &PathBuf) -> Result<(), String> {
+async fn run(app: &tauri::AppHandle, id: &str, urls: &[String], directory: &std::path::Path) -> Result<(), String> {
   for (index, url) in urls.iter().enumerate() {
     let output = directory.join("%(title).200B [%(id)s].%(ext)s");
     let (mut events, _child) = tool_command(app, "yt-dlp")

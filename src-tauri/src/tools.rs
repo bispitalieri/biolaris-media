@@ -238,8 +238,70 @@ pub(crate) fn ffmpeg_failure_message(exit_code: Option<i32>, stderr: &[u8]) -> S
 
 #[cfg(test)]
 mod tests {
-  use super::ensure_runtime_alias;
+  use super::{aliased_tool, append_stderr_tail, binary_target_triple, ensure_runtime_alias, ffmpeg_failure_message};
+  use crate::constants::MAX_STDERR_BYTES;
   use std::{fs, path::PathBuf};
+
+  #[test]
+  fn aliased_tool_returns_correct_mappings() {
+    assert_eq!(aliased_tool("ffprobe"), Some("ffmpeg"));
+    assert_eq!(aliased_tool("convert"), Some("magick"));
+    assert_eq!(aliased_tool("pdfunite"), Some("pdftoppm"));
+    assert_eq!(aliased_tool("ffmpeg"), None);
+    assert_eq!(aliased_tool("magick"), None);
+    assert_eq!(aliased_tool("unknown"), None);
+  }
+
+  #[test]
+  fn binary_target_triple_returns_known_targets() {
+    // The current platform should always return a known target
+    assert!(binary_target_triple().is_some() || !["macos", "windows", "linux"].contains(&std::env::consts::OS));
+  }
+
+  #[test]
+  fn append_stderr_tail_keeps_last_bytes() {
+    let mut stderr = Vec::new();
+    // Fill beyond MAX_STDERR_BYTES
+    let chunk = vec![b'A'; MAX_STDERR_BYTES + 100];
+    append_stderr_tail(&mut stderr, &chunk);
+    assert!(stderr.len() <= MAX_STDERR_BYTES);
+    assert_eq!(stderr, vec![b'A'; MAX_STDERR_BYTES]);
+  }
+
+  #[test]
+  fn append_stderr_tail_accumulates_small_chunks() {
+    let mut stderr = Vec::new();
+    append_stderr_tail(&mut stderr, b"hello");
+    append_stderr_tail(&mut stderr, b" world");
+    assert_eq!(stderr, b"hello world");
+  }
+
+  #[test]
+  fn append_stderr_tail_clears_on_large_chunk() {
+    let mut stderr = vec![b'B'; MAX_STDERR_BYTES];
+    let chunk = vec![b'C'; MAX_STDERR_BYTES];
+    append_stderr_tail(&mut stderr, &chunk);
+    assert_eq!(stderr, vec![b'C'; MAX_STDERR_BYTES]);
+  }
+
+  #[test]
+  fn ffmpeg_failure_message_with_stderr() {
+    let msg = ffmpeg_failure_message(Some(1), b"error: file not found");
+    assert!(msg.contains("1"));
+    assert!(msg.contains("file not found"));
+  }
+
+  #[test]
+  fn ffmpeg_failure_message_without_stderr() {
+    let msg = ffmpeg_failure_message(Some(2), b"");
+    assert!(msg.contains("2"));
+  }
+
+  #[test]
+  fn ffmpeg_failure_message_unknown_code() {
+    let msg = ffmpeg_failure_message(None, b"");
+    assert!(msg.contains("unknown"));
+  }
 
   #[test]
   fn runtime_alias_reuses_the_source_executable() -> Result<(), Box<dyn std::error::Error>> {

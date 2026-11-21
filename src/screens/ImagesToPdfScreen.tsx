@@ -202,7 +202,10 @@ export function ImagesToPdfScreen() {
     }).then((fn) => {
       if (active) unlisten = fn;
       else fn();
-    }).catch((reason) => console.error(reason));
+    }).catch(() => {
+      // If the event listener fails, progress updates won't be shown,
+      // but the conversion jobs will still complete in the background.
+    });
     return () => {
       active = false;
       unlisten?.();

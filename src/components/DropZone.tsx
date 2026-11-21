@@ -71,8 +71,8 @@ export function DropZone({onFiles, imageOnly = false, videoOnly = false, audioOn
       const paths: string[] = typeof selected === 'string' ? [selected] : selected;
 
       onFiles(pathsForDrop(paths, imageOnly, videoOnly, audioOnly, multiple, allowedExtensions));
-    } catch (err) {
-      console.error(err);
+    } catch {
+      // File dialog was cancelled or failed — no action needed.
     }
   };
 
@@ -99,7 +99,9 @@ export function DropZone({onFiles, imageOnly = false, videoOnly = false, audioOn
       }
     })
       .then((fn) => { if (alive) unlisten = fn; else fn(); })
-      .catch((err) => { console.error(err); });
+      .catch(() => {
+        // Drag-drop listener failed — drop zone won't work, but app continues.
+      });
 
     return () => {
       alive = false;

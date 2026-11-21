@@ -10,34 +10,59 @@ fn available_parallelism() -> usize {
   num_cpus::get().max(1)
 }
 
-/// File menu entries: (label, shortcut, menu_id, route)
+/// File menu entries: (i18n_key, shortcut, menu_id, route)
 /// PDF entries have no shortcuts (Shift+!@#$ is not supported).
 /// Separators divide the categories: Media, Audio, PDF.
 const FILE_MENU_MEDIA: &[(&str, Option<&str>, &str, &str)] = &[
-    ("Convert", Some("CmdOrCtrl+1"), "nav-convert", "/convert"),
-    ("Compress", Some("CmdOrCtrl+2"), "nav-compress", "/compress"),
-    ("Crop", Some("CmdOrCtrl+3"), "nav-crop", "/crop"),
-    ("Combine Videos", Some("CmdOrCtrl+4"), "nav-combine-videos", "/combine-videos"),
-    ("Slideshow", Some("CmdOrCtrl+5"), "nav-slideshow", "/slideshow"),
-    ("App Icon", Some("CmdOrCtrl+6"), "nav-app-icon", "/app-icon"),
-    ("Remove Background", Some("CmdOrCtrl+7"), "nav-remove-background", "/remove-background"),
-    ("Vectorize", Some("CmdOrCtrl+8"), "nav-vectorize", "/vectorize"),
-    ("Download Video", Some("CmdOrCtrl+9"), "nav-download-video", "/download-video"),
+    ("app.menu.convert", Some("CmdOrCtrl+1"), "nav-convert", "/convert"),
+    ("app.menu.compress", Some("CmdOrCtrl+2"), "nav-compress", "/compress"),
+    ("app.menu.crop", Some("CmdOrCtrl+3"), "nav-crop", "/crop"),
+    ("app.menu.combine_videos", Some("CmdOrCtrl+4"), "nav-combine-videos", "/combine-videos"),
+    ("app.menu.slideshow", Some("CmdOrCtrl+5"), "nav-slideshow", "/slideshow"),
+    ("app.menu.app_icon", Some("CmdOrCtrl+6"), "nav-app-icon", "/app-icon"),
+    ("app.menu.remove_background", Some("CmdOrCtrl+7"), "nav-remove-background", "/remove-background"),
+    ("app.menu.vectorize", Some("CmdOrCtrl+8"), "nav-vectorize", "/vectorize"),
+    ("app.menu.download_video", Some("CmdOrCtrl+9"), "nav-download-video", "/download-video"),
 ];
 
 const FILE_MENU_AUDIO: &[(&str, Option<&str>, &str, &str)] = &[
-    ("Merge Audio", Some("CmdOrCtrl+0"), "nav-merge-audio", "/merge-audio"),
-    ("Split by Chapter", Some("CmdOrCtrl+-"), "nav-split-by-chapter", "/split-by-chapter"),
+    ("app.menu.merge_audio", Some("CmdOrCtrl+0"), "nav-merge-audio", "/merge-audio"),
+    ("app.menu.split_by_chapter", Some("CmdOrCtrl+-"), "nav-split-by-chapter", "/split-by-chapter"),
 ];
 
 const FILE_MENU_PDF: &[(&str, Option<&str>, &str, &str)] = &[
-    ("Combine PDFs", None, "nav-combine-pdfs", "/combine-pdfs"),
-    ("Images to PDF", None, "nav-images-to-pdf", "/images-to-pdf"),
-    ("Split PDFs", None, "nav-split-pdfs", "/split-pdfs"),
-    ("Organize Pages", None, "nav-organize-pages", "/organize-pages"),
+    ("app.menu.combine_pdfs", None, "nav-combine-pdfs", "/combine-pdfs"),
+    ("app.menu.images_to_pdf", None, "nav-images-to-pdf", "/images-to-pdf"),
+    ("app.menu.split_pdfs", None, "nav-split-pdfs", "/split-pdfs"),
+    ("app.menu.organize_pages", None, "nav-organize-pages", "/organize-pages"),
 ];
 
+fn menu_label(id: &str) -> String {
+  match id {
+    "nav-convert" => crate::t!("app.menu.convert"),
+    "nav-compress" => crate::t!("app.menu.compress"),
+    "nav-crop" => crate::t!("app.menu.crop"),
+    "nav-combine-videos" => crate::t!("app.menu.combine_videos"),
+    "nav-slideshow" => crate::t!("app.menu.slideshow"),
+    "nav-app-icon" => crate::t!("app.menu.app_icon"),
+    "nav-remove-background" => crate::t!("app.menu.remove_background"),
+    "nav-vectorize" => crate::t!("app.menu.vectorize"),
+    "nav-download-video" => crate::t!("app.menu.download_video"),
+    "nav-merge-audio" => crate::t!("app.menu.merge_audio"),
+    "nav-split-by-chapter" => crate::t!("app.menu.split_by_chapter"),
+    "nav-combine-pdfs" => crate::t!("app.menu.combine_pdfs"),
+    "nav-images-to-pdf" => crate::t!("app.menu.images_to_pdf"),
+    "nav-split-pdfs" => crate::t!("app.menu.split_pdfs"),
+    "nav-organize-pages" => crate::t!("app.menu.organize_pages"),
+    _ => id.to_string(),
+  }
+}
+
 fn build_native_menu<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> tauri::Result<Menu<R>> {
+  let file_label = crate::t!("app.menu.file");
+  let edit_label = crate::t!("app.menu.edit");
+  let settings_label = crate::t!("app.menu.settings");
+
   // --- App menu (macOS: About, Services, Hide, Quit) ---
   #[cfg(target_os = "macos")]
   let app_menu = SubmenuBuilder::new(app, "Biolaris Media")
@@ -55,11 +80,12 @@ fn build_native_menu<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> tauri::Res
       .build()?;
 
   // --- File menu with separate categories ---
-  let mut file_menu = SubmenuBuilder::new(app, "File");
+  let mut file_menu = SubmenuBuilder::new(app, &file_label);
 
   // Media section
-  for (label, shortcut, id, _route) in FILE_MENU_MEDIA {
-      let mut builder = MenuItemBuilder::new(label).id(*id);
+  for (_label, shortcut, id, _route) in FILE_MENU_MEDIA {
+      let translated = menu_label(id);
+      let mut builder = MenuItemBuilder::new(&translated).id(*id);
       if let Some(sc) = shortcut {
           builder = builder.accelerator(*sc);
       }
@@ -69,8 +95,9 @@ fn build_native_menu<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> tauri::Res
 
   // Separator + Audio section
   file_menu = file_menu.separator();
-  for (label, shortcut, id, _route) in FILE_MENU_AUDIO {
-      let mut builder = MenuItemBuilder::new(label).id(*id);
+  for (_label, shortcut, id, _route) in FILE_MENU_AUDIO {
+      let translated = menu_label(id);
+      let mut builder = MenuItemBuilder::new(&translated).id(*id);
       if let Some(sc) = shortcut {
           builder = builder.accelerator(*sc);
       }
@@ -80,8 +107,9 @@ fn build_native_menu<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> tauri::Res
 
   // Separator + PDF section
   file_menu = file_menu.separator();
-  for (label, shortcut, id, _route) in FILE_MENU_PDF {
-      let mut builder = MenuItemBuilder::new(label).id(*id);
+  for (_label, shortcut, id, _route) in FILE_MENU_PDF {
+      let translated = menu_label(id);
+      let mut builder = MenuItemBuilder::new(&translated).id(*id);
       if let Some(sc) = shortcut {
           builder = builder.accelerator(*sc);
       }
@@ -91,7 +119,7 @@ fn build_native_menu<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> tauri::Res
 
   // Separator + Settings
   file_menu = file_menu.separator();
-  let settings_item = MenuItemBuilder::new("Settings…")
+  let settings_item = MenuItemBuilder::new(&settings_label)
       .id("open-settings")
       .accelerator("CmdOrCtrl+,")
       .build(app)?;
@@ -99,7 +127,7 @@ fn build_native_menu<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> tauri::Res
   let file_menu = file_menu.build()?;
 
   // --- Menu Edit ---
-  let edit_menu = SubmenuBuilder::new(app, "Edit")
+  let edit_menu = SubmenuBuilder::new(app, &edit_label)
       .undo()
       .redo()
       .separator()
@@ -186,7 +214,7 @@ pub fn run() {
     .plugin(tauri_plugin_process::init())
     .plugin(tauri_plugin_notification::init())
     .plugin(tauri_plugin_updater::Builder::new().build())
-    .menu(|app| build_native_menu(app))
+    .menu(build_native_menu)
     .on_menu_event(|app, event| {
       match event.id().0.as_str() {
         "open-settings" => {
@@ -199,6 +227,7 @@ pub fn run() {
         }
         _ => {
           // Navigation: find the route associated with the menu ID
+          #[allow(clippy::type_complexity)]
           let all_items: &[&[(&str, Option<&str>, &str, &str)]] = &[
               FILE_MENU_MEDIA, FILE_MENU_AUDIO, FILE_MENU_PDF,
           ];
@@ -214,7 +243,7 @@ pub fn run() {
 
           if let Some(route) = route {
             if let Some(window) = app.get_webview_window("main") {
-              let _ = window.eval(&format!(
+              let _ = window.eval(format!(
                 r#"window.dispatchEvent(new CustomEvent('tauri-navigate', {{detail: {{path: '{}'}}}}));"#,
                 route
               ));
@@ -262,7 +291,7 @@ pub fn run() {
       #[cfg(target_os = "macos")]
       {
         let _ = std::process::Command::new("osascript")
-          .args(&[
+          .args([
             "-e", &format!(
               "display dialog \"{}\" buttons {{\"OK\"}} default button 1 with icon stop with title \"Biolaris Media\"",
               message.replace('"', "\\'")
@@ -276,7 +305,7 @@ pub fn run() {
         const CREATE_NO_WINDOW: u32 = 0x08000000;
         let _ = std::process::Command::new("cmd")
           .creation_flags(CREATE_NO_WINDOW)
-          .args(&[
+          .args([
             "/c", "powershell", "-Command",
             &format!(
               "[System.Windows.MessageBox]::Show('{}', 'Biolaris Media', 'OK', 'Error')",
@@ -288,7 +317,7 @@ pub fn run() {
       #[cfg(target_os = "linux")]
       {
         let _ = std::process::Command::new("zenity")
-          .args(&[
+          .args([
             "--error",
             "--title", "Biolaris Media",
             "--text", &message,

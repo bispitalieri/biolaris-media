@@ -55,3 +55,87 @@ pub(crate) fn validate_output(
   }
   Err(crate::t!("paths.cannot_find_free_name"))
 }
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+  use std::fs;
+  use tempfile::TempDir;
+
+  #[test]
+  fn canonical_existing_file_rejects_directory() {
+    let dir = TempDir::new().unwrap();
+    let path = dir.path().to_str().unwrap();
+    let result = canonical_existing_file(path);
+    assert!(result.is_err());
+    let err = result.unwrap_err();
+    assert!(err.contains("regular file") || err.contains("must be"));
+  }
+
+  #[test]
+  fn canonical_existing_file_accepts_file() {
+    let dir = TempDir::new().unwrap();
+    let file_path = dir.path().join("test.txt");
+    fs::write(&file_path, "hello").unwrap();
+    let result = canonical_existing_file(file_path.to_str().unwrap());
+    assert!(result.is_ok());
+  }
+
+  #[test]
+  fn canonical_existing_file_rejects_nonexistent() {
+    let result = canonical_existing_file("/nonexistent/path/file.txt");
+    assert!(result.is_err());
+  }
+
+  #[test]
+  fn validate_output_rejects_wrong_extension() {
+    let result = validate_output("output.txt", "png", false);
+    assert!(result.is_err());
+  }
+
+  #[test]
+  fn validate_output_accepts_new_file() {
+    let dir = TempDir::new().unwrap();
+    let output = dir.path().join("new.png");
+    let result = validate_output(output.to_str().unwrap(), "png", false);
+    assert!(result.is_ok());
+    assert_eq!(result.unwrap().file_name().unwrap(), "new.png");
+  }
+
+  #[test]
+  fn validate_output_auto_rename_when_exists() {
+    let dir = TempDir::new().unwrap();
+    let output = dir.path().join("existing.png");
+    fs::write(&output, "data").unwrap();
+    let result = validate_output(output.to_str().unwrap(), "png", true);
+    assert!(result.is_ok());
+    let renamed = result.unwrap();
+    assert!(renamed.file_name().unwrap().to_str().unwrap().starts_with("existing_"));
+    assert!(renamed.file_name().unwrap().to_str().unwrap().ends_with(".png"));
+  }
+
+  #[test]
+  fn validate_output_rejects_existing_when_no_auto_rename() {
+    let dir = TempDir::new().unwrap();
+    let output = dir.path().join("existing.png");
+    fs::write(&output, "data").unwrap();
+    let result = validate_output(output.to_str().unwrap(), "png", false);
+    assert!(result.is_err());
+    let err = result.unwrap_err();
+    assert!(err.contains("exists") || err.contains("already"));
+  }
+
+  #[test]
+  fn validate_output_rejects_invalid_parent() {
+    let result = validate_output("/nonexistent/dir/output.png", "png", false);
+    assert!(result.is_err());
+  }
+
+  #[test]
+  fn validate_output_accepts_case_insensitive_extension() {
+    let dir = TempDir::new().unwrap();
+    let output = dir.path().join("test.PNG");
+    let result = validate_output(output.to_str().unwrap(), "png", false);
+    assert!(result.is_ok());
+  }
+}

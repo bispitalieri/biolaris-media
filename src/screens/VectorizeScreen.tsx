@@ -93,7 +93,10 @@ export function VectorizeScreen() {
         if (active) unlisten = fn;
         else fn();
       })
-      .catch((err) => console.error(err));
+      .catch(() => {
+        // If the event listener fails, progress updates won't be shown,
+        // but the conversion jobs will still complete in the background.
+      });
 
     return () => {
       active = false;
