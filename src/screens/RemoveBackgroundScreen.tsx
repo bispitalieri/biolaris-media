@@ -61,12 +61,45 @@ async function createSegmenter(onProgress: (progress: ProgressInfo) => void) {
   });
 }
 
+async function createSegmenterWithRetry(onProgress: (progress: ProgressInfo) => void) {
+  const maxRetries = 3;
+  const baseDelay = 2000; // 2 seconds
+  let lastError: Error | null = null;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await createSegmenter(onProgress);
+    } catch (err) {
+      lastError = err as Error;
+      const message = String(err).toLowerCase();
+      // Only retry on network-related errors, not on fatal errors
+      const isRetryable = message.includes('fetch') ||
+        message.includes('network') ||
+        message.includes('timeout') ||
+        message.includes('aborted') ||
+        message.includes('failed to fetch');
+
+      if (!isRetryable || attempt === maxRetries) {
+        throw err;
+      }
+
+      // Exponential backoff: 2s, 4s, 8s with jitter
+      const jitter = Math.random() * 1000;
+      const delay = baseDelay * Math.pow(2, attempt - 1) + jitter;
+      onProgress({status: `retrying`, progress: 0, name: `Retry ${attempt}/${maxRetries}`});
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+
+  throw lastError!;
+}
+
 async function runBackgroundRemoval(
   source: Blob,
   onProgress: (progress: ProgressInfo) => void,
   onReady: () => void,
 ) {
-  segmenterPromise ??= createSegmenter(onProgress);
+  segmenterPromise ??= createSegmenterWithRetry(onProgress);
   const segmenter = await segmenterPromise;
   onReady();
   return segmenter(source);

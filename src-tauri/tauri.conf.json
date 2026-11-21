@@ -27,7 +27,7 @@
     "beforeDevCommand": "npm run dev",
     "frontendDist": "../dist",
     "devUrl": "http://127.0.0.1:1420",
-    "removeUnusedCommands": true
+    "removeUnusedCommands": false
   },
   "app": {
     "windows": [
@@ -45,7 +45,7 @@
         "enable": true,
         "scope": {
           "allow": ["$APPDATA/**", "$DOWNLOAD/**", "$DESKTOP/**", "$DOCUMENTS/**"],
-          "requireLiteralLeadingDot": false
+          "requireLiteralLeadingDot": true
         }
       },
       "csp": "default-src 'self'; img-src 'self' asset: http://asset.localhost data: blob:; media-src 'self' asset: http://asset.localhost blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self' https://huggingface.co https://cdn-lfs-us-1.huggingface.co https://cdn-lfs.huggingface.co https://huggingface.co"
