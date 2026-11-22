@@ -6,10 +6,10 @@
     "targets": ["app", "dmg"],
     "macOS": {
       "frameworks": [],
-      "minimumSystemVersion": "11.0",
       "exceptionDomain": "",
-      "signingIdentity": null,
+      "signingIdentity": "-",
       "entitlements": "packages/macos/entitlements.plist",
+      "minimumSystemVersion": "11.0",
       "dmg": {
         "background": "icons/dmgcanvas_bg.png",
         "windowSize": {
