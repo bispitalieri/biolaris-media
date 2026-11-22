@@ -10,7 +10,6 @@
       "exceptionDomain": "",
       "signingIdentity": null,
       "entitlements": "packages/macos/entitlements.plist",
-      "infoPlist": "packages/macos/info_merge.plist",
       "dmg": {
         "background": "icons/dmgcanvas_bg.png",
         "windowSize": {
