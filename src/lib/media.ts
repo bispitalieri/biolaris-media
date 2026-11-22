@@ -63,16 +63,16 @@ export type ConversionRequest = {
   outputPath: string;
   format: OutputFormat;
   quality: number;
-  preserveMetadata: boolean
-  autoRenameOutputs: boolean
+  preserveMetadata: boolean;
+  autoRenameOutputs: boolean;
 };
 
 export type CompressionRequest = {
   inputPath: string;
   outputPath: string;
   quality: CompressionQuality;
-  preserveMetadata: boolean
-  autoRenameOutputs: boolean
+  preserveMetadata: boolean;
+  autoRenameOutputs: boolean;
 };
 
 export type CropRequest = {
@@ -192,7 +192,7 @@ export type JobUpdate = {
   status: 'running' | 'completed' | 'failed';
   progress: number;
   outputPath: string | null;
-  error: string | null
+  error: string | null;
 };
 
 export const enqueueConversion = (request: ConversionRequest) => invoke<string>('enqueue_conversion', {request});
