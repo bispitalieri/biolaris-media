@@ -10,12 +10,61 @@ concurrency:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
+  ci-gate:
+    name: Wait for CI on tagged commit
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Wait for matching CI run
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          deadline=$((SECONDS + 300))
+
+          while (( SECONDS < deadline )); do
+            runs="$(gh run list \
+              --workflow ci.yml \
+              --commit "$TAG_SHA" \
+              --json databaseId,status,conclusion,headSha \
+              --limit 100)"
+
+            matching_runs="$(jq --arg sha "$TAG_SHA" '[.[] | select(.headSha == $sha)]' <<< "$runs")"
+
+            if jq -e 'any(.[]; .conclusion == "success")' <<< "$matching_runs" >/dev/null; then
+              echo "CI succeeded for tagged commit $TAG_SHA."
+              exit 0
+            fi
+
+            if jq -e 'length > 0 and all(.[]; .status == "completed")' <<< "$matching_runs" >/dev/null; then
+              echo "::error::CI completed without a successful run for tagged commit $TAG_SHA."
+              jq -r '.[] | "run \(.databaseId): \(.conclusion // .status)"' <<< "$matching_runs"
+              exit 1
+            fi
+
+            if jq -e 'length > 0' <<< "$matching_runs" >/dev/null; then
+              echo "CI for $TAG_SHA is queued or running; checking again in 15 seconds."
+            else
+              echo "No CI run found yet for $TAG_SHA; checking again in 15 seconds."
+            fi
+
+            sleep 15
+          done
+
+          echo "::error::No successful CI run appeared for tagged commit $TAG_SHA within 5 minutes."
+          exit 1
+
   validate:
     name: Validate release configuration
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 30
+    needs: ci-gate
 
     steps:
       - uses: actions/checkout@v7
@@ -90,13 +139,6 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
           RELEASE_PLATFORM: macOS
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: node scripts/validate-updater-config.mjs
 
       - name: Verify updater signing key and password
@@ -183,12 +225,6 @@ jobs:
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         with:
           tagName: v__VERSION__
           releaseName: "Biolaris Media v__VERSION__"
