@@ -1,5 +1,10 @@
 ## [unreleased]
 
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Gate release on successful CI and drop Apple signing secrets
+## [0.1.3] - 2026-11-27
+
 ### 🚀 Features
 
 - Aggiungi script release e bump-version
@@ -44,6 +49,7 @@
 - Clean up stale unreleased changelog and macOS plist config
 - Enhance licensing compliance, CI/CD pipeline, and media file access
 - Optimize Rust caching and toolchain setup in workflows
+- Release v0.1.3
 
 ### 💼 Other
 
