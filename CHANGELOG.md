@@ -1,3 +1,54 @@
+## [unreleased]
+
+### 🚀 Features
+
+- Aggiungi script release e bump-version
+- *(locales)* Add German, Spanish, and French translations
+- *(app)* Add onboarding flow and job completion notifications
+- *(queue)* Enforce maximum job queue size
+- *(tauri)* Add backend localization with rust-i18n
+- *(ui)* Add keyboard shortcuts for sidebar navigation
+- *(app)* Add global panic crash handler
+- *(navigation)* Use React Router instead of full page reload for native menu navigation
+- *(tauri)* Add multi-platform bundling and harden file access
+- Localize native menu and add Rust test suite with CI
+- *(remove-background)* Add retry with exponential backoff for model loading
+
+### 🐛 Bug Fixes
+
+- *(locales)* Escape quote in German combinePdfsDescription
+- *(remove-background)* Add network/cache checks and friendly errors
+
+### 📚 Documentation
+
+- Move documentation into .github and restructure READMEs
+- *(readme)* Enhance project documentation with tech stack, alternatives, and badges
+
+### 🚜 Refactor
+
+- *(shortcuts)* Move keyboard shortcuts to native Tauri menu
+- *(download)* Simplify valid_url boolean return
+
+### 🎨 Styling
+
+- *(media)* Add missing semicolons to type declarations
+
+### ⚙️ Miscellaneous Tasks
+
+- Drop tauri/custom-protocol feature from Rust warm build
+- *(workflows)* Use explicit npm cache and git-cliff release notes
+- Mark package as private
+- *(release)* Refactor release pipeline with shared matrix and tauri-action
+- *(workflows)* Inline build matrix and remove shared matrix file
+- *(release)* Remove version check step from release workflow
+- Clean up stale unreleased changelog and macOS plist config
+- Enhance licensing compliance, CI/CD pipeline, and media file access
+- Optimize Rust caching and toolchain setup in workflows
+
+### 💼 Other
+
+- *(tauri)* Add Linux desktop integration and bundle metadata
+- *(tauri)* Configure package targets and signing settings
 ## [0.1.2] - 2026-11-05
 
 ### 🚀 Features
