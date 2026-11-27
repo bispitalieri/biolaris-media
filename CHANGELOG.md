@@ -1,8 +1,11 @@
-## [unreleased]
+## [0.1.4] - 2026-11-27
 
 ### ⚙️ Miscellaneous Tasks
 
 - *(release)* Gate release on successful CI and drop Apple signing secrets
+- Release v0.1.4
+- *(release)* Target repository explicitly in CI gate lookup
+- *(release)* Add Linux system dependencies for Tauri build
 ## [0.1.3] - 2026-11-27
 
 ### 🚀 Features
