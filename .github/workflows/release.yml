@@ -30,6 +30,7 @@ jobs:
 
           while (( SECONDS < deadline )); do
             runs="$(gh run list \
+              --repo "$GITHUB_REPOSITORY" \
               --workflow ci.yml \
               --commit "$TAG_SHA" \
               --json databaseId,status,conclusion,headSha \
