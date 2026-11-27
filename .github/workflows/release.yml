@@ -26,7 +26,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          deadline=$((SECONDS + 300))
+          deadline=$((SECONDS + 1800))
 
           while (( SECONDS < deadline )); do
             runs="$(gh run list \
@@ -58,13 +58,13 @@ jobs:
             sleep 15
           done
 
-          echo "::error::No successful CI run appeared for tagged commit $TAG_SHA within 5 minutes."
+          echo "::error::No successful CI run appeared for tagged commit $TAG_SHA within 30 minutes."
           exit 1
 
   validate:
-    name: Validate release configuration
+    name: Validate release signing configuration
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
     needs: ci-gate
 
     steps:
@@ -74,66 +74,8 @@ jobs:
         with:
           node-version: 24
 
-      - name: Get npm cache directory
-        id: npm-cache-dir
-        shell: bash
-        run: echo "dir=$(npm config get cache)" >> "$GITHUB_OUTPUT"
-
-      - name: Restore npm cache
-        uses: actions/cache/restore@v6
-        with:
-          path: ${{ steps.npm-cache-dir.outputs.dir }}
-          key: npm-${{ runner.os }}-${{ runner.arch }}-node24-${{ hashFiles('package-lock.json') }}
-
-      - name: Install dependencies
+      - name: Install Node dependencies
         run: npm ci --prefer-offline
-
-      - name: Run frontend tests
-        run: npm run test
-
-      - name: Build frontend
-        run: npm run build
-
-      - name: Install Rust Toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy
-
-      - name: Cache Rust dependencies
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: src-tauri -> target
-          shared-key: linux-validation
-
-      - name: Install Linux dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install --yes --no-install-recommends \
-            libwebkit2gtk-4.1-dev \
-            build-essential \
-            curl \
-            wget \
-            file \
-            libxdo-dev \
-            libssl-dev \
-            libayatana-appindicator3-dev \
-            librsvg2-dev \
-            libgtk-3-dev \
-            patchelf
-
-      - name: Prepare runtime placeholder for Rust validation
-        shell: bash
-        run: |
-          mkdir -p src-tauri/binaries/runtime-current
-          touch src-tauri/binaries/runtime-current/.cache-placeholder
-
-      - name: Run Rust clippy
-        working-directory: src-tauri
-        run: cargo clippy --locked -- -D warnings
-
-      - name: Run Rust tests
-        working-directory: src-tauri
-        run: cargo test --locked
 
       - name: Validate updater signing configuration
         env:
