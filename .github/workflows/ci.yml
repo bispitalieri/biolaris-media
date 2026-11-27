@@ -89,6 +89,7 @@ jobs:
           path: ${{ steps.npm-cache-dir.outputs.dir }}
           key: npm-${{ runner.os }}-${{ runner.arch }}-node24-${{ hashFiles('package-lock.json') }}
 
+      - run: npm run test
       - run: npm run build
 
   rust-cache:

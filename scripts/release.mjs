@@ -27,12 +27,7 @@ if (!bumpType || !['patch', 'minor', 'major'].includes(bumpType)) {
 }
 
 function run(command, { cwd = rootDir, capture = false } = {}) {
-  try {
-    const result = execSync(command, { cwd, encoding: 'utf8', stdio: capture ? 'pipe' : 'inherit' });
-    return result;
-  } catch (error) {
-    return null;
-  }
+  return execSync(command, { cwd, encoding: 'utf8', stdio: capture ? 'pipe' : 'inherit' });
 }
 
 // --- Step 1: Verifica branch e stato pulito ---

@@ -170,7 +170,7 @@ Per creare una build desktop, esegui `npm run tauri:build`; per compilare solo i
 - [Guida per contribuire](.github/CONTRIBUTING.it.md)
 - [Politica di sicurezza](.github/SECURITY.it.md)
 - [Codice di condotta](.github/CODE_OF_CONDUCT.it.md)
-- [Note sul modello di terze parti (in inglese)](.github/THIRD_PARTY_NOTICES.md)
+- [Avvisi sui runtime e sul modello di terze parti (in inglese)](.github/THIRD_PARTY_NOTICES.md)
 
 La documentazione è mantenuta in questo repository; Biolaris non ha un sito o un portale documentale separato.
 

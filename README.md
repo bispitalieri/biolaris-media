@@ -172,7 +172,7 @@ Create a desktop build with `npm run tauri:build`; build only the frontend with 
 - [Contributing guide](.github/CONTRIBUTING.md)
 - [Security policy](.github/SECURITY.md)
 - [Code of Conduct](.github/CODE_OF_CONDUCT.md)
-- [Third-party model notice](.github/THIRD_PARTY_NOTICES.md)
+- [Third-party runtime and model notices](.github/THIRD_PARTY_NOTICES.md)
 
 Documentation is maintained in this repository; Biolaris has no separate website or documentation portal.
 
