@@ -1,8 +1,14 @@
-## [unreleased]
+## [0.1.7] - 2026-11-27
+
+### 🐛 Bug Fixes
+
+- *(release)* Tag changelog generation with new version
+## [0.1.6] - 2026-11-27
 
 ### ⚙️ Miscellaneous Tasks
 
 - Release v0.1.5
+- Release v0.1.6
 ## [0.1.4] - 2026-11-27
 
 ### ⚙️ Miscellaneous Tasks
