@@ -203,18 +203,23 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - name: Extract release notes from CHANGELOG
         env:
           RELEASE_VERSION: ${{ github.ref_name }}
         run: |
           VERSION="${RELEASE_VERSION#v}"
+          PREVIOUS_TAG="$(git describe --tags --abbrev=0 "${GITHUB_SHA}^" --match 'v*')"
           sed -n "/^## \[${VERSION}\]/,/^## /p" CHANGELOG.md | sed '$d' > release-notes.md
 
           if [ ! -s release-notes.md ]; then
             echo "::error::No release notes found for version $VERSION in CHANGELOG.md."
             exit 1
           fi
+
+          printf '\nFull Changelog: %s...%s\n' "$PREVIOUS_TAG" "$RELEASE_VERSION" >> release-notes.md
 
           echo "Extracted release notes for $VERSION:"
           cat release-notes.md
