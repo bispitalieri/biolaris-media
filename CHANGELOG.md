@@ -1,8 +1,18 @@
+## [0.1.8] - 2026-11-27
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Slim validate job to signing checks and extend CI wait
+- *(release)* Add full changelog link to release notes
 ## [0.1.7] - 2026-11-27
 
 ### 🐛 Bug Fixes
 
 - *(release)* Tag changelog generation with new version
+
+### ⚙️ Miscellaneous Tasks
+
+- Release v0.1.7
 ## [0.1.6] - 2026-11-27
 
 ### ⚙️ Miscellaneous Tasks
