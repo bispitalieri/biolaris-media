@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "Biolaris Media",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "identifier": "io.github.bspitalieri.biolaris-media",
   "bundle": {
     "active": true,
