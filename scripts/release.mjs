@@ -78,7 +78,7 @@ try {
 // --- Step 4: Aggiorna CHANGELOG ---
 console.log('\n📝 Aggiornamento di CHANGELOG.md...\n');
 try {
-  execSync('npx git-cliff --output CHANGELOG.md', { cwd: rootDir, stdio: 'inherit' });
+  execSync(`npx git-cliff --tag v${newVersion} --output CHANGELOG.md`, { cwd: rootDir, stdio: 'inherit' });
 } catch {
   console.error('\n❌ Errore: generazione del changelog fallita.');
   process.exit(1);
