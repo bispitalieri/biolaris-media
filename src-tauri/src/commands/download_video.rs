@@ -40,10 +40,7 @@ fn valid_url(value: &str) -> bool {
   }
   // Reject URLs with '@' in the host part (user:pass@host pattern)
   let host = rest.split('/').next().unwrap_or("");
-  if host.is_empty() || host.contains('@') {
-    return false;
-  }
-  true
+  !(host.is_empty() || host.contains('@'))
 }
 
 #[tauri::command]
