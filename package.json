@@ -1,6 +1,6 @@
 {
   "name": "biolaris-media",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "private": true,
   "description": "Open-source desktop app for local media conversion and compression",
   "license": "AGPL-3.0-only",
